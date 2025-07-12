@@ -86,3 +86,4 @@ def get_files_by_subfolder(root_dir, count_lines=False):
                     file_entries[name] = None
         file_dict[folder_name] = file_entries
     return file_dict
+
