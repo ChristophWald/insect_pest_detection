@@ -87,3 +87,26 @@ def get_files_by_subfolder(root_dir, count_lines=False):
         file_dict[folder_name] = file_entries
     return file_dict
 
+def clean_label_files(label_path):
+    """
+    Reads label files organized in subfolders under `label_path`,
+    removes minus signs from numeric values, and overwrites the files
+    with cleaned content.
+    path should be: /user/christoph.wald/u15287/big-scratch/dataset/labels
+    """
+    # Process each file
+    for subfolder in files_labeled:
+        for filename in files_labeled[subfolder]:
+            filepath = os.path.join(label_path, subfolder, filename)
+
+            with open(filepath, "r") as f:
+                lines = f.readlines()
+
+            cleaned_lines = []
+            for line in lines:
+                # Remove all minus signs from the line
+                cleaned_line = line.replace('-', '')
+                cleaned_lines.append(cleaned_line)
+
+            with open(filepath, "w") as f:
+                f.writelines(cleaned_lines)

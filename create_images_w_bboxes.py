@@ -1,5 +1,8 @@
 from modules import draw_yolo_boxes
 import os
+
+#maybe the crawling could be replace by the get_files_by_subfolder func in modules?
+
 '''
 walks through all subdirectories, checks for .jpg-files and if there is a corresponding label file
 if yes, a .jpg file with the visible bounding boxes is saved in a folder images_w_bboxes
