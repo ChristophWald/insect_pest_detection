@@ -61,39 +61,4 @@ for folder_name, file_data in files_labeled.items():
 
     print(f"Saved plot to {plot_path}")
 
-#boxplot for the distribution of the number of labels per image
-
-num_plots = len(files_labeled)
-cols = 4
-rows = math.ceil(num_plots / cols)
-fig, axs = plt.subplots(rows, cols, figsize=(cols * 4, rows * 12))
-axs = axs.flatten()  # flatten to easily iterate
-
-# Get global max y limit
-all_counts = [count for folder_data in files_labeled.values() for count in folder_data.values()]
-ymax = max(all_counts)
-
-for i, (folder_name, file_data) in enumerate(files_labeled.items()):
-    line_counts = list(file_data.values())
-    axs[i].boxplot(line_counts, patch_artist=True)
-    axs[i].set_title(folder_name + " labels")
-    axs[i].set_ylabel('Instances labeled')
-    axs[i].set_ylim(0, ymax)  # consistent y-limit
-    yticks = np.arange(0, ymax + 10, 10)
-    axs[i].set_yticks(yticks)
-    axs[i].grid(True, axis='y')
-    axs[i].set_xticks([])  # remove x-ticks for clarity
-
-# Hide any unused subplots
-for j in range(i + 1, len(axs)):
-    fig.delaxes(axs[j])
-
-plt.tight_layout()
-
-# Save instead of show
-plot_filename = "label_boxplots_grid.png"
-output_path = os.path.join(output_dir, plot_filename)
-plt.savefig(output_path)
-plt.close()
-
-print(f"Saved boxplot grid to {output_path}")
+plot_label_distribution_boxplots(files_labeled, output_dir=output_dir)
