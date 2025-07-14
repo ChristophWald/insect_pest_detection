@@ -1,4 +1,4 @@
-from modules import draw_yolo_boxes
+from modules import draw_boxes
 import os
 
 #maybe the crawling could be replace by the get_files_by_subfolder func in modules?
@@ -16,7 +16,8 @@ output_path = "/user/christoph.wald/u15287/insect_pest_detection/test_box_drawin
 draw_yolo_boxes(image_path, label_path, output_path)
 '''
 
-data_root = "/user/christoph.wald/u15287/big-scratch/dataset"
+#data_root = "/user/christoph.wald/u15287/big-scratch/dataset"
+data_root = "/user/christoph.wald/u15287/insect_pest_detection/test_tiles"
 image_root = os.path.join(data_root, "images")
 label_root = os.path.join(data_root, "labels")
 output_root = os.path.join(data_root, "images_w_bboxes")
@@ -38,4 +39,4 @@ for root, dirs, files in os.walk(image_root):
             #print(f"Label not found for: {rel_path}, skipping.")
             continue
 
-        draw_yolo_boxes(image_path, annotation_path, output_path)
+        draw_boxes(image_path, annotation_path, output_path)
