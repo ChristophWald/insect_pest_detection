@@ -4,6 +4,7 @@ functions in modules: converting yolo to bbox coordinates, draw bboxes into an i
 - create_images_w_bboxes (for all subfolders),
 - extract_bboxes (for a specific folder)
 - plot_statistics (box plots and distribution of labels over time)
+- test_predict
 
 #scripts for checking the thrips labels:
 - clustering_thrips (with ResNet50, PCA and tSNE), 
@@ -14,3 +15,6 @@ functions in modules: converting yolo to bbox coordinates, draw bboxes into an i
 - create_set (using the templates)
 - create tiles
 - train_val_split (splits a dataset into train/validation set ready to use for supervised training)
+
+#training
+

@@ -1,22 +1,25 @@
 import os
 import random
+import shutil
 
-input_dir = "/user/christoph.wald/u15287/big-scratch/splitted_data/train1_labeled/tiles/images"
-base_dir = "/user/christoph.wald/u15287/big-scratch/splitted_data/train1_labeled/split"
+input_dir = "/user/christoph.wald/u15287/big-scratch/splitted_data/train2_labeled/tiles/"
+output_dir = "/user/christoph.wald/u15287/big-scratch/splitted_data/train2_labeled/split/"
 
 # Output folders
-img_train = os.path.join(base_dir, 'images/train')
-img_val = os.path.join(base_dir, 'images/val')
-lbl_train = os.path.join(base_dir, 'labels/train')
-lbl_val = os.path.join(base_dir, 'labels/val')
+img_train = os.path.join(output_dir, 'images/train')
+img_val = os.path.join(output_dir, 'images/val')
+lbl_train = os.path.join(output_dir, 'labels/train')
+lbl_val = os.path.join(output_dir, 'labels/val')
 
 # Create output folders
 for d in [img_train, img_val, lbl_train, lbl_val]:
     os.makedirs(d, exist_ok=True)
 
 pest_types = ["BRAIIM", "FRANOC", "LIRIBO", "TRIAVA"]
-image_files = [f for f in os.listdir(input_dir) if f.endswith(('.jpg', '.png'))]
+image_files = [f for f in os.listdir(os.path.join(input_dir, "images")) if f.endswith(('.jpg', '.png'))]
 separated = []
+for pest in pest_types:
+    separated.append([f for f in image_files if pest in f])
 
 train_files = []
 val_files = []
@@ -28,25 +31,21 @@ for pest in separated:
 train_files = [item for sublist in train_files for item in sublist]
 val_files = [item for sublist in val_files for item in sublist]
 
-wrong input dir for src_lbl
-
 # Helper to move image and label together
 def copy_pair(files, dest_img_dir, dest_lbl_dir):
     for f in files:
-        src_img = os.path.join(input_dir, f)
-        src_lbl = os.path.join(input_dir, f.replace('.jpg', '.txt'))
+        src_img = os.path.join(os.path.join(input_dir, "images"), f)
+        src_lbl = os.path.join(os.path.join(input_dir, "labels"), f.replace('.jpg', '.txt'))
 
         dst_img = os.path.join(dest_img_dir, f)
         dst_lbl = os.path.join(dest_lbl_dir, os.path.basename(src_lbl))
 
-        print(src_lbl)
         if os.path.exists(src_lbl):
-            print("Yes")
-            #shutil.copy(src_img, dst_img)
-            #shutil.copy(src_lbl, dst_lbl)
+            shutil.copy(src_img, dst_img)
+            shutil.copy(src_lbl, dst_lbl)
 
 # Move files
-copy_pair(train_files[:1], img_train, lbl_train)
+copy_pair(train_files, img_train, lbl_train)
 copy_pair(val_files, img_val, lbl_val)
 
 print(f"Training images: {len(train_files)}")
