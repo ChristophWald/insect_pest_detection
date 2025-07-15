@@ -17,4 +17,4 @@ functions in modules: converting yolo to bbox coordinates, draw bboxes into an i
 - train_val_split (splits a dataset into train/validation set ready to use for supervised training)
 
 #training
-
+- train.py

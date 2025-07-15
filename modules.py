@@ -14,10 +14,6 @@ def yolo_to_bbox(yolo_label, img_width, img_height):
     '''
     class_id = yolo_label[0]
     cx, cy, w, h = map(float, yolo_label[1:])
-    #for some unknown reason, the width and heigth values are sometimes negative
-    #simply taking the absolute value solves this
-    w = abs(w)
-    h = abs(h)
     x1 = int((cx - w / 2) * img_width)
     y1 = int((cy - h / 2) * img_height)
     x2 = int((cx + w / 2) * img_width)
@@ -268,3 +264,4 @@ def plot_mean_std_grid(mean_std_df, output_dir = "split_plots", filename = "labe
     output_path = os.path.join(output_dir, filename)
     plt.savefig(output_path)
     plt.close()
+

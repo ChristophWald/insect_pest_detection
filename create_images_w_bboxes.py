@@ -16,8 +16,8 @@ output_path = "/user/christoph.wald/u15287/insect_pest_detection/test_box_drawin
 draw_yolo_boxes(image_path, label_path, output_path)
 '''
 
-#data_root = "/user/christoph.wald/u15287/big-scratch/dataset"
-data_root = "/user/christoph.wald/u15287/insect_pest_detection/test_tiles"
+data_root = "/user/christoph.wald/u15287/big-scratch/dataset"
+#data_root = "/user/christoph.wald/u15287/insect_pest_detection/test_tiles"
 image_root = os.path.join(data_root, "images")
 label_root = os.path.join(data_root, "labels")
 output_root = os.path.join(data_root, "images_w_bboxes")
