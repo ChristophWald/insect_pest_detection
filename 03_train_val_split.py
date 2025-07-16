@@ -2,8 +2,8 @@ import os
 import random
 import shutil
 
-input_dir = "/user/christoph.wald/u15287/big-scratch/splitted_data/train2_labeled/tiles/"
-output_dir = "/user/christoph.wald/u15287/big-scratch/splitted_data/train2_labeled/split/"
+input_dir = "/user/christoph.wald/u15287/big-scratch/splitted_data/train3_labeled/"
+output_dir = "/user/christoph.wald/u15287/big-scratch/splitted_data/train3_labeled/split/"
 
 # Output folders
 img_train = os.path.join(output_dir, 'images/train')

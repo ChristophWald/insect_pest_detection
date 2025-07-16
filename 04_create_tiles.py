@@ -126,18 +126,55 @@ def tile_and_save(image_path, label_path, dest_path,
 image_path = "/user/christoph.wald/u15287/big-scratch/dataset/images/FungusGnats/BRAIIM_0001.jpg"
 label_path = "/user/christoph.wald/u15287/big-scratch/dataset/labels/FungusGnats/BRAIIM_0001.txt"
 dest_path = "./"
+
+base_path = "/user/christoph.wald/u15287/big-scratch/splitted_data/test_set/"
+    
+dest_path = os.path.join(base_path, "tiles" )
+os.makedirs(dest_path, exist_ok=True)
+print(dest_path)
+
+img_path = os.path.join(base_path, "images")
+
+print(img_path)
+files = os.listdir(img_path)
+for file in files:
+    img = os.path.join(img_path, file)
+    label_path = img.replace("images", "labels")
+    label = os.path.splitext(label_path)[0] + '.txt'
+    #print(f"Image: {img}, Label: {label}")
+    tile_and_save(img, label, dest_path)
 '''
 
-#set path
-path = "/user/christoph.wald/u15287/big-scratch/splitted_data/test_set/"
+paths = [
+    "/user/christoph.wald/u15287/big-scratch/splitted_data/train1_labeled/",
+    "/user/christoph.wald/u15287/big-scratch/splitted_data/train2_labeled/",
+    "/user/christoph.wald/u15287/big-scratch/splitted_data/train3_labeled/"
+]
 
-#execute
-dest_path = os.path.join(path, "tiles" )
-os.makedirs(dest_path, exist_ok=True)
-dest_path = os.path.join(path, "tiles" )
-files = get_files_by_subfolder(path)
-for key in files["images"]:
-    print(f"Image: {os.path.join(path, key+'.jpg')}, Label: {os.path.join(path, key + '.txt')}")
-    img = os.path.join(path, "images", key+'.jpg')
-    label = os.path.join(path, "labels", key + '.txt')
-    tile_and_save(img, label, dest_path)
+for base_path in paths:
+    print(f"Processing base path: {base_path}")
+
+    # Set up source image paths
+    img_paths = {
+        "train": os.path.join(base_path, "split/images/train"),
+        "val": os.path.join(base_path, "split/images/val")
+    }
+
+    for split, img_path in img_paths.items():
+        print(f"Processing split: {split}, path: {img_path}")
+        
+        # Destination path for this split
+        dest_path = os.path.join(base_path, "tiles", split)
+        os.makedirs(dest_path, exist_ok=True)
+
+        # Loop over image files
+        files = os.listdir(img_path)
+        for file in files:
+            img = os.path.join(img_path, file)
+
+            # Infer label path
+            label_path = img.replace("images", "labels")
+            label = os.path.splitext(label_path)[0] + '.txt'
+
+            # Call tile_and_save with the unified split-specific dest path
+            tile_and_save(img, label, dest_path)

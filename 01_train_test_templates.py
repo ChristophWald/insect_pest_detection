@@ -5,6 +5,8 @@ import random
 import json
 import os
 
+random.seed(43)
+
 '''
 creates filelists for the datasplitting (not in place)
 '''
@@ -53,14 +55,15 @@ df = count_files(files_images, "all")
 df_new = count_files(files_labeled, "all labeled", statistics = True)
 df = pd.concat([df, df_new], axis = 1)
 
+
 '''
-keep only 500 random sampled labels of the FungusGnats
+keep only 200 random sampled labels of the FungusGnats
 '''
 print("Reducing number of FungusGnats labels.")
 folder_name = "FungusGnats"
 files_labeled["FungusGnats"] = {
     k: files_labeled["FungusGnats"][k]
-    for k in random.sample(list(files_labeled["FungusGnats"].keys()),500)
+    for k in random.sample(list(files_labeled["FungusGnats"].keys()),200)
 }
 #remove labeled files (for FungusGnats only those, that have been kept) from image files
 for folder_name in files_images:
@@ -70,10 +73,27 @@ for folder_name in files_images:
             k: v for k, v in files_images[folder_name].items()
             if k not in labeled_keys
         }
+'''
+keep only 140 random sampled labels of the WhiteFlies
+'''
+print("Reducing number of WhiteFlies labels.")
+folder_name = "WhiteFlies"
+files_labeled["WhiteFlies"] = {
+    k: files_labeled["WhiteFlies"][k]
+    for k in random.sample(list(files_labeled["WhiteFlies"].keys()),140)
+}
+#remove labeled files (for WhiteFlies only those, that have been kept) from image files
+for folder_name in files_images:
+    if folder_name in files_labeled:
+        labeled_keys = set(files_labeled[folder_name].keys())
+        files_images[folder_name] = {
+            k: v for k, v in files_images[folder_name].items()
+            if k not in labeled_keys
+        }
 
 if plot_statistics:
-    plot_label_distribution_boxplots(files_labeled, output_dir="split_plots", filename = "reduced_FungusGnats_box.png")
-    plot_label_histograms(files_labeled, output_dir="split_plots", filename="reduced_FungusGnats_hist.png")
+    plot_label_distribution_boxplots(files_labeled, output_dir="split_plots", filename = "reduced_labels_box.png")
+    plot_label_histograms(files_labeled, output_dir="split_plots", filename="reduced_labels_hist.png")
 
 files_unlabeled = files_images
 df_new = count_files(files_unlabeled, "unlabeled")
@@ -97,53 +117,23 @@ for folder_name, subdict in files_labeled.items():
     # Remove those from original files_labeled
     for k in sampled_keys:
         del files_labeled[folder_name][k]
+
+train_labeled = files_labeled
 df_new = count_files(test_set, "test set", statistics = True)
-df_new2 = count_files(files_labeled, "remaining labels", statistics = True)
+df_new2 = count_files(train_labeled, "train/val", statistics = True)
 df = pd.concat([df, df_new, df_new2], axis= 1)
 
 if plot_statistics:
     plot_label_distribution_boxplots(test_set, output_dir="split_plots", filename = "testset_box.png")
     plot_label_histograms(test_set, output_dir="split_plots", filename="testset_hist.png")
-
-'''
-split the remaining labeled files into 3 equally sized training sets
-'''
-print("Create labeled training sets.")
-
-train1_labeled, train2_labeled, train3_labeled = {}, {}, {}
-
-for folder_name, subdict in files_labeled.items():
-    keys = list(subdict.keys())
-    random.shuffle(keys)
-
-    n = len(keys)
-    split1 = keys[:n//3]
-    split2 = keys[n//3:2*n//3]
-    split3 = keys[2*n//3:]
-
-    train1_labeled[folder_name] = {k: subdict[k] for k in split1}
-    train2_labeled[folder_name] = {k: subdict[k] for k in split2}
-    train3_labeled[folder_name] = {k: subdict[k] for k in split3}
-    df_new = count_files(train1_labeled, "labeled training set 1", statistics = True)
-
-df_new2 = count_files(train2_labeled, "labeled training set 2", statistics = True)
-df_new3 = count_files(train3_labeled, "labeled training set 3", statistics = True)
-df = pd.concat([df, df_new, df_new2, df_new3], axis=1)
-
-if plot_statistics:
-    plot_label_distribution_boxplots(train1_labeled, output_dir="split_plots", filename = "train1_labeled_box.png")
-    plot_label_histograms(train1_labeled, output_dir="split_plots", filename="train1_labeled_hist.png")
-    plot_label_distribution_boxplots(train2_labeled, output_dir="split_plots", filename = "train2_labeled_box.png")
-    plot_label_histograms(train2_labeled, output_dir="split_plots", filename="train2_labeled_hist.png")
-    plot_label_distribution_boxplots(train3_labeled, output_dir="split_plots", filename = "train3_labeled_box.png")
-    plot_label_histograms(train3_labeled, output_dir="split_plots", filename="train3_labeled_hist.png")
-
+    plot_label_distribution_boxplots(train_labeled, output_dir="split_plots", filename = "train-val_box.png")
+    plot_label_histograms(train_labeled, output_dir="split_plots", filename="train-val_hist.png")
 
 '''
 create 3 sets of unlabeled data with 200 images each
 '''
 print("Create unlabeled training sets.")
-train4_unlabeled, train5_unlabeled, train6_unlabeled = {}, {}, {}
+train2_unlabeled, train3_unlabeled, train4_unlabeled = {}, {}, {}
 
 for folder_name, subdict in files_unlabeled.items():
     keys = list(subdict.keys())
@@ -157,18 +147,20 @@ for folder_name, subdict in files_unlabeled.items():
     keys2 = keys[200:400]
     keys3 = keys[400:600]
 
-    train4_unlabeled[folder_name] = {k: subdict[k] for k in keys1}
-    train5_unlabeled[folder_name] = {k: subdict[k] for k in keys2}
-    train6_unlabeled[folder_name] = {k: subdict[k] for k in keys3}
+    train2_unlabeled[folder_name] = {k: subdict[k] for k in keys1}
+    train3_unlabeled[folder_name] = {k: subdict[k] for k in keys2}
+    train4_unlabeled[folder_name] = {k: subdict[k] for k in keys3}
 
     # Remove selected keys from the original subdict
     for k in keys1 + keys2 + keys3:
         del subdict[k]
-df_new = count_files(train4_unlabeled, "unlabeled training set 1")
-df_new2 = count_files(train5_unlabeled, "unlabeled training set 2")
-df_new3 = count_files(train6_unlabeled, "unlabeled training set 3")
+df_new = count_files(train2_unlabeled, "unlabeled training set 1")
+df_new2 = count_files(train3_unlabeled, "unlabeled training set 2")
+df_new3 = count_files(train4_unlabeled, "unlabeled training set 3")
 df_new4 = count_files(files_images, "unlabeled remaining")
 df = pd.concat([df, df_new, df_new2, df_new3, df_new4], axis = 1)
+
+df.to_csv("split.csv")
 
 if plot_statistics:
     final_set = df.copy()
@@ -188,8 +180,8 @@ if plot_statistics:
 save splitting info to json
 '''
 print("Save splitting info.")
-datasets = [test_set, train1_labeled, train2_labeled, train3_labeled, train4_unlabeled, train5_unlabeled, train6_unlabeled]
-filenames = ["test_set", "train1_labeled", "train2_labeled", "train3_labeled", "train4_unlabeled", "train5_unlabeled", "train6_unlabeled" ]
+datasets = [test_set, train_labeled, train2_unlabeled, train3_unlabeled, train4_unlabeled]
+filenames = ["test_set", "train_labeled", "train2_unlabeled", "train3_unlabeled", "train4_unlabeled" ]
 
 output_folder = "split_info"  # change this to your desired folder name
 os.makedirs(output_folder, exist_ok=True)  # create the folder if it doesn't exist
