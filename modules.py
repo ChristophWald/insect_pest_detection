@@ -180,7 +180,7 @@ def plot_split(df, output_dir = "split_plots", filename = "splitting"):
 
     fig, ax = plt.subplots(figsize=(12, 6))
 
-    left_offsets = np.arange(num_cols) * 200
+    left_offsets = np.arange(num_cols) * 600
 
     # Draw bars
     for i, row in enumerate(rows):
@@ -203,7 +203,7 @@ def plot_split(df, output_dir = "split_plots", filename = "splitting"):
     ax.set_title('Dataset splitting')
 
     # Dotted vertical lines every 200 units
-    max_x = left_offsets[-1] + 200
+    max_x = left_offsets[-1] + 600
     for x in range(0, int(max_x + 200), 200):
         ax.axvline(x=x, color='gray', linestyle='dotted', linewidth=1)
 

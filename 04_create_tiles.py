@@ -146,9 +146,7 @@ for file in files:
 '''
 
 paths = [
-    "/user/christoph.wald/u15287/big-scratch/splitted_data/train1_labeled/",
-    "/user/christoph.wald/u15287/big-scratch/splitted_data/train2_labeled/",
-    "/user/christoph.wald/u15287/big-scratch/splitted_data/train3_labeled/"
+    "/user/christoph.wald/u15287/big-scratch/splitted_data/train_labeled/",
 ]
 
 for base_path in paths:

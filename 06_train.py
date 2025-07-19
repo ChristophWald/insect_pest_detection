@@ -1,4 +1,5 @@
 from ultralytics import YOLO
+from ultralytics.data.utils import verify_image_label
 import pandas as pd
 
 def save_class_metrics(model, metrics, filename):
@@ -32,35 +33,22 @@ def save_class_metrics(model, metrics, filename):
     print(f"Saved class metrics to {filename}")
 
 
+#for resuming training
+model = YOLO('runs/detect/train2/weights/last.pt')
+model.train(resume=True)  
+
+model = YOLO('/user/christoph.wald/u15287/insect_pest_detection/runs/detect/train2/weights/best.pt')
+metrics = model.val(data='/user/christoph.wald/u15287/big-scratch/supervised_large/data.yaml', split='test', plots= True, save_json= True)
+save_class_metrics(model, metrics, "train2.csv")
+
+
 '''
-#train3
+
+
+#medium augmentation - train1 with the large dataset
 model = YOLO('yolov8s.pt')
-model.train(data='/user/christoph.wald/u15287/big-scratch/supervised_small/data.yaml', 
-            epochs=30, 
-            patience = 10, 
-            imgsz=640,
-            
-            mosaic= 0,
-            translate=0.05,
-            scale=0.1,
-            hsv_s=0.3,
-            erasing=0.1,
-            auto_augment=None,
-            
-            nms=True,
-            iou=0.5,
-            conf=0.3,
-            
-            
-            )
-
-
-
-
-#train4
-model = YOLO('yolov8s.pt')
-model.train(data='/user/christoph.wald/u15287/big-scratch/supervised_small/data.yaml', 
-            epochs=30, 
+model.train(data='/user/christoph.wald/u15287/big-scratch/supervised_large/data.yaml', 
+            epochs=100, 
             patience = 10, 
             imgsz=640,
             
@@ -73,19 +61,5 @@ model.train(data='/user/christoph.wald/u15287/big-scratch/supervised_small/data.
             
             
             )
+
 '''
-
-
-model = YOLO('/user/christoph.wald/u15287/insect_pest_detection/runs/detect/train2/weights/best.pt')
-metrics = model.val(data='/user/christoph.wald/u15287/big-scratch/supervised_small/data.yaml', split='test', plots= True)
-save_class_metrics(model, metrics, "train2_continued.csv")
-
-#for resuming training
-model = YOLO('runs/detect/train3/weights/last.pt')
-model.train(resume=True, patience = 5)  
-
-model = YOLO('/user/christoph.wald/u15287/insect_pest_detection/runs/detect/train3/weights/best.pt')
-metrics = model.val(data='/user/christoph.wald/u15287/big-scratch/supervised_small/data.yaml', split='test', plots= True)
-save_class_metrics(model, metrics, "train3_continued.csv")
-
-

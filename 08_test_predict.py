@@ -1,3 +1,9 @@
+from ultralytics import YOLO
+import numpy as np
+import torch
+import cv2
+from modules import draw_boxes
+
 def sliding_window_prediction(image_path, model, window_size=(640, 640), stride=640, conf_threshold=0.0, visual_aid = False, save = False):
     # Load the image
     img = cv2.imread(image_path)
@@ -150,10 +156,16 @@ def plot_bboxes(image_path, confidences, classes, boxes, tiles, object_n):
     return img
 
 
-model = YOLO('/user/christoph.wald/u15287/06_check_lables/runs/detect/train7/weights/best.pt')
-image_path = "/user/christoph.wald/u15287/05_praktikum_final/data_raw/train_BRAIIM0003.jpg"
-image_path = "/user/christoph.wald/u15287/06_check_lables/images/0c595bdb-429_1SCIAF_CanonEOS_woal.JPG"
+model = YOLO('/user/christoph.wald/u15287/big-scratch/supervised_large/runs/detect/train/weights/best.pt')
+image_path = "/user/christoph.wald/u15287/big-scratch/splitted_data/test_set/images/BRAIIM_0016.jpg"
 print(image_path)
-_ , n_objects, tiles, confidences, classes, boxes = sliding_window_prediction(image_path, model, conf_threshold=0.5)
+count_objects , n_objects, tiles, confidences, classes, boxes = sliding_window_prediction(
+    image_path, 
+    model, 
+    stride = 640,
+    conf_threshold=0.356)
+
+
 img = plot_bboxes (image_path, confidences, classes, boxes, tiles,n_objects)
-show(img)
+#show(img)
+

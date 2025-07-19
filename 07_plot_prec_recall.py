@@ -2,7 +2,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 # Load the CSV file
-file_path = '/user/christoph.wald/u15287/insect_pest_detection/runs/detect/train3/results.csv'
+file_path = '/user/christoph.wald/u15287/insect_pest_detection/runs/detect/train2/results.csv'
 df = pd.read_csv(file_path)
 
 fig, axs = plt.subplots(1, 2, figsize=(14, 5))
@@ -38,6 +38,6 @@ axs[1].grid(True)
 
 # Adjust layout and save the figure
 plt.tight_layout()
-save_path = '/user/christoph.wald/u15287/insect_pest_detection/prec_recall_train3.png'
+save_path = '/user/christoph.wald/u15287/insect_pest_detection/prec_recall_train2.png'
 plt.savefig(save_path)
 plt.close()
