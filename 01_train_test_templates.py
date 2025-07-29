@@ -14,11 +14,6 @@ creates filelists for the datasplitting (not in place)
 #for saving plots of label distribution in folder "split_plots"
 plot_statistics = True
 
-#function to get statistics for a set of images
-def count_files_per_subdict_df(data_dict, dict_name):
-    counts = {key: len(subdict) for key, subdict in data_dict.items()}
-    return pd.DataFrame([counts], index=[dict_name])
-
 def count_files(data_dict, dict_name, statistics=False):
     counts = {key: len(subdict) for key, subdict in data_dict.items()}
     df = pd.DataFrame(counts, index=[f'{dict_name}_count']).T
@@ -71,6 +66,8 @@ def reduce_class_labels(class_name, all_labeled, keep_n=200):
     }
 
     return all_labeled
+
+
 def remove_labeled_from_images(all_labeled, all_images):
     """
     Removes all labeled image keys from all_images to ensure no overlap.
