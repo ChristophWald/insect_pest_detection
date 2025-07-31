@@ -8,6 +8,59 @@ import matplotlib.patches as mpatches
 #add titles to the plots
 #histplot is odd because of the changing scales
 
+def draw_box(img, box, color, label):
+    """Draw a bounding box with label on the image."""
+    xmin, ymin, xmax, ymax = map(int, box)
+    cv2.rectangle(img, (xmin, ymin), (xmax, ymax), color, 2)
+    cv2.putText(img, label, (xmin, ymin - 10), cv2.FONT_HERSHEY_SIMPLEX,
+                0.6, color, 2)
+    
+
+def load_yolo_labels(file_path, img_width, img_height):
+    """Load YOLO label file and convert to absolute pixel coordinates."""
+    boxes = []
+    classes = []
+    with open(file_path, "r") as f:
+        for line in f:
+            parts = line.strip().split()
+            cls = int(parts[0])
+            x_center, y_center, w, h = map(float, parts[1:])
+            xmin = (x_center - w / 2) * img_width
+            xmax = (x_center + w / 2) * img_width
+            ymin = (y_center - h / 2) * img_height
+            ymax = (y_center + h / 2) * img_height
+            boxes.append([xmin,ymin,xmax,ymax])
+            classes.append(cls)
+    return [boxes, classes]
+
+def save_cropped_boxes(image, boxes, filename, output_dir):
+    """
+    Save cropped regions from the original image as separate JPG files.
+
+    Args:
+        image (np.ndarray): Original image (BGR format).
+        boxes (List[List[int]]): List of bounding boxes [xmin, ymin, xmax, ymax].
+        filename (str): Original image filename (used to name crops).
+        output_dir (str): Directory to save cropped images.
+    """
+    base_name = os.path.splitext(filename)[0]
+    h, w = image.shape[:2]
+    
+    for idx, box in enumerate(boxes):
+        xmin = max(0, int(np.floor(box[0])))
+        ymin = max(0, int(np.floor(box[1])))
+        xmax = min(w, int(np.ceil(box[2])))
+        ymax = min(h, int(np.ceil(box[3])))
+
+        cropped = image[ymin:ymax, xmin:xmax]
+        if len(cropped) == 0:
+            print(xmin, ymin, xmax, ymax)
+        crop_filename = f"{base_name}_{idx}.jpg"
+        crop_path = os.path.join(output_dir, crop_filename)
+        cv2.imwrite(crop_path, cropped)
+
+####old functions
+
 def yolo_to_bbox(yolo_label, img_width, img_height):
     '''
     converts yolo labels to values in relation to the current image
@@ -21,27 +74,6 @@ def yolo_to_bbox(yolo_label, img_width, img_height):
     
     return class_id, x1, y1, x2, y2
     
-def draw_boxes(image_path, labels_path, output_path):
-    '''
-    saves an image with the corresponding bboxes (in yolo format) drawn
-    '''
-    image = cv2.imread(image_path)
-    height, width, _ = image.shape
-    with open(labels_path, 'r') as f:
-        lines = f.readlines()
-    
-    for line in lines:
-        parts = line.strip().split()
-        class_id, x1, y1, x2, y2 = yolo_to_bbox(parts, width, height)
-        color = (0, 255, 0)
-        cv2.rectangle(image, (x1, y1), (x2, y2), color, 2)
-
-    output_dir = os.path.dirname(output_path)
-    if output_dir:
-        os.makedirs(output_dir, exist_ok=True)
-    cv2.imwrite(output_path, image)
-    print(f"Saved annotated image to: {output_path}")
-
 def extract_boxes(image_path, labels_path, output_path):
     '''
     saves bounding boxes (in yolo format) of one image as single jpgs

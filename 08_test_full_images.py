@@ -5,6 +5,7 @@ import torch
 import numpy as np
 from collections import defaultdict
 import json
+from modules import draw_box, load_yolo_labels, save_cropped_boxes
 
 def sliding_window_prediction(image, model, conf_threshold=0.365):
     
@@ -97,23 +98,6 @@ def filter_mostly_contained_boxes(boxes, scores, classes, threshold=0.9):
 
     return [boxes[keep].tolist(), scores[keep].tolist(), classes[keep].tolist()]
 
-def load_yolo_labels(file_path, img_width, img_height):
-    """Load YOLO label file and convert to absolute pixel coordinates."""
-    boxes = []
-    classes = []
-    with open(file_path, "r") as f:
-        for line in f:
-            parts = line.strip().split()
-            cls = int(parts[0])
-            x_center, y_center, w, h = map(float, parts[1:])
-            xmin = (x_center - w / 2) * img_width
-            xmax = (x_center + w / 2) * img_width
-            ymin = (y_center - h / 2) * img_height
-            ymax = (y_center + h / 2) * img_height
-            boxes.append([xmin,ymin,xmax,ymax])
-            classes.append(cls)
-    return [boxes, classes]
-
 def compute_iou(box1, box2):
     inter_area = compute_intersection_area(box1, box2)
     if inter_area == 0:
@@ -165,16 +149,6 @@ def compare_labels(
 
     return (tp_boxes, tp_classes), (fp_boxes, fp_classes), (fn_boxes, fn_classes)
 
-
-
-def draw_box(img, box, color, label):
-    """Draw a bounding box with label on the image."""
-    xmin, ymin, xmax, ymax = map(int, box)
-    cv2.rectangle(img, (xmin, ymin), (xmax, ymax), color, 2)
-    cv2.putText(img, label, (xmin, ymin - 10), cv2.FONT_HERSHEY_SIMPLEX,
-                0.6, color, 2)
-    
-
 def make_image_with_boxes(
     image,
     tp_data,  # (boxes, classes)
@@ -204,27 +178,6 @@ def make_image_with_boxes(
 
     if output_image_path:
         cv2.imwrite(os.path.join(output_image_path,os.path.splitext(filename)[0] + "_w_boxes.jpg"), drawn)
-
-    
-def save_cropped_false_positives(image, fp_boxes, filename, output_dir):
-    """
-    Save cropped false positive regions from the original image as separate JPG files.
-
-    Args:
-        image (np.ndarray): Original image (BGR format).
-        fp_boxes (List[List[int]]): List of bounding boxes [xmin, ymin, xmax, ymax].
-        filename (str): Original image filename (used to name crops).
-        output_dir (str): Directory to save cropped images.
-    """
-    base_name = os.path.splitext(filename)[0]
-
-    for idx, box in enumerate(fp_boxes):
-        xmin, ymin, xmax, ymax = map(int, box)
-        cropped = image[ymin-1:ymax+1, xmin-1:xmax+1]
-
-        crop_filename = f"{base_name}_fp_{idx}.jpg"
-        crop_path = os.path.join(output_dir, crop_filename)
-        cv2.imwrite(crop_path, cropped)
 
 from collections import defaultdict
 
@@ -345,7 +298,7 @@ for filename in filenames:
     tp, fp, fn = compare_labels(pred_boxes=boxes, pred_classes=class_ids, gt_boxes=label_boxes, gt_classes=label_classes_ids, iou_threshold = 0.5)
     results.append([filename, tp, fp, fn])
     if save_images: make_image_with_boxes(image, tp, fp, fn, image_output_path, filename)
-    if save_boxes: save_cropped_false_positives(image, fp[0],filename, boxes_output_path)
+    if save_boxes: save_cropped_boxes(image, fp[0],filename, boxes_output_path)
 
 metrics = compute_metrics(results)
 if save_results: 
