@@ -277,8 +277,8 @@ os.makedirs(boxes_output_path, exist_ok=True)
 
 filenames = os.listdir(base_image_path)
 
-save_images = False
-save_boxes = False
+save_images = True
+save_boxes = True
 save_results = True
 
 results = []
