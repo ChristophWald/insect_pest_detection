@@ -107,12 +107,19 @@ def compute_iou(box1, box2):
     iou = inter_area / (box1_area + box2_area - inter_area)
     return iou
 
+def compute_containment_ratio(inner_box, outer_box):
+    inter_area = compute_intersection_area(inner_box, outer_box)
+    inner_area = (inner_box[2] - inner_box[0]) * (inner_box[3] - inner_box[1])
+    return inter_area / inner_area if inner_area > 0 else 0.0
+
+
 def compare_labels(
     pred_boxes,   # list of predicted boxes: [[xmin, ymin, xmax, ymax], ...]
     pred_classes, # list of predicted classes: [cls_id, ...]
     gt_boxes,     # list of ground truth boxes: [[xmin, ymin, xmax, ymax], ...]
     gt_classes,   # list of ground truth classes: [cls_id, ...]
     iou_threshold=0.5,
+    containment_threshold=0.9
 ):
     matched_gt = set()
 
@@ -131,12 +138,18 @@ def compare_labels(
         for i, (gt_box, gt_cls) in enumerate(zip(gt_boxes, gt_classes)):
             if i in matched_gt:
                 continue
-            if pred_cls == gt_cls and compute_iou(pred_box, gt_box) >= iou_threshold:
-                tp_boxes.append(pred_box)
-                tp_classes.append(pred_cls)
-                matched_gt.add(i)
-                matched = True
-                break
+            if pred_cls == gt_cls:
+                iou = compute_iou(pred_box, gt_box)
+                containment_pred_in_gt = compute_containment_ratio(pred_box, gt_box)
+                containment_gt_in_pred = compute_containment_ratio(gt_box, pred_box)
+                if (iou >= iou_threshold or 
+                    containment_pred_in_gt >= containment_threshold or 
+                    containment_gt_in_pred >= containment_threshold):
+                    tp_boxes.append(pred_box)
+                    tp_classes.append(pred_cls)
+                    matched_gt.add(i)
+                    matched = True
+                    break
         if not matched:
             fp_boxes.append(pred_box)
             fp_classes.append(pred_cls)
@@ -276,6 +289,7 @@ os.makedirs(image_output_path, exist_ok=True)
 os.makedirs(boxes_output_path, exist_ok=True)
 
 filenames = os.listdir(base_image_path)
+filenames.sort()
 
 save_images = True
 save_boxes = True
@@ -286,16 +300,18 @@ results = []
 for filename in filenames:
     print(f"Processing {filename}...")
     image = cv2.imread(os.path.join(base_image_path, filename))
-    boxes, confs, class_ids = sliding_window_prediction(image, model, conf_threshold=0.365)
+    boxes, confs, class_ids = sliding_window_prediction(image, model, conf_threshold=0.465)
     print(f"Number of predicted boxes after thresholding: {len(boxes)}")
-    boxes, confs, class_ids = nms(boxes, confs, class_ids, iou_threshold=0.5)
+    boxes, confs, class_ids = nms(boxes, confs, class_ids, iou_threshold=0.4)
     print(f"Number of predicted boxes after NMS: {len(boxes)}")
-    boxes, confs, class_ids = filter_mostly_contained_boxes(boxes, confs, class_ids, threshold=0.9)
+    boxes, confs, class_ids = filter_mostly_contained_boxes(boxes, confs, class_ids, threshold=0.5)
     print(f"Number of predicted boxes after removing contained boxes: {len(boxes)}")
     
     label_path = os.path.join(base_label_path, os.path.splitext(filename)[0] + ".txt")
     label_boxes, label_classes_ids = load_yolo_labels(label_path, image.shape[1], image.shape[0])
-    tp, fp, fn = compare_labels(pred_boxes=boxes, pred_classes=class_ids, gt_boxes=label_boxes, gt_classes=label_classes_ids, iou_threshold = 0.5)
+    tp, fp, fn = compare_labels(pred_boxes=boxes, pred_classes=class_ids, gt_boxes=label_boxes, gt_classes=label_classes_ids, 
+                                iou_threshold = 0.5,
+                                containment_threshold = 0.9)
     results.append([filename, tp, fp, fn])
     if save_images: make_image_with_boxes(image, tp, fp, fn, image_output_path, filename)
     if save_boxes: save_cropped_boxes(image, fp[0],filename, boxes_output_path)
