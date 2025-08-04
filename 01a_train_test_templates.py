@@ -152,7 +152,7 @@ keep only 200 random sampled labels of the FungusGnats
 print("Reducing number of FungusGnats labels.")
 all_labeled = reduce_class_labels("FungusGnats", all_labeled, 200)
 '''
-keep only 140 random sampled labels of the WhiteFlies
+keep only 400 random sampled labels of the WhiteFlies
 '''
 all_labeled = reduce_class_labels("WhiteFlies", all_labeled, 400)
 

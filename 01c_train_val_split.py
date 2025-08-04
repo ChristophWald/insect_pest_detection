@@ -2,6 +2,8 @@ import os
 import random
 import shutil
 
+random.seed(43)
+
 input_dir = "/user/christoph.wald/u15287/big-scratch/splitted_data/train_labeled/"
 output_dir = "/user/christoph.wald/u15287/big-scratch/splitted_data/train_labeled/split/"
 
