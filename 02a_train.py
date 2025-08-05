@@ -33,18 +33,10 @@ def save_class_metrics(model, metrics, filename):
     print(f"Saved class metrics to {filename}")
 
 
-#for resuming training
-model = YOLO('runs/detect/train2/weights/last.pt')
-model.train(resume=True)  
-
-model = YOLO('/user/christoph.wald/u15287/insect_pest_detection/runs/detect/train2/weights/best.pt')
-metrics = model.val(data='/user/christoph.wald/u15287/big-scratch/supervised_large/data.yaml', split='test', plots= True, save_json= True)
-save_class_metrics(model, metrics, "train2.csv")
 
 
-'''
 
-
+#training
 #medium augmentation - train1 with the large dataset
 model = YOLO('yolov8s.pt')
 model.train(data='/user/christoph.wald/u15287/big-scratch/supervised_large/data.yaml', 
@@ -62,4 +54,14 @@ model.train(data='/user/christoph.wald/u15287/big-scratch/supervised_large/data.
             
             )
 
-'''
+
+
+#for resuming training
+model = YOLO('runs/detect/train2/weights/last.pt')
+model.train(resume=True)  
+
+#for evaluation with test set - replace by checking full images
+model = YOLO('/user/christoph.wald/u15287/insect_pest_detection/runs/detect/train2/weights/best.pt')
+metrics = model.val(data='/user/christoph.wald/u15287/big-scratch/supervised_large/data.yaml', split='test', plots= True, save_json= True)
+save_class_metrics(model, metrics, "train2.csv")
+
