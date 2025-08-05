@@ -32,11 +32,9 @@ def check_images_labels(base_path, split):
     else:
         print("  All labels have corresponding images.")
 
-def main():
-    base_path = '/user/christoph.wald/u15287/big-scratch/supervised_large'  # Update if needed
 
-    for split in ['train', 'val', 'test']:
-        check_images_labels(base_path, split)
+base_path = '/user/christoph.wald/u15287/big-scratch/supervised_large'  # Update if needed
 
-if __name__ == '__main__':
-    main()
+for split in ['train', 'val', 'test']:
+    check_images_labels(base_path, split)
+
