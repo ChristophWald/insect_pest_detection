@@ -31,6 +31,16 @@ def load_yolo_labels(file_path, img_width, img_height):
             classes.append(cls)
     return [boxes, classes]
 
+def compute_intersection_area(box1, box2):
+    xA = max(box1[0], box2[0])
+    yA = max(box1[1], box2[1])
+    xB = min(box1[2], box2[2])
+    yB = min(box1[3], box2[3])
+    inter_width = max(0, xB - xA)
+    inter_height = max(0, yB - yA)
+    return inter_width * inter_height
+
+
 def save_cropped_boxes(image, boxes, filename, output_dir):
     """
     Save cropped regions from the original image as separate JPG files.

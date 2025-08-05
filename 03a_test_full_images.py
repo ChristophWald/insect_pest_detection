@@ -5,7 +5,7 @@ import torch
 import numpy as np
 from collections import defaultdict
 import json
-from modules import draw_box, load_yolo_labels, save_cropped_boxes
+from modules import draw_box, load_yolo_labels, save_cropped_boxes, compute_intersection_area
 
 def sliding_window_prediction(image, model, conf_threshold=0.365):
     
@@ -66,15 +66,6 @@ def nms(boxes, scores, classes, iou_threshold = 0.5):
     classes_nms = classes_tensor[keep_nms]
 
     return [boxes_nms, scores_nms, classes_nms]
-
-def compute_intersection_area(box1, box2):
-    xA = max(box1[0], box2[0])
-    yA = max(box1[1], box2[1])
-    xB = min(box1[2], box2[2])
-    yB = min(box1[3], box2[3])
-    inter_width = max(0, xB - xA)
-    inter_height = max(0, yB - yA)
-    return inter_width * inter_height
 
 def filter_mostly_contained_boxes(boxes, scores, classes, threshold=0.9):
 
@@ -300,11 +291,11 @@ results = []
 for filename in filenames:
     print(f"Processing {filename}...")
     image = cv2.imread(os.path.join(base_image_path, filename))
-    boxes, confs, class_ids = sliding_window_prediction(image, model, conf_threshold=0.465)
+    boxes, confs, class_ids = sliding_window_prediction(image, model, conf_threshold=0.465) #returns lists
     print(f"Number of predicted boxes after thresholding: {len(boxes)}")
-    boxes, confs, class_ids = nms(boxes, confs, class_ids, iou_threshold=0.4)
+    boxes, confs, class_ids = nms(boxes, confs, class_ids, iou_threshold=0.4) #transform the lists to tensors
     print(f"Number of predicted boxes after NMS: {len(boxes)}")
-    boxes, confs, class_ids = filter_mostly_contained_boxes(boxes, confs, class_ids, threshold=0.5)
+    boxes, confs, class_ids = filter_mostly_contained_boxes(boxes, confs, class_ids, threshold=0.5) #operates on tensors and returns lists again
     print(f"Number of predicted boxes after removing contained boxes: {len(boxes)}")
     
     label_path = os.path.join(base_label_path, os.path.splitext(filename)[0] + ".txt")
