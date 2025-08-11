@@ -1,8 +1,13 @@
 from modules import load_yolo_labels, save_cropped_boxes
+import os
+import cv2
 
 '''
+for visual inspection of labels
+
 takes all labels from a directory and puts out all bounding boxes as individual jpgs
 '''
+
 species = "Thrips"
 base_path = "/user/christoph.wald/u15287/big-scratch/dataset"
 base_image_path = os.path.join(base_path, "images", species)

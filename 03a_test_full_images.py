@@ -7,6 +7,12 @@ from collections import defaultdict
 import json
 from modules import draw_box, load_yolo_labels, save_cropped_boxes, compute_intersection_area
 
+'''
+testing prediction on full images
+returns general metrics, full prediction info 
+can print color coded boxes into images (green: true positive, blue: false positive, red: false negative)
+'''
+
 def sliding_window_prediction(image, model, conf_threshold=0.365):
     
     height, width, _ = image.shape

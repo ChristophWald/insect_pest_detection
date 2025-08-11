@@ -2,6 +2,11 @@ from ultralytics import YOLO
 from ultralytics.data.utils import verify_image_label
 import pandas as pd
 
+'''
+building bricks for training (supervised)
+metrics are only done for tiles/not full images
+'''
+
 def save_class_metrics(model, metrics, filename):
     """
     Extracts per-class metrics from a YOLOv8 model evaluation and saves them to a CSV file.

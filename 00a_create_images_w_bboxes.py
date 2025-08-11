@@ -1,35 +1,50 @@
 import os
 import cv2
-from modules import draw_box, load_yolo_labels
+from modules import draw_box, load_yolo_labels, visualize_yolo_boxes
 
 '''
-walks through all subdirectories, checks for .jpg-files and if there is a corresponding label file
-if yes, a .jpg file with the visible bounding boxes is saved in a folder images_w_bboxes
+for visual inspection of the labels
+
+plotting the images with the boxes given by yolo formatted labels
+visualize_labels: uses only labels in a specific folder; corresponding image folder as specified
+visualize_all_images_with_labels: uses all label folders in a given directory, presumes corresponding image folders
 '''
 
-data_root = "/user/christoph.wald/u15287/big-scratch/dataset"
-image_root = os.path.join(data_root, "images")
-label_root = os.path.join(data_root, "labels")
-output_root = os.path.join(data_root, "images_w_bboxes")
-for root, dirs, files in os.walk(image_root):
-    for file in files:
+def visualize_labels(label_root, image_root, output_path):
+    '''
+    iterates over the label files in label_root,
+    and for each one, draws boxes on the corresponding image from image_root
+    '''
+    for file in os.listdir(label_root):
+        label_path = os.path.join(label_root, file)
+        image_name = os.path.splitext(file)[0] + ".jpg"
+        image_path = os.path.join(image_root, image_name)
+       
+        visualize_yolo_boxes(image_path, label_path, output_path)
 
-        image_path = os.path.join(root, file)
-        rel_path = os.path.relpath(image_path, image_root)
-        rel_base, _ = os.path.splitext(rel_path)
+def visualize_all_images_with_labels(image_root, label_root, output_root):
+    '''
+    walk through all label files in label_root (including subdirs),
+    and for each one, draws boxes on the corresponding image from image_root
+    '''
+    for root, dirs, files in os.walk(label_root):
+        for file in files:
 
-        annotation_path = os.path.join(label_root, rel_base + '.txt')
-        output_path = os.path.join(output_root, rel_base + '_with_boxes.jpg')
-        
-        os.makedirs(os.path.dirname(output_path), exist_ok=True)
+            label_path = os.path.join(root, file)
+            rel_path = os.path.relpath(label_path, label_root)
+            rel_base, _ = os.path.splitext(rel_path)
 
-        if not os.path.exists(annotation_path):
-            #print(f"Label not found for: {rel_path}, skipping.")
-            continue
+            image_path = os.path.join(image_root, rel_base + ".jpg")
+            output_path = os.path.join(output_root, os.path.dirname(rel_path))
 
-        image = cv2.imread(image_path)
-        boxes, labels = load_yolo_labels(annotation_path, image.shape[1], image.shape[0])
-        for idx, box in enumerate(boxes):
-            draw_box(image, box, (0,255,0), str(labels[idx]))
+            visualize_yolo_boxes(image_path, label_path, output_path)
 
-        cv2.imwrite(output_path, image)
+
+
+#this is for only one specific folder
+label_root = "/user/christoph.wald/u15287/insect_pest_detection/marcella_approved_thrips/labels"
+image_root = "/user/christoph.wald/u15287/big-scratch/splitted_data/test_set/images"
+output_path = "/user/christoph.wald/u15287/insect_pest_detection/marcella_approved_thrips/images"
+os.makedirs(output_path, exist_ok=True)
+
+visualize_labels(label_root, image_root, output_path)

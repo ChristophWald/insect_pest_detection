@@ -3,6 +3,15 @@ import matplotlib.patches as mpatches
 import math
 import numpy as np
 
+
+'''
+for visualizing dataset/split
+'''
+
+#add titles to the plots
+#histplot is odd because of the changing scales
+
+
 def plot_label_distribution_boxplots(files_labeled, output_dir, filename="label_boxplots_grid.png", cols=4):
     """
     Creates a grid of boxplots showing the distribution of label counts per image for each subfolder.

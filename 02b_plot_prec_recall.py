@@ -1,6 +1,10 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 
+'''
+simple plots for visualizing losses
+'''
+
 # Load the CSV file
 file_path = '/user/christoph.wald/u15287/insect_pest_detection/runs/detect/train2/results.csv'
 df = pd.read_csv(file_path)

@@ -8,13 +8,16 @@ import os
 random.seed(43)
 
 '''
-creates filelists for the datasplitting (not in place)
+creates json filelists for the datasplitting (not in place)
 '''
 
 #for saving plots of label distribution in folder "split_plots"
 plot_statistics = True
 
 def count_files(data_dict, dict_name, statistics=False):
+    '''
+    creates a dataframe with basic statistics for each pest class
+    '''
     counts = {key: len(subdict) for key, subdict in data_dict.items()}
     df = pd.DataFrame(counts, index=[f'{dict_name}_count']).T
     df[f'{dict_name}_count'] = df[f'{dict_name}_count'].astype(int)
@@ -38,15 +41,8 @@ def count_files(data_dict, dict_name, statistics=False):
 
 def reduce_class_labels(class_name, all_labeled, keep_n=200):
     """
-    Reduces the number of labeled samples for a specific class to `keep_n`.
-    
-    Args:
-        class_name (str): The class to reduce (e.g., "FungusGnats").
-        all_labeled (dict): Dict of dicts containing labeled data per class.
-        keep_n (int): Number of labeled samples to keep for the class.
-    
-    Returns:
-        dict: Modified all_labeled
+    subtracts a number of randomly selected labels
+    keeps only keep_n label files
     """
     print(f"Reducing number of '{class_name}' labels to {keep_n}...")
 
@@ -70,14 +66,7 @@ def reduce_class_labels(class_name, all_labeled, keep_n=200):
 
 def remove_labeled_from_images(all_labeled, all_images):
     """
-    Removes all labeled image keys from all_images to ensure no overlap.
-    
-    Args:
-        all_labeled (dict): Dict of labeled data per class.
-        all_images (dict): Dict of image paths per class.
-    
-    Returns:
-        dict: Modified all_images with labeled images removed.
+    returns a dict with all images not labeled
     """
     for class_name in all_labeled:
         if class_name in all_images:
@@ -90,11 +79,7 @@ def remove_labeled_from_images(all_labeled, all_images):
 
 def custom_split_unlabeled(unlabeled_set):
     """
-    Splits unlabeled_set into train1_unlabeled and train2_unlabeled based on custom class rules.
-    For 'leafMinder Flies', items go to train1_unlabeled but stay in unlabeled_set.
-    
-    Returns:
-        train1_unlabeled (dict), train2_unlabeled (dict), updated unlabeled_set (dict)
+    returns two dicts of unlabelled files split by given rules
     """
     train1_unlabeled = {}
     train2_unlabeled = {}

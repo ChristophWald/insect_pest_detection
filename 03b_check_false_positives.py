@@ -4,6 +4,11 @@ import re
 import cv2
 import numpy as np
 
+'''
+plots false positives given by 03a_test_full_images.py
+white canvas, box, predicted class
+'''
+
 # Paths
 json_path = "/home/wald/Schreibtisch/10_BA_Arbeit/01_data_preparation/runs/test_train1/test_conf465/results_conf465.json"
 boxes_path = "/home/wald/Schreibtisch/10_BA_Arbeit/01_data_preparation/runs/test_train1/test_conf465/boxes"

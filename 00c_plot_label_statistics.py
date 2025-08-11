@@ -5,13 +5,21 @@ import numpy as np
 import matplotlib.pyplot as plt
 import math
 
+'''
+for inspection of dataset
+'''
+
 #set paths
 image_path = "/user/christoph.wald/u15287/big-scratch/dataset/images/"
 label_path = "/user/christoph.wald/u15287/big-scratch/dataset/labels/"
 
 #get file dicts
-files_labeled = get_files_by_subfolder(label_path, count_lines=True)  # Names + line counts
-files_images = get_files_by_subfolder(image_path)
+files_labeled = get_files_by_subfolder(label_path, count_lines=True)  # names + line counts
+files_images = get_files_by_subfolder(image_path) #names
+
+'''
+getting some basic statistics about the dataset and just print them
+'''
 
 #get statistics
 data = []
@@ -37,11 +45,13 @@ print(f"Total files: {df['image_files'].sum()}")
 print(f"Labeled files: {df['label_files'].sum()}")
 print(f"Instances labels: {df['instances_labeled'].sum()}")
 
-#plot number of labels vs. time of creation
+'''
+plot number of labeled objects per YST vs time of creation to check for tendencies
+'''
+
 output_dir = "label_plots"
 os.makedirs(output_dir, exist_ok=True)
 
-# Plot each subfolder and save
 for folder_name, file_data in files_labeled.items():
     filenames = sorted(file_data.keys())
     line_counts = [file_data[fname] for fname in filenames]
@@ -54,12 +64,14 @@ for folder_name, file_data in files_labeled.items():
     plt.tight_layout()
     plt.grid(True)
 
-    # Save the figure
     plot_filename = f"{folder_name.replace(' ', '_')}_label_distribution.png"
     plot_path = os.path.join(output_dir, plot_filename)
     plt.savefig(plot_path)
-    plt.close()  # Close the figure to free memory
 
     print(f"Saved plot to {plot_path}")
+
+'''
+plot distribution of labels per YST to check balancing
+'''
 
 plot_label_distribution_boxplots(files_labeled, output_dir=output_dir)

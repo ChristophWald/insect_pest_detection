@@ -2,9 +2,16 @@ import os
 import cv2
 import numpy as np
 
+'''
+MODULES:
+draw a single box into an image
+load a yolo label and transform to absolute coordinates
+visualize all yolo boxes in one image
+compute intersection of two boxes
+save boxes as individual jpgs
+get all files in all subfolders incl. optional linecount for label files
+'''
 
-#add titles to the plots
-#histplot is odd because of the changing scales
 
 def draw_box(img, box, color, label):
     """Draw a bounding box with label on the image."""
@@ -30,6 +37,39 @@ def load_yolo_labels(file_path, img_width, img_height):
             boxes.append([xmin,ymin,xmax,ymax])
             classes.append(cls)
     return [boxes, classes]
+
+def visualize_yolo_boxes(image_path, label_path, output_folder):
+    """
+    Draw YOLO bounding boxes on a single image and save the result.
+
+    Args:
+        image_path (str): Path to the image file.
+        label_path (str): Path to the corresponding YOLO label file.
+        output_folder (str): Folder to save the annotated image.
+    """
+    if not os.path.exists(label_path):
+        print(f"Label file not found for: {image_path}")
+        return
+
+    image = cv2.imread(image_path)
+    if image is None:
+        print(f"Could not read image: {image_path}")
+        return
+
+    height, width = image.shape[:2]
+    boxes, labels = load_yolo_labels(label_path, width, height)
+
+    for idx, box in enumerate(boxes):
+        draw_box(image, box, (0, 255, 0), str(labels[idx]))
+
+    base_name = os.path.basename(image_path)
+    name_wo_ext, _ = os.path.splitext(base_name)
+    output_filename = f"{name_wo_ext}_with_boxes.jpg"
+    output_path = os.path.join(output_folder, output_filename)
+
+    os.makedirs(output_folder, exist_ok=True)
+    cv2.imwrite(output_path, image)
+    print(f"Saved: {output_path}")
 
 def compute_intersection_area(box1, box2):
     xA = max(box1[0], box2[0])

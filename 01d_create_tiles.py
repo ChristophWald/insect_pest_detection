@@ -4,6 +4,11 @@ import math
 import numpy as np
 from modules import load_yolo_labels, compute_intersection_area
 
+'''
+creates 640x640 tiles
+the path structure/file loading has to be revisited - as of one it has to be revisited manually
+'''
+
 def pad_to_multiple(image, tile_size=640, pad_value=(114,114,114)):
     h, w = image.shape[:2]
     pad_w = math.ceil(w / tile_size) * tile_size - w

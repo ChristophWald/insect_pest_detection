@@ -1,5 +1,10 @@
 import os
 
+'''
+final check if for every image there is a label
+expects yolo folder structure
+'''
+
 def check_images_labels(base_path, split):
     img_dir = os.path.join(base_path, "images", split)
     label_dir = os.path.join(base_path, "labels", split)
