@@ -42,9 +42,9 @@ def visualize_all_images_with_labels(image_root, label_root, output_root):
 
 
 #this is for only one specific folder
-label_root = "/user/christoph.wald/u15287/insect_pest_detection/marcella_approved_thrips/labels"
+label_root = "/user/christoph.wald/u15287/big-scratch/improve_test_set/merged_labels"
 image_root = "/user/christoph.wald/u15287/big-scratch/splitted_data/test_set/images"
-output_path = "/user/christoph.wald/u15287/insect_pest_detection/marcella_approved_thrips/images"
+output_path = "/user/christoph.wald/u15287/big-scratch/improve_test_set/predicted_images"
 os.makedirs(output_path, exist_ok=True)
 
 visualize_labels(label_root, image_root, output_path)

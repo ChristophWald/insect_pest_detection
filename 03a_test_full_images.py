@@ -288,11 +288,15 @@ os.makedirs(boxes_output_path, exist_ok=True)
 filenames = os.listdir(base_image_path)
 filenames.sort()
 
-save_images = True
-save_boxes = True
-save_results = True
+save_images = False #explain
+save_boxes = False #
+save_results = True #
+
+
 
 results = []
+
+#make a block with the thresholds here
 
 for filename in filenames:
     print(f"Processing {filename}...")

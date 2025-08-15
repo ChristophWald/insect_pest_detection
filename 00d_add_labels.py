@@ -47,11 +47,11 @@ def merge_labels(original_label_folder, new_label_folder, merged_label_folder):
             f.write('\n'.join(combined_lines))
 
 json_path = "/user/christoph.wald/u15287/big-scratch/supervised_large/tests_train1/test_conf465/results_conf465.json" #predictions
-boxes_folder = "/user/christoph.wald/u15287/insect_pest_detection/marcella_approved_thrips" #boxes selected as true positive
+boxes_folder = "/user/christoph.wald/u15287/big-scratch/improve_test_set" #boxes selected as true positive
 original_images_folder = "/user/christoph.wald/u15287/big-scratch/splitted_data/test_set/images" #images predicted on initially
 original_label_folder = "/user/christoph.wald/u15287/big-scratch/splitted_data/test_set/labels" #labels initially used
-output_label_folder = "/user/christoph.wald/u15287/insect_pest_detection/marcella_approved_thrips/labels" #output for yolo_format label files
-merged_label_folder = "/user/christoph.wald/u15287/insect_pest_detection/marcella_approved_thrips/merged_labels" #output for merged yolo format files
+output_label_folder = "/user/christoph.wald/u15287/big-scratch/improve_test_set/tile_labels" #output for yolo_format label files
+merged_label_folder = "/user/christoph.wald/u15287/big-scratch/improve_test_set/merged_labels" #output for merged yolo format files
 os.makedirs(merged_label_folder, exist_ok=True)
 os.makedirs(output_label_folder, exist_ok=True)
 
