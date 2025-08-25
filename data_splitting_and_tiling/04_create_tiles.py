@@ -2,7 +2,7 @@ import cv2
 import os
 import math
 import numpy as np
-from modules import load_yolo_labels, compute_intersection_area
+from insect_pest_detection.modules.modules import load_yolo_labels, compute_intersection_area
 
 '''
 creates 640x640 tiles
@@ -46,7 +46,7 @@ def tile_and_save(image_path, label_path, dest_path,
             tile_labels = []
             for (cls, bx1, by1, bx2, by2) in abs_boxes:
                 # Compute intersection area
-                inter_area = compute_box_intersection(tile_box, (bx1, by1, bx2, by2))
+                inter_area = compute_intersection_area(tile_box, (bx1, by1, bx2, by2))
                 box_area = (bx2 - bx1) * (by2 - by1)
                 if box_area == 0:
                     continue
@@ -90,7 +90,8 @@ def tile_and_save(image_path, label_path, dest_path,
 
 
 
-base_path =  "/user/christoph.wald/u15287/big-scratch/splitted_data/train_labeled/"
+#base_path =  "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled"
+base_path = "/user/christoph.wald/u15287/big-scratch/reconstruct_thrips"
 
 
 # Set up source image paths

@@ -1,17 +1,19 @@
-from modules import get_files_by_subfolder
-from modules_visualization import plot_label_distribution_boxplots
+import os
+from insect_pest_detection.modules.modules import get_files_by_subfolder
+from insect_pest_detection.plotting.modules_plotting import plot_label_distribution_boxplots
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import math
+
 
 '''
 for inspection of dataset
 '''
 
 #set paths
-image_path = "/user/christoph.wald/u15287/big-scratch/dataset/images/"
-label_path = "/user/christoph.wald/u15287/big-scratch/dataset/labels/"
+image_path = "/user/christoph.wald/u15287/big-scratch/01_dataset/images/"
+label_path = "/user/christoph.wald/u15287/big-scratch/01_dataset/labels/"
 
 #get file dicts
 files_labeled = get_files_by_subfolder(label_path, count_lines=True)  # names + line counts

@@ -1,4 +1,4 @@
-from modules import load_yolo_labels, save_cropped_boxes
+from modules.modules import load_yolo_labels, save_cropped_boxes
 import os
 import cv2
 

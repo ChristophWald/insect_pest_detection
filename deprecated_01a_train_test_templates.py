@@ -1,4 +1,5 @@
-from modules import *
+from insect_pest_detection.modules.modules import *
+from insect_pest_detection.plotting.modules_plotting import *
 import pandas as pd
 import numpy as np
 import random
@@ -102,7 +103,7 @@ def custom_split_unlabeled(unlabeled_set):
             unlabeled_set[class_name] = {k: items[k] for k in remaining}
 
         elif class_name == "WhiteFlies":
-            n = 320
+            n = 160
             train1_unlabeled[class_name] = {k: items[k] for k in keys[:n]}
             train2_unlabeled[class_name] = {k: items[k] for k in keys[n:2*n]}
             remaining = keys[2*n:]
@@ -122,8 +123,8 @@ create a dataframe
 collect data for all images and all labels
 '''
 print("Loading files.")
-image_path = "/user/christoph.wald/u15287/big-scratch/dataset/images/"
-label_path = "/user/christoph.wald/u15287/big-scratch/dataset/labels/"
+image_path = "/user/christoph.wald/u15287/big-scratch/01_dataset/images/"
+label_path = "/user/christoph.wald/u15287/big-scratch/01_dataset/labels/"
 all_labeled = get_files_by_subfolder(label_path, count_lines=True)  # Names + line counts
 all_images = get_files_by_subfolder(image_path)
 
@@ -137,9 +138,9 @@ keep only 200 random sampled labels of the FungusGnats
 print("Reducing number of FungusGnats labels.")
 all_labeled = reduce_class_labels("FungusGnats", all_labeled, 200)
 '''
-keep only 400 random sampled labels of the WhiteFlies
+keep only 200 random sampled labels of the WhiteFlies
 '''
-all_labeled = reduce_class_labels("WhiteFlies", all_labeled, 400)
+all_labeled = reduce_class_labels("WhiteFlies", all_labeled, 200)
 
 labeled_set = all_labeled
 

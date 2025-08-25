@@ -9,9 +9,9 @@ realizes planned split
 
 
 json_dir = 'split_info'  
-dataset_images_root = '/user/christoph.wald/u15287/big-scratch/dataset/images'
-dataset_labels_root = '/user/christoph.wald/u15287/big-scratch/dataset/labels'
-base_output_dir = "/user/christoph.wald/u15287/big-scratch/splitted_data"
+dataset_images_root = '/user/christoph.wald/u15287/big-scratch/01_dataset/images'
+dataset_labels_root = '/user/christoph.wald/u15287/big-scratch/01_dataset/labels'
+base_output_dir = "/user/christoph.wald/u15287/big-scratch/02_splitted_data"
 image_ext = '.jpg'
 label_ext = '.txt'
 

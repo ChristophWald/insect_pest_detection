@@ -23,8 +23,8 @@ def copy_pair(files, dest_img_dir, dest_lbl_dir):
             shutil.copy(src_img, dst_img)
             shutil.copy(src_lbl, dst_lbl)
 
-input_dir = "/user/christoph.wald/u15287/big-scratch/splitted_data/train_labeled/"
-output_dir = "/user/christoph.wald/u15287/big-scratch/splitted_data/train_labeled/split/"
+input_dir = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled"
+output_dir = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/split"
 
 # Output folders
 img_train = os.path.join(output_dir, 'images/train')

@@ -5,7 +5,7 @@ import torch
 import numpy as np
 from collections import defaultdict
 import json
-from modules import draw_box, load_yolo_labels, save_cropped_boxes, compute_intersection_area
+from modules.modules import draw_box, load_yolo_labels, save_cropped_boxes, compute_intersection_area
 
 '''
 testing prediction on full images
@@ -272,11 +272,11 @@ def save_results_to_json(output_path,results):
         json.dump(formatted, f, indent=4)
 
 #load model
-model = YOLO('/user/christoph.wald/u15287/big-scratch/supervised_large/runs/detect/train/weights/best.pt')
+model = YOLO('/user/christoph.wald/u15287/insect_pest_detection/runs/detect/train7/weights/best.pt')
 
 #set in- & output path
-base_input_path = "/user/christoph.wald/u15287/big-scratch/splitted_data/test_set/"
-base_output_path = "/user/christoph.wald/u15287/insect_pest_detection/test_prediction"
+base_input_path = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/test_set"
+base_output_path = "/user/christoph.wald/u15287/insect_pest_detection/train7_test_prediction_568"
 base_image_path = os.path.join(base_input_path, "images")
 base_label_path = os.path.join(base_input_path, "labels")
 image_output_path = os.path.join(base_output_path, "images_w_bboxes")
@@ -292,7 +292,7 @@ save_images = False #explain
 save_boxes = False #
 save_results = True #
 
-
+conf_threshold=0.568
 
 results = []
 
@@ -301,7 +301,7 @@ results = []
 for filename in filenames:
     print(f"Processing {filename}...")
     image = cv2.imread(os.path.join(base_image_path, filename))
-    boxes, confs, class_ids = sliding_window_prediction(image, model, conf_threshold=0.465) #returns lists
+    boxes, confs, class_ids = sliding_window_prediction(image, model, conf_threshold) #returns lists
     print(f"Number of predicted boxes after thresholding: {len(boxes)}")
     boxes, confs, class_ids = nms(boxes, confs, class_ids, iou_threshold=0.4) #transform the lists to tensors
     print(f"Number of predicted boxes after NMS: {len(boxes)}")

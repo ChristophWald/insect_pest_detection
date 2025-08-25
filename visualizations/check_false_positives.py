@@ -10,9 +10,9 @@ white canvas, box, predicted class
 '''
 
 # Paths
-json_path = "/home/wald/Schreibtisch/10_BA_Arbeit/01_data_preparation/runs/test_train1/test_conf465/results_conf465.json"
-boxes_path = "/home/wald/Schreibtisch/10_BA_Arbeit/01_data_preparation/runs/test_train1/test_conf465/boxes"
-output_folder = "/home/wald/Schreibtisch/10_BA_Arbeit/01_data_preparation/runs/test_train1/test_conf465/annotated_boxes"
+json_path = "/user/christoph.wald/u15287/insect_pest_detection/train3_test_prediction_508/results.json"
+boxes_path = "/user/christoph.wald/u15287/insect_pest_detection/train3_test_prediction_508/boxes"
+output_folder = "/user/christoph.wald/u15287/insect_pest_detection/train3_test_prediction_508/annotated_boxes"
 os.makedirs(output_folder, exist_ok=True)
 
 # Load JSON
