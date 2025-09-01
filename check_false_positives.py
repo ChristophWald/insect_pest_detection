@@ -10,9 +10,9 @@ white canvas, box, predicted class
 '''
 
 # Paths
-json_path = "/user/christoph.wald/u15287/insect_pest_detection/train3_test_prediction_508/results.json"
-boxes_path = "/user/christoph.wald/u15287/insect_pest_detection/train3_test_prediction_508/boxes"
-output_folder = "/user/christoph.wald/u15287/insect_pest_detection/train3_test_prediction_508/annotated_boxes"
+json_path = "/user/christoph.wald/u15287/insect_pest_detection/train10_test_prediction_435/results.json"
+boxes_path = "/user/christoph.wald/u15287/insect_pest_detection/train10_test_prediction_435/boxes"
+output_folder = "/user/christoph.wald/u15287/insect_pest_detection/train10_test_prediction_435/annotated_boxes"
 os.makedirs(output_folder, exist_ok=True)
 
 # Load JSON
@@ -20,7 +20,7 @@ with open(json_path) as f:
     data = json.load(f)
 json_dict = {entry['filename'].rsplit('.', 1)[0]: entry for entry in data}
 
-# Class names
+# Class names    
 class_names = {
     0: "FungusGnats",
     1: "LeafMinerFlies",

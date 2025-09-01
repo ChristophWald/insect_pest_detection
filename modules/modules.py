@@ -64,7 +64,7 @@ def visualize_yolo_boxes(image_path, label_path, output_folder):
 
     base_name = os.path.basename(image_path)
     name_wo_ext, _ = os.path.splitext(base_name)
-    output_filename = f"{name_wo_ext}_with_boxes.jpg"
+    output_filename = f"{name_wo_ext}.jpg"
     output_path = os.path.join(output_folder, output_filename)
 
     os.makedirs(output_folder, exist_ok=True)

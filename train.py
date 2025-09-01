@@ -28,11 +28,12 @@ model.train(data='/user/christoph.wald/u15287/big-scratch/03_train_background_30
 
 
 #training
-#medium augmentation - train1 
+#medium augmentation 
 model = YOLO('yolov8s.pt')
-model.train(data='/user/christoph.wald/u15287/big-scratch/03_train_background_30/data.yaml', 
-            epochs=100, 
-            patience = 10, 
+
+model.train(data='/user/christoph.wald/u15287/big-scratch/03_train_wo_thrips_30/data.yaml', 
+            epochs=200, 
+            #patience = 20, 
             imgsz=640,
             
             scale=0.3, #instead of 0.5
@@ -44,6 +45,8 @@ model.train(data='/user/christoph.wald/u15287/big-scratch/03_train_background_30
             
             
             )
+
+
 
 '''
 

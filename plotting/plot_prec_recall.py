@@ -6,7 +6,7 @@ simple plots for visualizing losses
 '''
 
 # Load the CSV file
-file_path = '/user/christoph.wald/u15287/insect_pest_detection/runs/detect/train7/results.csv'
+file_path = '/user/christoph.wald/u15287/insect_pest_detection/runs/detect/train/results.csv'
 df = pd.read_csv(file_path)
 
 fig, axs = plt.subplots(1, 2, figsize=(14, 5))
@@ -42,6 +42,6 @@ axs[1].grid(True)
 
 # Adjust layout and save the figure
 plt.tight_layout()
-save_path = '/user/christoph.wald/u15287/insect_pest_detection/runs/detect/prec_recall_train7.png'
+save_path = '/user/christoph.wald/u15287/insect_pest_detection/runs/detect/prec_recall_train10.png'
 plt.savefig(save_path)
 plt.close()

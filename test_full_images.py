@@ -272,11 +272,11 @@ def save_results_to_json(output_path,results):
         json.dump(formatted, f, indent=4)
 
 #load model
-model = YOLO('/user/christoph.wald/u15287/insect_pest_detection/runs/detect/train7/weights/best.pt')
+model = YOLO('/user/christoph.wald/u15287/insect_pest_detection/runs/detect/train/weights/best.pt')
 
 #set in- & output path
 base_input_path = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/test_set"
-base_output_path = "/user/christoph.wald/u15287/insect_pest_detection/train7_test_prediction_568"
+base_output_path = "/user/christoph.wald/u15287/insect_pest_detection/train10_test_prediction_435"
 base_image_path = os.path.join(base_input_path, "images")
 base_label_path = os.path.join(base_input_path, "labels")
 image_output_path = os.path.join(base_output_path, "images_w_bboxes")
@@ -288,26 +288,30 @@ os.makedirs(boxes_output_path, exist_ok=True)
 filenames = os.listdir(base_image_path)
 filenames.sort()
 
-save_images = False #explain
-save_boxes = False #
-save_results = True #
+save_images = True #explain
+save_boxes = True
+save_results = True
 
-conf_threshold=0.568
+conf_threshold=0.435
 
 results = []
 
 #make a block with the thresholds here
 
 for filename in filenames:
+    if filename.startswith("FRANOC"):
+        print("skipping " + filename)
+        continue
     print(f"Processing {filename}...")
     image = cv2.imread(os.path.join(base_image_path, filename))
     boxes, confs, class_ids = sliding_window_prediction(image, model, conf_threshold) #returns lists
     print(f"Number of predicted boxes after thresholding: {len(boxes)}")
-    boxes, confs, class_ids = nms(boxes, confs, class_ids, iou_threshold=0.4) #transform the lists to tensors
-    print(f"Number of predicted boxes after NMS: {len(boxes)}")
-    boxes, confs, class_ids = filter_mostly_contained_boxes(boxes, confs, class_ids, threshold=0.5) #operates on tensors and returns lists again
-    print(f"Number of predicted boxes after removing contained boxes: {len(boxes)}")
-    
+    if len(boxes) > 0:
+        boxes, confs, class_ids = nms(boxes, confs, class_ids, iou_threshold=0.4) #transform the lists to tensors
+        print(f"Number of predicted boxes after NMS: {len(boxes)}")
+        boxes, confs, class_ids = filter_mostly_contained_boxes(boxes, confs, class_ids, threshold=0.5) #operates on tensors and returns lists again
+        print(f"Number of predicted boxes after removing contained boxes: {len(boxes)}")
+        
     label_path = os.path.join(base_label_path, os.path.splitext(filename)[0] + ".txt")
     label_boxes, label_classes_ids = load_yolo_labels(label_path, image.shape[1], image.shape[0])
     tp, fp, fn = compare_labels(pred_boxes=boxes, pred_classes=class_ids, gt_boxes=label_boxes, gt_classes=label_classes_ids, 
