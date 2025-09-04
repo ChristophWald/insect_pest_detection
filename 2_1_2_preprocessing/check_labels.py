@@ -1,6 +1,8 @@
 import os
 
-
+'''
+find labels that do not match the pest class of the subset
+'''
 
 def report_mismatched_labels(root_path, subfolders):
     """

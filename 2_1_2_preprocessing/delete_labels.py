@@ -1,7 +1,8 @@
 import os
 
 '''
-deletes all lines given by img-files with [filename]_[filenumber]_[linenumber] created by 03b_check_false_positives.py
+deletes all lines given by img-files with [filename]_[filenumber]_[linenumber] created by check_false_positives.py
+for cleaning the thrips labels
 
 '''
 

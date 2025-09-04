@@ -6,7 +6,7 @@ from insect_pest_detection.modules.modules import load_yolo_labels, compute_inte
 
 '''
 creates 640x640 tiles
-the path structure/file loading has to be revisited - as of one it has to be revisited manually
+the path structure/file loading has to be revisited
 '''
 
 def pad_to_multiple(image, tile_size=640, pad_value=(114,114,114)):

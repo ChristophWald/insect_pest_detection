@@ -11,6 +11,8 @@ from modules.modules import draw_box, load_yolo_labels, save_cropped_boxes, comp
 testing prediction on full images
 returns general metrics, full prediction info 
 can print color coded boxes into images (green: true positive, blue: false positive, red: false negative)
+can print all boxes predicted
+should be refactored
 '''
 
 def sliding_window_prediction(image, model, conf_threshold=0.365):
@@ -301,7 +303,7 @@ conf_threshold=0.468
 results = []
 
 #make a block with the thresholds here
-#reset containment_threshold to 0.9 and enable filter_mostly_contrained_boxes again
+
 
 for filename in filenames:
     #if filename.startswith("FRANOC"):
@@ -321,7 +323,7 @@ for filename in filenames:
     label_boxes, label_classes_ids = load_yolo_labels(label_path, image.shape[1], image.shape[0])
     tp, fp, fn = compare_labels(pred_boxes=boxes, pred_classes=class_ids, pred_scores=confs,gt_boxes=label_boxes, gt_classes=label_classes_ids, 
                                 iou_threshold = 0.5,
-                                containment_threshold = 1.1)
+                                containment_threshold = 0.9)
     results.append([filename, tp, fp, fn])
     if save_images: make_image_with_boxes(image, tp, fp, fn, image_output_path, filename)
     if save_boxes: save_cropped_boxes(image, fp[0],filename, boxes_output_path)

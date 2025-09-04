@@ -1,5 +1,9 @@
 from ultralytics import YOLO
-from ultralytics.data.utils import verify_image_label
+
+'''
+just the model.train with parameters
+'''
+
 
 '''
 #training

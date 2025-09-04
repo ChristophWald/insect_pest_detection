@@ -2,6 +2,10 @@ import os
 import hashlib
 from collections import defaultdict
 
+'''
+find duplicate files by sha256 checksum
+'''
+
 def compute_sha256(filepath):
     sha256 = hashlib.sha256()
     with open(filepath, 'rb') as f:
@@ -28,10 +32,7 @@ duplicates_found = False
 for hash_val, paths in hash_map.items():
     if len(paths) > 1:
         duplicates_found = True
-        print(f"\n🔁 Duplicate files (SHA256: {hash_val}):")
+        print(f"\n Duplicate files (SHA256: {hash_val}):")
         for path in paths:
             print(f"  - {path}")
-
-if not duplicates_found:
-    print("✅ No duplicate files found.")
 

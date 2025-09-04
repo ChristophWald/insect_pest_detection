@@ -1,7 +1,14 @@
 import os
 import cv2
 import numpy as np
-from modules.modules import load_yolo_labels, save_cropped_boxes
+from modules.modules import load_yolo_labels
+
+'''
+
+creates figure 2 - one row with nine boxes for every pest class
+
+'''
+
 
 def crop_boxes_from_image(image, boxes):
     """Return a list of cropped boxes (as np.ndarrays) from the image."""

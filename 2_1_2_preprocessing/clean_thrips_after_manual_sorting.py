@@ -1,6 +1,11 @@
 import os
 import shutil
 
+'''
+copies only files which are not manually selected (selection by putting them into folders)
+for thrips subset cleaning
+'''
+
 #copy the manual sorted thrips
 
 path = "/home/wald/Schreibtisch/10_BA_Arbeit/01_data_preparation/Thrips_labels_manually_sorted/delete_batches_with_generally_bad_labels"

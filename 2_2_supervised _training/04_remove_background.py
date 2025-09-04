@@ -2,13 +2,18 @@ import os
 import random
 import shutil
 
+'''
+reduces ratio of background labels in a training set
+code has to be reworked - as of now it only produces information
+'''
+
 
 # === CONFIG ===
 base_path = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/tiles/val"
 images_path = os.path.join(base_path, "images")
 labels_path = os.path.join(base_path, "labels")
 seed = 42  # for reproducibility
-target_background_ratio = 0.30  # 10%
+target_background_ratio = 0.30  
 
 # Lists
 background_images = []

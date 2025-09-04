@@ -8,7 +8,7 @@ for improving the labels of the testset to get less false positives
 
 transforms predicted boxes, which were manual selected as true positive to yolo labels
 filename of box gives as [Species]_[IMGnumber]_[boxnumber].jpg
-predicitions with boxes coordinates given by a json saved by 03a_test_full_images.py
+predictions with boxes coordinates given by a json saved by 03a_test_full_images.py
 '''
 
 def convert_to_yolo(box, img_width, img_height):

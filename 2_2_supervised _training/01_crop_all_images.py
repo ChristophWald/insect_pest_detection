@@ -2,6 +2,10 @@ import os
 import cv2
 import numpy as np
 
+'''
+crops all images in a folder to the YST-rectangle and adjusts the corresponding yolo labels
+'''
+
 def create_binary_mask(image):
     lower_yellow = np.array([20, 100, 100])
     upper_yellow = np.array([30, 255, 255])
