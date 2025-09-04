@@ -1,9 +1,7 @@
 import cv2
 import os
-import math
 from modules_segmentation import *
 
-print("Hello")
 grid_folder = "/user/christoph.wald/u15287/big-scratch/00_uncropped_dataset/YSTohneInsekten"
 grid_files = os.listdir(grid_folder)
 
@@ -13,7 +11,8 @@ cleaned_masks = []
 
 for grid_file in grid_files:
     
-    grid = cv2.imread(os.path.join(grid_folder, grid_file))     
+    grid = cv2.imread(os.path.join(grid_folder, grid_file))
+    print(f"Processing {grid_file}")     
     mask = create_binary_mask(grid)
     mask_inv = cv2.bitwise_not(mask)  #inverting, because morphologyEx expects white foreground
     kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (9, 9))
@@ -27,6 +26,7 @@ for grid_file in grid_files:
     corners_grids.append(corners)
 
 #add all masks together, to close gaps
+print("Adding Mask.")
 combined_mask = cleaned_masks[0].copy()
 for i in range(1, len(cleaned_masks)):
     H, _ = cv2.findHomography(corners_grids[i], corners_grids[0], cv2.RANSAC)
@@ -34,9 +34,11 @@ for i in range(1, len(cleaned_masks)):
     combined_mask = cv2.bitwise_and(combined_mask, aligned_mask)
 
 #thicken the lines of the grid, to prevent errors from small misalignments    
+print("Thicken lines.")
 grown_mask = grow_mask(combined_mask, growth_pixels=25) #image for use in the alignment with images
 cv2.imwrite("/user/christoph.wald/u15287/insect_pest_detection/image_processing/mask.jpg", grown_mask)
 
 #corners of the yst in the mask for use in the alignment with images
 with open("mask_corners.py", "w") as f:
-    f.write("mask_corners = " + repr(corners_grids[0]) + "\n") #for use in the alignment with images
+    f.write("import numpy as np\n")
+    f.write("gridcorners = np.array(" + repr(corners_grids[0].tolist()) + ")\n")
