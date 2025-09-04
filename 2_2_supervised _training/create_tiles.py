@@ -1,0 +1,120 @@
+import cv2
+import os
+import math
+import numpy as np
+from insect_pest_detection.modules.modules import load_yolo_labels, compute_intersection_area
+
+'''
+creates 640x640 tiles
+the path structure/file loading has to be revisited - as of one it has to be revisited manually
+'''
+
+def pad_to_multiple(image, tile_size=640, pad_value=(114,114,114)):
+    h, w = image.shape[:2]
+    pad_w = math.ceil(w / tile_size) * tile_size - w
+    pad_h = math.ceil(h / tile_size) * tile_size - h
+    padded = cv2.copyMakeBorder(image, 0, pad_h, 0, pad_w, cv2.BORDER_CONSTANT, value=pad_value)
+    return padded, w, h  # return original width/height for label conversion
+
+def tile_and_save(image_path, label_path, dest_path,
+                  tile_size=640, stride=440, min_inside_ratio=0.8):
+    image = cv2.imread(image_path)
+    
+    
+    # Pad image
+    padded_img, orig_w, orig_h = pad_to_multiple(image, tile_size=tile_size)
+    p_h, p_w = padded_img.shape[:2]
+
+    # Create output dirs
+    images_out = os.path.join(dest_path, "images")
+    labels_out = os.path.join(dest_path, "labels")
+    os.makedirs(images_out, exist_ok=True)
+    os.makedirs(labels_out, exist_ok=True)
+
+    # Load labels
+    boxes, classes = load_yolo_labels(label_path, orig_w, orig_h)
+    abs_boxes = [[classes[i], *box] for i, box in enumerate(boxes)]
+
+    # Generate tiles by sliding window
+    tile_id = 0
+    for y in range(0, p_h - tile_size + 1, stride):
+        for x in range(0, p_w - tile_size + 1, stride):
+            tile = padded_img[y:y+tile_size, x:x+tile_size]
+            
+            # Find boxes with at least min_inside_ratio inside this tile
+            tile_box = (x, y, x + tile_size, y + tile_size)
+            tile_labels = []
+            for (cls, bx1, by1, bx2, by2) in abs_boxes:
+                # Compute intersection area
+                inter_area = compute_intersection_area(tile_box, (bx1, by1, bx2, by2))
+                box_area = (bx2 - bx1) * (by2 - by1)
+                if box_area == 0:
+                    continue
+                # Fraction of box inside tile
+                inside_ratio = inter_area / box_area
+                if inside_ratio >= min_inside_ratio:
+                    # Clip box to tile boundaries
+                    cx1 = max(bx1, x)
+                    cy1 = max(by1, y)
+                    cx2 = min(bx2, x + tile_size)
+                    cy2 = min(by2, y + tile_size)
+
+                    # Convert back to YOLO normalized format relative to tile
+                    box_w = cx2 - cx1
+                    box_h = cy2 - cy1
+                    box_xc = cx1 + box_w / 2
+                    box_yc = cy1 + box_h / 2
+
+                    nx_c = (box_xc - x) / tile_size
+                    ny_c = (box_yc - y) / tile_size
+                    nw = box_w / tile_size
+                    nh = box_h / tile_size
+
+                    tile_labels.append([cls, nx_c, ny_c, nw, nh])
+
+            # Save tile image
+            tile_filename = f"{os.path.splitext(os.path.basename(image_path))[0]}_tile_{tile_id}.jpg"
+            tile_path = os.path.join(images_out, tile_filename)
+            cv2.imwrite(tile_path, tile)
+
+            # Save tile labels (empty file if no labels)
+            label_filename = f"{os.path.splitext(os.path.basename(image_path))[0]}_tile_{tile_id}.txt"
+            label_path_out = os.path.join(labels_out, label_filename)
+            with open(label_path_out, 'w') as f:
+                for lbl in tile_labels:
+                    f.write(f"{lbl[0]} {lbl[1]:.6f} {lbl[2]:.6f} {lbl[3]:.6f} {lbl[4]:.6f}\n")
+
+            tile_id += 1
+
+    print(f"Tiling complete. {tile_id} tiles saved to {dest_path}")
+
+
+
+#base_path =  "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled"
+base_path = "/user/christoph.wald/u15287/big-scratch/reconstruct_thrips"
+
+
+# Set up source image paths
+img_paths = {
+    "train": os.path.join(base_path, "split/images/train"),
+    "val": os.path.join(base_path, "split/images/val")
+}
+
+for split, img_path in img_paths.items():
+    print(f"Processing split: {split}, path: {img_path}")
+    
+    # Destination path for this split
+    dest_path = os.path.join(base_path, "tiles", split)
+    os.makedirs(dest_path, exist_ok=True)
+
+    # Loop over image files
+    files = os.listdir(img_path)
+    for file in files:
+        img = os.path.join(img_path, file)
+
+        # Infer label path
+        label_path = img.replace("images", "labels")
+        label = os.path.splitext(label_path)[0] + '.txt'
+
+        # Call tile_and_save with the unified split-specific dest path
+        tile_and_save(img, label, dest_path)
