@@ -2,25 +2,44 @@ import json
 import os
 import shutil
 
+'''
+copies uncropped labeled training images/labels and unlabeled training images
+according to the json template given by train_test_templates
+'''
+
+# labeled training set
 with open("/user/christoph.wald/u15287/big-scratch/02_splitted_data/split_info/train_labeled.json", "r") as f:
     data = json.load(f)
 
-del data["Thrips"]
+# remove "Thrips" class
+data.pop("Thrips", None)
 
 for key in data:
     for file in data[key]:
-        src_path = os.path.join("/user/christoph.wald/u15287/big-scratch/00_uncropped_dataset/images", file +".jpg")
-        dest_path = os.path.join("big-scratch/02_splitted_data/train_labeled/images_uncropped", file +".jpg")
-        shutil.copy2(src_path, dest_path)
-        
+        # copy image
+        src_img = os.path.join("/user/christoph.wald/u15287/big-scratch/00_uncropped_dataset/images", file + ".jpg")
+        dest_img = os.path.join("/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/images_uncropped", file + ".jpg")
+        shutil.copy2(src_img, dest_img)
 
+        # copy label
+        src_lbl = os.path.join("/user/christoph.wald/u15287/big-scratch/00_uncropped_dataset/labels", file + ".txt")
+        dest_lbl = os.path.join("/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/labels_uncropped", file + ".txt")
+        
+        # ensure target folder exists
+        os.makedirs(os.path.dirname(dest_lbl), exist_ok=True)
+        
+#unlabeled training set
 with open("/user/christoph.wald/u15287/big-scratch/02_splitted_data/split_info/train_unlabeled.json", "r") as f:
     data = json.load(f)
 
-del data["Thrips"]
+data.pop("Thrips", None)
 
 for key in data:
     for file in data[key]:
-        src_path = os.path.join("/user/christoph.wald/u15287/big-scratch/00_uncropped_dataset/images", file +".jpg")
-        dest_path = os.path.join("/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_unlabeled/images_uncropped", file +".jpg")
-        shutil.copy2(src_path, dest_path)
+        src_img = os.path.join("/user/christoph.wald/u15287/big-scratch/00_uncropped_dataset/images", file + ".jpg")
+        dest_img = os.path.join("/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_unlabeled/images_uncropped", file + ".jpg")
+        
+        # ensure target folder exists
+        os.makedirs(os.path.dirname(dest_img), exist_ok=True)
+        
+        shutil.copy2(src_img, dest_img)

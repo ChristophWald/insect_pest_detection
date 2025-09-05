@@ -64,6 +64,39 @@ def yolo_labels_to_rectangles(labels, image_shape):
     
     return rectangles
 
+def transform_rectangles_to_cropped(rectangles, x_crop, y_crop, crop_w, crop_h):
+    """
+    Transform rectangles from full image coordinates to cropped image coordinates,
+    while skipping completely outside boxes and clipping partially outside boxes.
+    
+    rectangles: list of (x, y, w, h)
+    x_crop, y_crop: top-left corner of crop
+    crop_w, crop_h: width and height of crop
+    """
+    cropped_rects = []
+    for (x, y, w, h) in rectangles:
+        # shift top-left corner
+        x_new = x - x_crop
+        y_new = y - y_crop
+
+        # skip completely outside
+        if x_new + w <= 0 or y_new + h <= 0 or x_new >= crop_w or y_new >= crop_h:
+            continue
+
+        # clip partially outside
+        x_clipped = max(0, x_new)
+        y_clipped = max(0, y_new)
+        w_clipped = min(w, crop_w - x_clipped)
+        h_clipped = min(h, crop_h - y_clipped)
+
+        # skip collapsed boxes
+        if w_clipped <= 0 or h_clipped <= 0:
+            continue
+
+        cropped_rects.append((x_clipped, y_clipped, w_clipped, h_clipped))
+
+    return cropped_rects
+
 def check_h_line(bw, h_mid):
     '''
     plots an image with the longest found horizontal line
@@ -395,3 +428,49 @@ def generate_yolo_labels(tile_data, tile_size=640, class_id=0):
         yolo_labels.append(tile_label_lines)
 
     return yolo_labels
+
+#as found in modules.py
+def compute_intersection_area(box1, box2):
+    xA = max(box1[0], box2[0])
+    yA = max(box1[1], box2[1])
+    xB = min(box1[2], box2[2])
+    yB = min(box1[3], box2[3])
+    inter_width = max(0, xB - xA)
+    inter_height = max(0, yB - yA)
+    return inter_width * inter_height
+
+#as found in test_full_images.py
+def compute_iou(box1, box2):
+    inter_area = compute_intersection_area(box1, box2)
+    if inter_area == 0:
+        return 0.0
+    box1_area = (box1[2] - box1[0]) * (box1[3] - box1[1])
+    box2_area = (box2[2] - box2[0]) * (box2[3] - box2[1])
+    iou = inter_area / (box1_area + box2_area - inter_area)
+    return iou
+
+def evaluate_detections(pred_rectangles, gt_rectangles, iou_threshold=0.5):
+    """
+    Compare predictions with YOLO ground-truth rectangles.
+
+    
+    """
+    matched_gt = set()
+    matched_pred = set()
+    TP = 0
+
+    # Match predictions to ground truth
+    for pi, pred in enumerate(pred_rectangles):
+        for gi, gt in enumerate(gt_rectangles):
+            if gi in matched_gt:
+                continue
+            if compute_iou(pred, gt) >= iou_threshold:
+                matched_gt.add(gi)
+                matched_pred.add(pi)
+                TP += 1
+                break  # stop after first match
+
+    FP = len(pred_rectangles) - TP
+    FN = len(gt_rectangles) - TP
+
+    return {"TP": TP, "FP": FP, "FN": FN}
