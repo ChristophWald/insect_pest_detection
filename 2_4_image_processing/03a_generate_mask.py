@@ -14,6 +14,7 @@ for grid_file in grid_files:
     grid = cv2.imread(os.path.join(grid_folder, grid_file))
     print(f"Processing {grid_file}")     
     mask = create_binary_mask(grid)
+    #Denoising
     mask_inv = cv2.bitwise_not(mask)  #inverting, because morphologyEx expects white foreground
     kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (9, 9))
     cleaned_inv = cv2.morphologyEx(mask_inv, cv2.MORPH_OPEN, kernel)

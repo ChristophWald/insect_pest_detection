@@ -1,6 +1,6 @@
 import os
 import cv2
-from modules_segmentation import find_contour, is_upside_orientated
+#from modules_segmentation import find_contour, is_upside_orientated
 
 image_folder = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/images_uncropped"
 image_files = os.listdir(image_folder)
@@ -30,6 +30,8 @@ def rotate_yolo_labels(txt_path, save_path):
 def copy_labels(txt_path, save_path):
     with open(txt_path, "r") as src, open(save_path, "w") as dst:
         dst.write(src.read())
+'''
+#for automatic rotating
 
 for file in image_files:
     print(f"Loading {file}.")
@@ -51,8 +53,25 @@ for file in image_files:
         rotate_yolo_labels(label_path, output_label_path)
     else:
         copy_labels(label_path, output_label_path)
+'''
 
 
+#for rotating specified images
+falsly_detected_images = ["BRAIIM_0029.jpg","BRAIIM_0042.jpg","BRAIIM_0635.jpg","BRAIIM_0666.jpg","BRAIIM_0668.jpg"]
 
 
-   
+for file in falsly_detected_images:
+    print(f"Loading {file}.")
+    path = os.path.join(image_folder ,file)
+    image = cv2.imread(path)
+
+    # Label file path (same name but .txt)
+    label_file = os.path.splitext(file)[0] + ".txt"
+    label_path = os.path.join(labels_folder, label_file)
+    output_label_path = os.path.join(output_labels_folder, label_file)
+    output_image_path = os.path.join(output_images_folder, file)
+
+    #find YST contour and check for orientation
+    image = cv2.rotate(image, cv2.ROTATE_180)
+    cv2.imwrite(output_image_path, image)
+    rotate_yolo_labels(label_path, output_label_path)

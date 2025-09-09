@@ -4,43 +4,163 @@ import matplotlib.pyplot as plt
 import os
 import math
 
-# function for visual feedback
-# not necessary for processing
+'''
+general functions
+'''
 
-def show(img, title = None):
+def create_binary_mask(image):
     '''
-    plot an an cv2 image
+    binary masking with manual set threshold (yellow)
     '''
-    img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-    plt.imshow(img_rgb)
-    plt.axis('off')
-    if title: plt.title(title) 
-    plt.show()
+    lower_yellow = np.array([20, 100, 100])
+    upper_yellow = np.array([30, 255, 255])
+    hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+    mask = cv2.inRange(hsv, lower_yellow, upper_yellow)
+    return mask
 
-def draw_corners(img, corners, name="Corners"):
-    '''
-    plot an image and numbered points
-    used to display corners of YST
-    '''
-    vis = img.copy()
-    for i, (x, y) in enumerate(corners.astype(int)):
-        cv2.circle(vis, (x, y), 15, (0, 0, 255), -1)  # red dot
-        cv2.putText(vis, str(i), (x+20, y-20),
-                    cv2.FONT_HERSHEY_SIMPLEX, 3, (255,0,0), 6)
-    plt.imshow(cv2.cvtColor(vis, cv2.COLOR_BGR2RGB))
-    plt.title(name)
-    plt.axis("off")
-    plt.show()
 
-def draw_bounding_boxes(image, rectangles, color=(255, 0, 0), thickness=2):
+def find_contour(image):
+    ''' 
+    find the largest contour, which is the YST
     '''
-    plots and image and the bounding boxes calculated
+    mask = create_binary_mask(image)
+    contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    return max(contours, key=cv2.contourArea)
+
+def find_corners(image, contour):
+    ''' 
+    Finds the corners of the YSTcontour
     '''
-    img_copy = image.copy()
-    for x, y, w, h in rectangles:
-        cv2.rectangle(img_copy, (x, y), (x + w, y + h), color, thickness)
-    print(f"{len(rectangles)} bounding boxes found.")
-    return img_copy
+    # Approximate contour to polygon
+    epsilon = 0.02 * cv2.arcLength(contour, True)
+    approx = cv2.approxPolyDP(contour, epsilon, True)
+
+    if len(approx) == 4:
+        pts = approx.reshape(4, 2)
+
+        # Order corners
+        rect = np.zeros((4, 2), dtype="float32")
+        s = pts.sum(axis=1)
+        rect[0] = pts[np.argmin(s)]  # top-left
+        rect[2] = pts[np.argmax(s)]  # bottom-right
+
+        diff = np.diff(pts, axis=1)
+        rect[1] = pts[np.argmin(diff)]  # top-right
+        rect[3] = pts[np.argmax(diff)]  # bottom-left
+
+        return rect
+    else:
+        return []
+
+
+'''
+function for the rotating (02)
+'''
+
+def is_upside_orientated(image, contour, v_threshold=50):
+    ''' 
+    detects the orientation
+    upside down image have the letters in the lower half
+    more black in the lower half of the YST -> image is upside down
+    '''
+    
+    mask = np.zeros(image.shape[:2], dtype=np.uint8)
+    cv2.drawContours(mask, [contour], -1, 255, thickness=-1)
+    hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+    V = hsv[:, :, 2]
+    black_area = (V < v_threshold)
+    black_in_contour = black_area & (mask == 255)
+
+    # Find bounding box of contour, define upper and lower half
+    x, y, w, h = cv2.boundingRect(contour)
+    upper_half = black_in_contour[y:y+h//2, x:x+w]
+    lower_half = black_in_contour[y+h//2:y+h, x:x+w]
+
+    #calculate black and decide
+    black_upper = np.sum(upper_half)
+    black_lower = np.sum(lower_half)
+
+    if black_upper > black_lower:
+        result = True
+    elif black_lower > black_upper:
+        result = False
+
+    return result
+
+'''
+function for the thickening of lines in a mask
+maybe unnecessary (03a and b)
+'''
+
+def grow_mask(mask, growth_pixels=5):
+    ''' 
+    thickens the lines of the grid
+    '''
+
+    # Create a square kernel
+    kernel_size = 2 * growth_pixels + 1
+    kernel = np.ones((kernel_size, kernel_size), np.uint8)
+
+    # Erode the mask to grow black regions
+    grown_mask = cv2.erode(mask, kernel, iterations=1)
+
+    return grown_mask
+
+'''
+functions for processing images and labels (masking and cropping)
+'''
+
+def get_h_mid(image):
+    """
+    Find the longest horizontal line in an image
+    """
+
+    def horizontal_mid_y(line):
+        _, y1, _, y2 = line
+        return (y1 + y2) / 2
+
+    def line_length(line):
+        x1, y1, x2, y2 = line
+        return np.hypot(x2-x1, y2-y1)
+    
+    # invert so lines become white
+    bw = cv2.bitwise_not(image)
+
+    # detect lines
+    lines = cv2.HoughLinesP(bw, 1, np.pi/180,
+                            threshold=100,
+                            minLineLength=1000,
+                            maxLineGap=100)
+
+    # filter for horizontal lines
+    h_lines = []
+    for l in lines:
+        x1, y1, x2, y2 = l[0]
+        angle = np.degrees(np.arctan2(y2-y1, x2-x1))
+        if abs(angle) < 10:  # near horizontal
+            h_lines.append((x1, y1, x2, y2))
+
+    # restrict to central band to exclude borders of YST
+    H = image.shape[0]
+    upper_bound = H * 0.25
+    lower_bound = H * 0.75
+    h_lines_mid = [l for l in h_lines if upper_bound <= horizontal_mid_y(l) <= lower_bound]
+
+    if not h_lines_mid:
+        return None
+
+    # pick longest
+    longest = max(h_lines_mid, key=line_length)
+    
+    return longest
+
+def get_midpoint(mid_h):
+    ''' 
+    finds the midpoint of a line
+    '''
+    _, y1, _, y2 = mid_h
+    return (y1 + y2) / 2
+
 
 def yolo_labels_to_rectangles(labels, image_shape):
     '''
@@ -97,161 +217,14 @@ def transform_rectangles_to_cropped(rectangles, x_crop, y_crop, crop_w, crop_h):
 
     return cropped_rects
 
-def check_h_line(bw, h_mid):
-    '''
-    plots an image with the longest found horizontal line
-    '''
-    bw_color = cv2.cvtColor(bw, cv2.COLOR_GRAY2BGR)
-    x1, y1, x2, y2 = h_mid
-    cv2.line(bw_color, (x1, y1), (x2, y2), color=(0,0,255), thickness=10)
-    plt.imshow(cv2.cvtColor(bw_color, cv2.COLOR_BGR2RGB))  # convert BGR → RGB
-    plt.axis('off')
-    plt.show()
 
     #functions for aligning empty image with grid and image with objects to cancel out the grid
 
-def create_binary_mask(image):
-    '''
-    binary masking with manual set threshold (yellow)
-    '''
-    lower_yellow = np.array([20, 100, 100])
-    upper_yellow = np.array([30, 255, 255])
-    hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
-    mask = cv2.inRange(hsv, lower_yellow, upper_yellow)
-    return mask
+
+#------------------
 
 
-def find_contour(image):
-    ''' 
-    find the largest contour, which is the YST
-    '''
-    mask = create_binary_mask(image)
-    contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-    return max(contours, key=cv2.contourArea)
 
-def is_upside_orientated(image, contour, v_threshold=50):
-    ''' 
-    detects the orientation
-    upside down image have the letters in the lower half
-    more black in the lower half of the YST -> image is upside down
-    '''
-    
-    mask = np.zeros(image.shape[:2], dtype=np.uint8)
-    cv2.drawContours(mask, [contour], -1, 255, thickness=-1)
-    hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
-    V = hsv[:, :, 2]
-    black_area = (V < v_threshold)
-    black_in_contour = black_area & (mask == 255)
-
-    # Find bounding box of contour, define upper and lower half
-    x, y, w, h = cv2.boundingRect(contour)
-    upper_half = black_in_contour[y:y+h//2, x:x+w]
-    lower_half = black_in_contour[y+h//2:y+h, x:x+w]
-
-    #calculate black and decide
-    black_upper = np.sum(upper_half)
-    black_lower = np.sum(lower_half)
-
-    if black_upper > black_lower:
-        result = True
-    elif black_lower > black_upper:
-        result = False
-
-    return result
-
-def find_corners(image, contour):
-    ''' 
-    gets the corners of the YST
-    '''
-    # Approximate contour to polygon
-    epsilon = 0.02 * cv2.arcLength(contour, True)
-    approx = cv2.approxPolyDP(contour, epsilon, True)
-    
-    if len(approx) == 4:
-        corners = approx.reshape(4, 2)  # 4 corner points
-        return corners
-    else:
-        print("Not a rectangle detected!")
-        return []
-
-def order_corners(pts):
-    ''' 
-    orders the corners for alignment
-    '''
-    rect = np.zeros((4, 2), dtype="float32")
-    s = pts.sum(axis=1)
-    rect[0] = pts[np.argmin(s)]  # top-left
-    rect[2] = pts[np.argmax(s)]  # bottom-right
-
-    diff = np.diff(pts, axis=1)
-    rect[1] = pts[np.argmin(diff)]  # top-right
-    rect[3] = pts[np.argmax(diff)]  # bottom-left
-    return rect
-
-def grow_mask(mask, growth_pixels=5):
-    ''' 
-    thickens the lines of the grid
-    '''
-
-    # Create a square kernel
-    kernel_size = 2 * growth_pixels + 1
-    kernel = np.ones((kernel_size, kernel_size), np.uint8)
-
-    # Erode the mask to grow black regions
-    grown_mask = cv2.erode(mask, kernel, iterations=1)
-
-    return grown_mask
-
-def get_midpoint(mid_h):
-    ''' 
-    finds the midpoint of a line
-    '''
-    _, y1, _, y2 = mid_h
-    return (y1 + y2) / 2
-
-def get_h_mid(image):
-    """
-    Find the longest horizontal line in an image
-    """
-
-    def horizontal_mid_y(line):
-        _, y1, _, y2 = line
-        return (y1 + y2) / 2
-
-    def line_length(line):
-        x1, y1, x2, y2 = line
-        return np.hypot(x2-x1, y2-y1)
-    
-    # invert so lines become white
-    bw = cv2.bitwise_not(image)
-
-    # detect lines
-    lines = cv2.HoughLinesP(bw, 1, np.pi/180,
-                            threshold=100,
-                            minLineLength=1000,
-                            maxLineGap=100)
-
-    # filter for horizontal lines
-    h_lines = []
-    for l in lines:
-        x1, y1, x2, y2 = l[0]
-        angle = np.degrees(np.arctan2(y2-y1, x2-x1))
-        if abs(angle) < 10:  # near horizontal
-            h_lines.append((x1, y1, x2, y2))
-
-    # restrict to central band to exclude borders of YST
-    H = image.shape[0]
-    upper_bound = H * 0.25
-    lower_bound = H * 0.75
-    h_lines_mid = [l for l in h_lines if upper_bound <= horizontal_mid_y(l) <= lower_bound]
-
-    if not h_lines_mid:
-        return None
-
-    # pick longest
-    longest = max(h_lines_mid, key=line_length)
-    
-    return longest
 
 #functions to create bounding boxes and lables
 
@@ -272,6 +245,8 @@ def scale_rect(x, y, w, h, scale):
     new_y = cy - new_h / 2
 
     return int(new_x), int(new_y), int(new_w), int(new_h)
+
+
 
 def get_list_of_rectangles(image, min_area, max_area, scale = 2, max_ratio = 2):
     ''' 
@@ -474,3 +449,53 @@ def evaluate_detections(pred_rectangles, gt_rectangles, iou_threshold=0.5):
     FN = len(gt_rectangles) - TP
 
     return {"TP": TP, "FP": FP, "FN": FN}
+
+
+'''
+functions for visual feedback
+not necessary for processing
+'''
+
+def show(img, title = None):
+    '''
+    plot an an cv2 image
+    for use in notebooks
+    '''
+    img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+    plt.imshow(img_rgb)
+    plt.axis('off')
+    if title: plt.title(title) 
+    plt.show()
+
+def draw_corners(img, corners, output_path):
+    """
+    Draw an image with numbered points (corners) and save as an image file.
+    """
+    vis = img.copy()
+    for i, (x, y) in enumerate(corners.astype(int)):
+        cv2.circle(vis, (x, y), 15, (0, 0, 255), -1)  # red dot
+        cv2.putText(vis, str(i), (x+20, y-20),
+                    cv2.FONT_HERSHEY_SIMPLEX, 3, (255,0,0), 6)
+
+    cv2.imwrite(output_path, vis)
+
+
+def draw_bounding_boxes(image, rectangles, color=(255, 0, 0), thickness=2):
+    '''
+    returns image and the bounding boxes calculated
+    '''
+    img_copy = image.copy()
+    for x, y, w, h in rectangles:
+        cv2.rectangle(img_copy, (x, y), (x + w, y + h), color, thickness)
+    print(f"{len(rectangles)} bounding boxes found.")
+    return img_copy
+
+
+def check_h_line(bw, h_mid, save_path):
+    '''
+    saves an image with the longest found horizontal line
+    '''
+    bw_color = cv2.cvtColor(bw, cv2.COLOR_GRAY2BGR)
+    x1, y1, x2, y2 = h_mid
+    cv2.line(bw_color, (x1, y1), (x2, y2), color=(0,0,255), thickness=10)
+    cv2.imwrite(save_path, bw_color)
