@@ -47,7 +47,7 @@ this is for only one specific folder
 
 label_root = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/labels_uncropped"
 image_root = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/images_uncropped"
-output_path = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/images_w_labels_uncropped"
+output_path = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/images_uncropped_w_labels"
 os.makedirs(output_path, exist_ok=True)
 
 visualize_labels(label_root, image_root, output_path)
