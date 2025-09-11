@@ -32,11 +32,13 @@ gridcorners = np.load("/user/christoph.wald/u15287/insect_pest_detection/2_4_ima
 
 problems = []
 
+
+
 ###Processing
 
 for i, image_file in enumerate(image_files):
 
-    filename= image_file.split(".")[0]
+      filename= image_file.split(".")[0]
 
     #Load image file
     print(f"Loading {image_file}, {i}/{len(image_files)}")
@@ -64,14 +66,17 @@ for i, image_file in enumerate(image_files):
     mask_h = get_h_mid(mask)
     image_h = get_h_mid(create_binary_mask(image))
     dy = get_midpoint(image_h)- get_midpoint(mask_h)
-    if inspection:
-        check_h_line(mask, mask_h,os.path.join(test_folder, filename + "_02aa_mask_h.jpg") )
-        check_h_line(create_binary_mask(image), image_h, os.path.join(test_folder, filename + "_02ab_image_h.jpg") )
-    H, W = mask.shape[:2]
-    M = np.float32([[1, 0, 0], [0, 1, dy]])  # translation matrix
-    mask= cv2.warpAffine(mask, M, (W, H), borderValue=255)  # white background
-    if inspection: cv2.imwrite(os.path.join(test_folder, filename + "_02b_shifted_mask.jpg"), mask) 
-    
+    if dy > 500:
+        print(f"Skipped vertical alignment, wrong horizontal line with offset {dy}")
+    else:
+        if inspection:
+            check_h_line(mask, mask_h,os.path.join(test_folder, filename + "_02aa_mask_h.jpg") )
+            check_h_line(create_binary_mask(image), image_h, os.path.join(test_folder, filename + "_02ab_image_h.jpg") )
+        H, W = mask.shape[:2]
+        M = np.float32([[1, 0, 0], [0, 1, dy]])  # translation matrix
+        mask= cv2.warpAffine(mask, M, (W, H), borderValue=255)  # white background
+        if inspection: cv2.imwrite(os.path.join(test_folder, filename + "_02b_shifted_mask.jpg"), mask) 
+        
    
     #replace black background in image with yellow (background color) by using the mask
     yellow_mask = mask == 0 
@@ -95,12 +100,13 @@ for i, image_file in enumerate(image_files):
         image_labels = draw_bounding_boxes(image_cropped, cropped_yolo_rectangles, color = (0,255,0))
         cv2.imwrite(os.path.join(test_folder, filename + "_04_w_yolo_labels.jpg"), image_labels)
 
+
+
     #Saving processed images and labels (as rectangles)
     cv2.imwrite(os.path.join(output_folder_images, image_file), cropped_image_wo_grid)
     with open(os.path.join(output_folder_labels, filename + ".txt"), "w") as f:
         for item in cropped_yolo_rectangles:
             f.write(str(item) + "\n") 
-    with open("images_without_YST.txt", "w") as f:
-        for p in problems:
-            f.write(p + "\n")
-    
+with open("images_without_YST.txt", "w") as f:
+    for p in problems:
+        f.write(p + "\n")

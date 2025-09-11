@@ -56,6 +56,20 @@ for image_file in image_files[:5]:
     if inspection: cv2.imwrite(os.path.join(test_folder, filename + "_shifted_mask.jpg")) 
     '''
 
+    '''
+    #one combined transformation
+    mask_h = get_h_mid(cv2.warpPerspective(grown_mask, H, (image.shape[1], image.shape[0])))
+    image_h = get_h_mid(create_binary_mask(image))
+    dy = get_midpoint(image_h)- get_midpoint(mask_h)
+    # build combined transform
+    T = np.array([[1, 0, 0],
+                [0, 1, dy],
+                [0, 0, 1]], dtype=np.float32)
+    H_shifted = T @ H
+    mask = cv2.warpPerspective(grown_mask, H_shifted, (image.shape[1], image.shape[0]))
+    if inspection: cv2.imwrite(os.path.join(test_folder, filename + "_02_mask.jpg"), mask)
+    '''
+
     #replace black background in image with yellow (background color) by using the mask
     yellow_mask = mask == 0
     image_wo_grid = image.copy()

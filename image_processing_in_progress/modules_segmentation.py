@@ -19,6 +19,8 @@ def create_binary_mask(image):
     return mask
 
 
+
+
 def find_contour(image):
     ''' 
     find the largest contour, which is the YST
@@ -154,6 +156,8 @@ def get_h_mid(image):
     
     return longest
 
+
+
 def get_midpoint(mid_h):
     ''' 
     finds the midpoint of a line
@@ -221,12 +225,11 @@ def transform_rectangles_to_cropped(rectangles, x_crop, y_crop, crop_w, crop_h):
     #functions for aligning empty image with grid and image with objects to cancel out the grid
 
 
-#------------------
 
 
-
-
-#functions to create bounding boxes and lables
+'''
+functions to evaluate the found bounding boxes
+'''
 
 def scale_rect(x, y, w, h, scale):
     """
@@ -248,31 +251,172 @@ def scale_rect(x, y, w, h, scale):
 
 
 
-def get_list_of_rectangles(image, min_area, max_area, scale = 2, max_ratio = 2):
-    ''' 
-        returns a list of bounding boxes for an image (scaled and filtered by "squareness")
-        scale: scale factor
-        max_ratio: ratio w / h allowed maximally
-    '''
+def get_list_of_rectangles(image, min_area_contour, max_area_contour, scale, max_ratio, upper_limit_rectangles = None, lower_limit_rectangles = None, value_threshold = None):
+    """
+    Returns:
+        rectangles : list of [x, y, w, h]
+        mean_hues  : list of mean hue values corresponding to each rectangle
+    """
     rectangles = []
-    
-    inverted_mask = cv2.bitwise_not(create_binary_mask(image))  # Invert the mask to get contours on the foreground
-    
+    value_problems = 0
+
+    #find contours in bw image
+    inverted_mask = cv2.bitwise_not(create_binary_mask(image))
     contours, _ = cv2.findContours(inverted_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-    
+
+    hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+
     for contour in contours:
+        #get contour area
         contour_area = cv2.contourArea(contour)
+
+        if value_threshold:
+            
+            # create mask for this contour
+            mask = np.zeros(image.shape[:2], dtype=np.uint8)
+            cv2.drawContours(mask, [contour], -1, color=255, thickness=-1)
+            
+            # mean value for this contour
+            mean_value = cv2.mean(hsv[:, :, 2], mask=mask)[0]
+
+            if mean_value < 133:
+                value_problems += 1
+                continue
+
+        #filter by contour size
+        if not (min_area_contour <= contour_area <= max_area_contour):
+            continue
+
+        #create and scale rectangles around contour    
+        x, y, w, h = cv2.boundingRect(contour)
+        x, y, w, h = scale_rect(x, y, w, h, scale)
+
+        #exclude empty rectangles
+        if w == 0 or h == 0:
+            continue
         
-        if min_area <= contour_area <= max_area:
-            x, y, w, h = cv2.boundingRect(contour)
-            x,y,w,h = scale_rect(x,y,w,h, scale) #scaling, because the contour misses fine details
-            if w == 0 or h == 0:
-                continue  # skip invalid rectangles
-            ratio = max(w, h) / min(w, h) #calculating ratio to filter out rectangles not "square enough"
-            if ratio <= max_ratio:
-                rectangles.append([x,y,w,h])
+        #filter rectangles by squareness and size
+        ratio = max(w, h) / min(w, h)
+        if ratio > max_ratio:
+            continue
+        area = w*h
+        if upper_limit_rectangles is not None and area > upper_limit_rectangles:
+            continue
+        if lower_limit_rectangles is not None and area < lower_limit_rectangles:
+            continue
+
+        rectangles.append([x, y, w, h])
+
+    return rectangles, value_problems
+
+
+def remove_smaller_overlaps(rectangles):
+    """
+    Removes rectangles that overlap with a larger rectangle.
+    
+    Parameters:
+        rectangles (list of [x,y,w,h])
+        
+    Returns:
+        cleaned list of rectangles with overlaps removed (smaller ones deleted)
+    """
+    rectangles = rectangles.copy()  # avoid modifying the original list
+    
+    def overlap(r1, r2):
+        x1, y1, w1, h1 = r1
+        x2, y2, w2, h2 = r2
+        x1_max, y1_max = x1 + w1, y1 + h1
+        x2_max, y2_max = x2 + w2, y2 + h2
+        if x1_max <= x2 or x2_max <= x1:
+            return False
+        if y1_max <= y2 or y2_max <= y1:
+            return False
+        return True
+    
+    i = 0
+    while i < len(rectangles):
+        j = i + 1
+        while j < len(rectangles):
+            if overlap(rectangles[i], rectangles[j]):
+                area_i = rectangles[i][2] * rectangles[i][3]
+                area_j = rectangles[j][2] * rectangles[j][3]
+                # Remove the smaller rectangle
+                if area_i >= area_j:
+                    del rectangles[j]
+                else:
+                    del rectangles[i]
+                    i -= 1  # need to recheck new rectangle at i
+                    break  # restart inner loop
+            else:
+                j += 1
+        i += 1
+    
     return rectangles
 
+
+
+#as found in modules.py
+def compute_intersection_area(box1, box2):
+    xA = max(box1[0], box2[0])
+    yA = max(box1[1], box2[1])
+    xB = min(box1[2], box2[2])
+    yB = min(box1[3], box2[3])
+    inter_width = max(0, xB - xA)
+    inter_height = max(0, yB - yA)
+    return inter_width * inter_height
+
+#as found in test_full_images.py
+def compute_iou(box1, box2):
+    inter_area = compute_intersection_area(box1, box2)
+    if inter_area == 0:
+        return 0.0
+    box1_area = (box1[2] - box1[0]) * (box1[3] - box1[1])
+    box2_area = (box2[2] - box2[0]) * (box2[3] - box2[1])
+    iou = inter_area / (box1_area + box2_area - inter_area)
+    return iou
+
+def compute_iop(box1, box2):
+    """
+    Intersection over Prediction (IoP).
+    Measures how much of the predicted box lies inside the ground truth.
+    """
+    inter_area = compute_intersection_area(box1, box2)
+    pred_area = (box1[2] - box1[0]) * (box1[3] - box1[1])
+    if pred_area == 0:
+        return 0.0
+    return inter_area / pred_area
+
+def evaluate_detections(pred_rectangles, gt_rectangles, iou_threshold=0.5):
+    """
+    Compare predictions with YOLO ground-truth rectangles.
+
+    
+    """
+    matched_gt = set()
+    matched_pred = set()
+    TP = 0
+
+    # Match predictions to ground truth
+    for pi, pred in enumerate(pred_rectangles):
+        for gi, gt in enumerate(gt_rectangles):
+            if gi in matched_gt:
+                continue
+            if compute_iop(pred, gt) >= iou_threshold:
+                matched_gt.add(gi)
+                matched_pred.add(pi)
+                TP += 1
+                break  # stop after first match
+
+    # False Positives = predictions not matched
+    FP_indices = [pi for pi in range(len(pred_rectangles)) if pi not in matched_pred]
+    FP_boxes = [pred_rectangles[pi] for pi in FP_indices]
+
+    FP = len(pred_rectangles) - TP
+    FN = len(gt_rectangles) - TP
+
+    return {"TP": TP, "FP": FP, "FN": FN}, FP_boxes
+
+#------------------
 
 def pad_image_to_stride(image, tile_size=640, stride=440):
     ''' 
@@ -404,51 +548,6 @@ def generate_yolo_labels(tile_data, tile_size=640, class_id=0):
 
     return yolo_labels
 
-#as found in modules.py
-def compute_intersection_area(box1, box2):
-    xA = max(box1[0], box2[0])
-    yA = max(box1[1], box2[1])
-    xB = min(box1[2], box2[2])
-    yB = min(box1[3], box2[3])
-    inter_width = max(0, xB - xA)
-    inter_height = max(0, yB - yA)
-    return inter_width * inter_height
-
-#as found in test_full_images.py
-def compute_iou(box1, box2):
-    inter_area = compute_intersection_area(box1, box2)
-    if inter_area == 0:
-        return 0.0
-    box1_area = (box1[2] - box1[0]) * (box1[3] - box1[1])
-    box2_area = (box2[2] - box2[0]) * (box2[3] - box2[1])
-    iou = inter_area / (box1_area + box2_area - inter_area)
-    return iou
-
-def evaluate_detections(pred_rectangles, gt_rectangles, iou_threshold=0.5):
-    """
-    Compare predictions with YOLO ground-truth rectangles.
-
-    
-    """
-    matched_gt = set()
-    matched_pred = set()
-    TP = 0
-
-    # Match predictions to ground truth
-    for pi, pred in enumerate(pred_rectangles):
-        for gi, gt in enumerate(gt_rectangles):
-            if gi in matched_gt:
-                continue
-            if compute_iou(pred, gt) >= iou_threshold:
-                matched_gt.add(gi)
-                matched_pred.add(pi)
-                TP += 1
-                break  # stop after first match
-
-    FP = len(pred_rectangles) - TP
-    FN = len(gt_rectangles) - TP
-
-    return {"TP": TP, "FP": FP, "FN": FN}
 
 
 '''
