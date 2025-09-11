@@ -19,7 +19,7 @@ test_folder = "/user/christoph.wald/u15287/insect_pest_detection/image_processin
 os.makedirs(test_folder, exist_ok= True)
 
 #changed to run only on one insect pest class
-image_files = [f for f in image_files if "TRIAVA" in f]
+#image_files = [f for f in image_files if "TRIAVA" in f]
 
 for i, image_file in enumerate(image_files):
 
@@ -58,10 +58,6 @@ for i, image_file in enumerate(image_files):
         upper_limit_rectangles = 43210 #95th percentil
         lower_limit_rectangles = 7788 #5th percentile
         value_threshold = None
-        
-        
-       
-
 
     #find bounding boxes, filtered by handcrafted features and ratio of w/h, scale them    
     rectangles, v = get_list_of_rectangles(image, min_area_contour, max_area_contour, scale, max_ratio, upper_limit_rectangles, lower_limit_rectangles, value_threshold)
@@ -131,6 +127,6 @@ recall_overall = TP_total / (TP_total + FN_total)
 print(grouped)
 print("Overall precision:", precision_overall)
 print("Overall recall:", recall_overall)
+grouped.to_csv("metrics.csv")
 #changed to append
-#grouped.to_csv("metrics.csv")
-grouped.to_csv("/user/christoph.wald/u15287/insect_pest_detection/image_processing_in_progress/test_generated_fat/metrics.csv", mode='a', header=False, index=False)
+#grouped.to_csv("/user/christoph.wald/u15287/insect_pest_detection/image_processing_in_progress/test_generated_fat/metrics.csv", mode='a', header=False, index=False)
