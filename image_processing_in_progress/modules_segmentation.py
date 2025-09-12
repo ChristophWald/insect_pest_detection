@@ -566,7 +566,7 @@ def show(img, title = None):
     if title: plt.title(title) 
     plt.show()
 
-def draw_corners(img, corners, output_path):
+def draw_corners(img, corners):
     """
     Draw an image with numbered points (corners) and save as an image file.
     """
@@ -576,7 +576,7 @@ def draw_corners(img, corners, output_path):
         cv2.putText(vis, str(i), (x+20, y-20),
                     cv2.FONT_HERSHEY_SIMPLEX, 3, (255,0,0), 6)
 
-    cv2.imwrite(output_path, vis)
+    return vis
 
 
 def draw_bounding_boxes(image, rectangles, color=(255, 0, 0), thickness=2):
@@ -590,11 +590,12 @@ def draw_bounding_boxes(image, rectangles, color=(255, 0, 0), thickness=2):
     return img_copy
 
 
-def check_h_line(bw, h_mid, save_path):
+def check_h_line(bw, h_mid):
     '''
     saves an image with the longest found horizontal line
     '''
     bw_color = cv2.cvtColor(bw, cv2.COLOR_GRAY2BGR)
     x1, y1, x2, y2 = h_mid
     cv2.line(bw_color, (x1, y1), (x2, y2), color=(0,0,255), thickness=10)
-    cv2.imwrite(save_path, bw_color)
+    
+    return bw_color

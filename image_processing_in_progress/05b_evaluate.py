@@ -15,7 +15,7 @@ image_folder = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_l
 labels_folder = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/labels_for_masked_images"
 image_files = sorted(os.listdir(image_folder))
 cropped_images_folder = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/images"
-test_folder = "/user/christoph.wald/u15287/insect_pest_detection/image_processing_in_progress/test_generated_fat"
+test_folder = "/user/christoph.wald/u15287/insect_pest_detection/image_processing_in_progress/test"
 os.makedirs(test_folder, exist_ok= True)
 
 #changed to run only on one insect pest class
