@@ -251,14 +251,14 @@ def scale_rect(x, y, w, h, scale):
 
 
 
-def get_list_of_rectangles(image, min_area_contour, max_area_contour, scale, max_ratio, upper_limit_rectangles = None, lower_limit_rectangles = None, value_threshold = None):
+def get_list_of_rectangles(image, min_area_contour, max_area_contour, scale, max_ratio, upper_limit_rectangles = None, value_threshold = None):
     """
     Returns:
         rectangles : list of [x, y, w, h]
-        mean_hues  : list of mean hue values corresponding to each rectangle
     """
     rectangles = []
     value_problems = 0
+
 
     #find contours in bw image
     inverted_mask = cv2.bitwise_not(create_binary_mask(image))
@@ -270,6 +270,7 @@ def get_list_of_rectangles(image, min_area_contour, max_area_contour, scale, max
         #get contour area
         contour_area = cv2.contourArea(contour)
 
+
         if value_threshold:
             
             # create mask for this contour
@@ -279,7 +280,7 @@ def get_list_of_rectangles(image, min_area_contour, max_area_contour, scale, max
             # mean value for this contour
             mean_value = cv2.mean(hsv[:, :, 2], mask=mask)[0]
 
-            if mean_value < 133:
+            if mean_value < value_threshold:
                 value_problems += 1
                 continue
 
@@ -301,8 +302,6 @@ def get_list_of_rectangles(image, min_area_contour, max_area_contour, scale, max
             continue
         area = w*h
         if upper_limit_rectangles is not None and area > upper_limit_rectangles:
-            continue
-        if lower_limit_rectangles is not None and area < lower_limit_rectangles:
             continue
 
         rectangles.append([x, y, w, h])

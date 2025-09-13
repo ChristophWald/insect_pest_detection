@@ -3,7 +3,7 @@ import os
 from modules_segmentation import *
 import pandas as pd
 
-inspection = False
+inspection = True
 predicted_rectangles = []
 results = []
 
@@ -12,7 +12,7 @@ value_problems = 0
 
 #set paths
 image_folder = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/images_masked"
-labels_folder = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/labels_for_masked_images"
+labels_folder = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/labels_masked_images"
 image_files = sorted(os.listdir(image_folder))
 cropped_images_folder = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/images"
 test_folder = "/user/christoph.wald/u15287/insect_pest_detection/image_processing_in_progress/test"
@@ -30,7 +30,7 @@ for i, image_file in enumerate(image_files):
     image = cv2.imread(os.path.join(image_folder, image_file))
     
     
-    #if inspection: cv2.imwrite(os.path.join(test_folder, filename + "_04_binary_mask.jpg"), create_binary_mask(image)) 
+    if inspection: cv2.imwrite(os.path.join(test_folder, filename + "_04_binary_mask.jpg"), create_binary_mask(image)) 
     
     
     #handcrafted features for filtering bounding boxes
@@ -38,37 +38,35 @@ for i, image_file in enumerate(image_files):
         min_area_contour = 100  
         max_area_contour = 1000
         scale = 1.5
-        max_ratio = 2
+        max_ratio = 2 
         upper_limit_rectangles = None
-        lower_limit_rectangles = None
-        value_threshold = 133  #133: 5th percentile
+        value_threshold =97 # 5th percentile
     elif "LIRIBO" in image_file: 
         min_area_contour = 1000 
         max_area_contour = 10000 
         scale = 1.5
-        max_ratio = 1.62 #90th percentile
-        upper_limit_rectangles = 28626 #95th percentile
-        lower_limit_rectangles = None
+        max_ratio = 1.76 #95th percentile
+        upper_limit_rectangles = 22340 #95th percentile
         value_threshold = None
     elif "BRAIIM" in image_file:
         min_area_contour = 2000 
         max_area_contour = 10000
         scale = 1.5
-        max_ratio = 1.59 #90the percentile
-        upper_limit_rectangles = 43210 #95th percentil
-        lower_limit_rectangles = 7788 #5th percentile
+        max_ratio = 1.75 #95the percentile
+        upper_limit_rectangles = 41703 #95th percentil
         value_threshold = None
 
     #find bounding boxes, filtered by handcrafted features and ratio of w/h, scale them    
-    rectangles, v = get_list_of_rectangles(image, min_area_contour, max_area_contour, scale, max_ratio, upper_limit_rectangles, lower_limit_rectangles, value_threshold)
+    rectangles, v = get_list_of_rectangles(image, min_area_contour, max_area_contour, scale, max_ratio, upper_limit_rectangles, value_threshold)
     value_problems += v
     predicted_rectangles.append(rectangles)
+    
     
     if "TRIAVA" in image_file:
         count = len(rectangles)
         rectangles = remove_smaller_overlaps(rectangles)
         overlaps += count - len(rectangles)
-
+    
     #loading the rectangles given by the yolo labels
     label_file = os.path.splitext(image_file)[0] + ".txt"
     label_path = os.path.join(labels_folder, label_file)
@@ -88,9 +86,9 @@ for i, image_file in enumerate(image_files):
     yolo_rectangles = [(x, y, x + w, y + h) for (x, y, w, h) in yolo_rectangles]
     stats, fp_boxes = evaluate_detections(rectangles, yolo_rectangles)
     fp_boxes = [(x1, y1, x2-x1, y2-y1) for (x1,y1, x2, y2) in fp_boxes]
-    if len(fp_boxes) > 0:
+    if inspection and len(fp_boxes) > 0:
         image_labels = draw_bounding_boxes(image, fp_boxes, color = (0,0,255) )
-        cv2.imwrite(os.path.join(test_folder, filename + "_w_labels.jpg"), image_labels)
+        cv2.imwrite(os.path.join(test_folder, filename + "_w_fps.jpg"), image_labels)
     entry.append(stats)
     #print(entry)
     results.append(entry)
@@ -99,6 +97,7 @@ for i, image_file in enumerate(image_files):
 with open(os.path.join(test_folder,"rectangles.txt"), "w") as f:
     for item in predicted_rectangles:
         f.write(str(item) + "\n")
+
 
 print(f"Deleted {overlaps} overlaps.")
 print(f"Detected {value_problems} value problems.")
@@ -127,6 +126,6 @@ recall_overall = TP_total / (TP_total + FN_total)
 print(grouped)
 print("Overall precision:", precision_overall)
 print("Overall recall:", recall_overall)
-grouped.to_csv("metrics.csv")
+#grouped.to_csv("metrics.csv")
 #changed to append
-#grouped.to_csv("/user/christoph.wald/u15287/insect_pest_detection/image_processing_in_progress/test_generated_fat/metrics.csv", mode='a', header=False, index=False)
+grouped.to_csv("/user/christoph.wald/u15287/insect_pest_detection/image_processing_in_progress/metrics.csv", mode='a', header=False, index=False)
