@@ -1,9 +1,7 @@
 # Project Structure
 
 ## 2_1_1 Dataset Description
-- **create_extracted_boxes**: get the bounding boxes as single JPGs (as given by the labels)  
-- **create_image_w_bboxes**: get JPGs with the bounding boxes drawn in (as given by the labels)  
-- **figure1_four_YSTs**: creates a JPG with four YSTs  
+- **figure1_four_YSTs**: creates a JPG with four images of the dataset
 - **figure2_some_bboxes**: creates a JPG with some bounding boxes for each pest class  
 
 ## 2_1_2 Preprocessing
@@ -31,7 +29,13 @@
 - **02_check_false_positives_single_files**: takes the boxes of `01_test_full_images` and adds the predicted class (maybe not needed anymore)  
 
 ## 2_4 Image Processing
-- **01_copy_uncropped**: gets the uncropped image files of a set specified by `train_test_templates` in `2_2_2 splitting` (maybe not needed anymore)  
+- **01_copy_uncropped**: gets the uncropped image files of a set specified by `train_test_templates` in `2_2_2 splitting`
+- **02_rotate_images** rotates images by 180° either by detecting header or by a given list of files
+- **03a_generate_masks** generates binarized masks from a set of empty images (with only the sticky trap)
+- **03b_process_handcrafted_masks** processes binarized masks created in a graphics program
+- **04_process_images** generates cropped and masked images
+- **05a_simple_rectangle_creation** creating and filtering rectangles for evaluating different masks
+- **05b_create_rectangles** create rectangles and filter with found thresholds for best results
 
 ## 3_1 Supervised Training Evaluation
 - **folder `false_positive_boxes`**: false positives of train7 and train10 with averaged confidence > 0.6  
@@ -40,6 +44,11 @@
 - **check_false_positives_filtered_by_scores**: creates 10x10 grids with false positives filtered by a confidence threshold, also creates distribution plots (change from notebook to script)  
 - **eval_supervised**: creates overview tables from all training runs and some plots (reorder, change from notebook to script)  
 - **plot_prec_recall**: plots losses and metrics for training runs  
+
+## Data visualizations
+- **create_extracted_boxes**: get the bounding boxes as single JPGs (as given by the labels)  
+- **create_image_w_bboxes**: get JPGs with the bounding boxes drawn in (as given by the labels)  
+- **create_image_grid**: get a large image (29MB) with thumbnails of all images for visual inspection
 
 ## BA
 - **latex data and pdf** of BA thesis  
