@@ -12,9 +12,11 @@ inspection = False
 image_folder = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/images_uncropped"
 label_folder = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/labels_uncropped"
 
-output_folder_images = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/images_masked"
-output_folder_labels = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/labels_masked_images"
-os.makedirs(output_folder_images, exist_ok=True)
+output_folder_images_masked = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/images_masked"
+output_folder_images_cropped = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/images_cropped"
+output_folder_labels = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/labels_cropped"
+os.makedirs(output_folder_images_masked, exist_ok=True)
+os.makedirs(output_folder_images_cropped, exist_ok=True)
 os.makedirs(output_folder_labels, exist_ok=True)
 
 test_folder = "/user/christoph.wald/u15287/insect_pest_detection/image_processing_in_progress/test"
@@ -59,8 +61,17 @@ for i, image_file in enumerate(image_files):
     image = cv2.imread(os.path.join(image_folder, image_file))
     if inspection: cv2.imwrite(os.path.join(test_folder, filename + "_01_original.jpg"), image)
     
+
+
     #find YST contour of image
     imageYST = find_contour(image)
+
+    #save cropped image
+    x, y, w, h = cv2.boundingRect(imageYST)
+    cropped_image = image[y:y+h, x:x+w]
+    cv2.imwrite(os.path.join(output_folder_images_cropped, image_file), cropped_image)
+
+    #find corners if possible, if not skip the image
     imagecorners = find_corners(image, imageYST)
     if len(imagecorners) == 0:
         print(f"No YST found for {image_file}")
@@ -104,8 +115,7 @@ for i, image_file in enumerate(image_files):
     image_wo_grid = image.copy()
     image_wo_grid[yellow_mask] = [0,255,255]
     
-    #crop the image
-    x, y, w, h = cv2.boundingRect(imageYST)
+    #crop the image processed image
     cropped_image_wo_grid = image_wo_grid[y:y+h, x:x+w]
     if inspection: cv2.imwrite(os.path.join(test_folder, filename + "_03_cropped_image.jpg"), cropped_image_wo_grid) 
     
@@ -122,7 +132,7 @@ for i, image_file in enumerate(image_files):
         cv2.imwrite(os.path.join(test_folder, filename + "_04_w_yolo_labels.jpg"), image_labels)
 
     #Saving processed images and labels (as rectangles)
-    cv2.imwrite(os.path.join(output_folder_images, image_file), cropped_image_wo_grid)
+    cv2.imwrite(os.path.join(output_folder_images_masked, image_file), cropped_image_wo_grid)
     with open(os.path.join(output_folder_labels, filename + ".txt"), "w") as f:
         for item in cropped_yolo_rectangles:
             f.write(str(item) + "\n") 

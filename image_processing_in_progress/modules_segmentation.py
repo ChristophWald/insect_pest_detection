@@ -90,9 +90,16 @@ def is_upside_orientated(image, contour, v_threshold=50):
     return result
 
 '''
-function for the thickening of lines in a mask
-maybe unnecessary (03a and b)
+function for the creation of masks
 '''
+
+def denoise_mask(mask):
+    mask_inv = cv2.bitwise_not(mask)  #inverting, because morphologyEx expects white foreground
+    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (9, 9))
+    cleaned_inv = cv2.morphologyEx(mask_inv, cv2.MORPH_OPEN, kernel)
+    cleaned_mask = cv2.bitwise_not(cleaned_inv)  
+    return cleaned_mask
+
 
 def grow_mask(mask, growth_pixels=5):
     ''' 
@@ -102,8 +109,6 @@ def grow_mask(mask, growth_pixels=5):
     # Create a square kernel
     kernel_size = 2 * growth_pixels + 1
     kernel = np.ones((kernel_size, kernel_size), np.uint8)
-
-    # Erode the mask to grow black regions
     grown_mask = cv2.erode(mask, kernel, iterations=1)
 
     return grown_mask

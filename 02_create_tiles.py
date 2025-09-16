@@ -2,12 +2,15 @@ import cv2
 import os
 import math
 import numpy as np
-from insect_pest_detection.modules.modules import load_yolo_labels, compute_intersection_area
+from modules.modules import load_yolo_labels, compute_intersection_area
+import ast
 
 '''
 creates 640x640 tiles
 the path structure/file loading has to be revisited
 '''
+
+
 
 def pad_to_multiple(image, tile_size=640, pad_value=(114,114,114)):
     h, w = image.shape[:2]
@@ -17,9 +20,10 @@ def pad_to_multiple(image, tile_size=640, pad_value=(114,114,114)):
     return padded, w, h  # return original width/height for label conversion
 
 def tile_and_save(image_path, label_path, dest_path,
-                  tile_size=640, stride=440, min_inside_ratio=0.8):
+                  tile_size=640, stride=440, min_inside_ratio=0.8, yolo = True):
     image = cv2.imread(image_path)
     
+    pest_types = ["BRAIIM", "LIRIBO", "TRIAVA"]
     
     # Pad image
     padded_img, orig_w, orig_h = pad_to_multiple(image, tile_size=tile_size)
@@ -31,9 +35,23 @@ def tile_and_save(image_path, label_path, dest_path,
     os.makedirs(images_out, exist_ok=True)
     os.makedirs(labels_out, exist_ok=True)
 
-    # Load labels
-    boxes, classes = load_yolo_labels(label_path, orig_w, orig_h)
-    abs_boxes = [[classes[i], *box] for i, box in enumerate(boxes)]
+    if yolo:
+        boxes, classes = load_yolo_labels(label_path, orig_w, orig_h)
+        abs_boxes = [[classes[i], *box] for i, box in enumerate(boxes)]
+    else:
+        abs_boxes = []
+        with open(label_path, 'r') as f:
+            for line in f:
+                if line.strip():
+                    cls = [id in label_path for id in pest_types].index(True)
+                    x, y, w, h = map(float, ast.literal_eval(line))
+                    # Convert to (x1, y1, x2, y2)
+                    x1 = x
+                    y1 = y
+                    x2 = x + w
+                    y2 = y + h
+                    abs_boxes.append([cls, x1, y1, x2, y2])
+
 
     # Generate tiles by sliding window
     tile_id = 0
@@ -90,8 +108,8 @@ def tile_and_save(image_path, label_path, dest_path,
 
 
 
-#base_path =  "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled"
-base_path = "/user/christoph.wald/u15287/big-scratch/reconstruct_thrips"
+base_path =  "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled"
+
 
 
 # Set up source image paths
@@ -117,4 +135,4 @@ for split, img_path in img_paths.items():
         label = os.path.splitext(label_path)[0] + '.txt'
 
         # Call tile_and_save with the unified split-specific dest path
-        tile_and_save(img, label, dest_path)
+        tile_and_save(img, label, dest_path, yolo = False)

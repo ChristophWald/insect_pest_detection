@@ -13,8 +13,8 @@ def copy_pair(files, dest_img_dir, dest_lbl_dir):
     copies images and label files 
     '''
     for f in files:
-        src_img = os.path.join(os.path.join(input_dir, "images"), f)
-        src_lbl = os.path.join(os.path.join(input_dir, "labels"), f.replace('.jpg', '.txt'))
+        src_img = os.path.join(os.path.join(input_dir, "images_cropped"), f)
+        src_lbl = os.path.join(os.path.join(input_dir, "labels_cropped"), f.replace('.jpg', '.txt'))
 
         dst_img = os.path.join(dest_img_dir, f)
         dst_lbl = os.path.join(dest_lbl_dir, os.path.basename(src_lbl))
@@ -35,7 +35,7 @@ for d in [img_train, img_val, lbl_train, lbl_val]:
     os.makedirs(d, exist_ok=True)
 
 pest_types = ["BRAIIM", "FRANOC", "LIRIBO", "TRIAVA"]
-image_files = [f for f in os.listdir(os.path.join(input_dir, "images")) if f.endswith(('.jpg', '.png'))]
+image_files = [f for f in os.listdir(os.path.join(input_dir, "images_cropped")) if f.endswith(('.jpg', '.png'))]
 separated = []
 for pest in pest_types:
     separated.append([f for f in image_files if pest in f])
