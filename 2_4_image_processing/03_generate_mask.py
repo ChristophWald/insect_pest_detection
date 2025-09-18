@@ -35,4 +35,14 @@ print("Thicken lines.")
 grown_mask = grow_mask(combined_mask, growth_pixels=25) #image for use in the alignment with images
 cv2.imwrite("/user/christoph.wald/u15287/insect_pest_detection/2_4_image_processing/mask.jpg", grown_mask)
 
-np.save("/user/christoph.wald/u15287/insect_pest_detection/2_4_image_processing/gridcorners.npy", corners)
+#save two points from the horizontal midline
+x1, y1, x2, y2 = get_h_mid(create_binary_mask(cv2.imread("/user/christoph.wald/u15287/big-scratch/00_uncropped_dataset/YSTohneInsekten/IMG_5885.JPG")))
+h_line_pts = np.array([
+    [x1, y1],
+    [x2, y2]
+], dtype=np.float32).reshape(-1,1,2)
+
+np.save("/user/christoph.wald/u15287/insect_pest_detection/2_4_image_processing/mask_h_line.npy", h_line_pts)
+
+#save the corners of the YST
+np.save("/user/christoph.wald/u15287/insect_pest_detection/2_4_image_processing/gridcorners.npy", corners_grids[0])

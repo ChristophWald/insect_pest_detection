@@ -81,31 +81,53 @@ def compute_intersection_area(box1, box2):
     return inter_width * inter_height
 
 
-def save_cropped_boxes(image, boxes, filename, output_dir):
+def save_cropped_boxes(image, boxes, filename=None, output_dir=None):
     """
-    Save cropped regions from the original image as separate JPG files.
+    Crop regions from the original image and optionally save them.
 
     Args:
-        image (np.ndarray): Original image (BGR format).
-        boxes (List[List[int]]): List of bounding boxes [xmin, ymin, xmax, ymax].
-        filename (str): Original image filename (used to name crops).
-        output_dir (str): Directory to save cropped images.
+        image (np.ndarray): Original image (BGR).
+        boxes (List[List[float]]): List of bounding boxes [xmin, ymin, xmax, ymax].
+        filename (str|None): Original filename used to name saved crops.
+        output_dir (str|None): Directory to save cropped images (optional).
+
+    Returns:
+        List[np.ndarray]: list of cropped images (BGR).
     """
-    base_name = os.path.splitext(filename)[0]
     h, w = image.shape[:2]
-    
+    crops = []
+
+    base = None
+    if filename is not None:
+        base = os.path.splitext(os.path.basename(filename))[0]
+
     for idx, box in enumerate(boxes):
         xmin = max(0, int(np.floor(box[0])))
         ymin = max(0, int(np.floor(box[1])))
-        xmax = min(w, int(np.ceil(box[2])))
-        ymax = min(h, int(np.ceil(box[3])))
+        xmax = min(w,  int(np.ceil(box[2])))
+        ymax = min(h,  int(np.ceil(box[3])))
+
+        # sanity checks
+        if xmax <= xmin or ymax <= ymin:
+            print(f"[save_cropped_boxes] skipping invalid box #{idx}: {xmin,ymin,xmax,ymax}")
+            continue
 
         cropped = image[ymin:ymax, xmin:xmax]
-        if len(cropped) == 0:
-            print(xmin, ymin, xmax, ymax)
-        crop_filename = f"{base_name}_{idx}.jpg"
-        crop_path = os.path.join(output_dir, crop_filename)
-        cv2.imwrite(crop_path, cropped)
+
+        if cropped.size == 0:
+            print(f"[save_cropped_boxes] empty crop #{idx}: {xmin,ymin,xmax,ymax}")
+            continue
+
+        crops.append(cropped)
+
+        if output_dir:
+            if not os.path.exists(output_dir):
+                os.makedirs(output_dir, exist_ok=True)
+            out_name = f"{base}_{idx}.jpg" if base else f"crop_{idx}.jpg"
+            out_path = os.path.join(output_dir, out_name)
+            cv2.imwrite(out_path, cropped)
+
+    return crops
 
 def get_files_by_subfolder(root_dir, count_lines=False):
     '''
