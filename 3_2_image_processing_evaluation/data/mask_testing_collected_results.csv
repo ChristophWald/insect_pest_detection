@@ -1,8 +1,0 @@
-mask,alignment,shift,FP BRAIIM,FP LIRIBO,FP TRIAVA,TP BRAIIM,TP LIRIBO,TP TRIAVA
-generated,no,no,2045,4366,727,3283,3828,2490
-handcrafted,no,no,1219,1689,745,3181,3711,2340
-handcrafted,yes,no,1100,629,529,3267,3755,2294
-generated fat,yes,no,971,542,349,2938,3473,2002
-generated fat + covered holes,yes,no,920,522,337,2844,3400,1978
-generated fat + covered holes & rectangle header,yes,no,896,513,324,2771,3308,1896
-generated fat + covered holes & rectangle header,yes,yes,875,325,314,2772,3324,1886

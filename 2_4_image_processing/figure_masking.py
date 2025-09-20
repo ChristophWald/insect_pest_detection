@@ -28,7 +28,7 @@ original_mask = cv2.imread(
     "/user/christoph.wald/u15287/big-scratch/00_uncropped_dataset/YSTohneInsekten/IMG_5885.JPG"
 )
 
-mask_h_line = np.load("/user/christoph.wald/u15287/insect_pest_detection/2_4_image_processing/mask_h_line.npy")
+mask_h_line = np.load("/user/christoph.wald/u15287/insect_pest_detection/2_4_image_processing/masks/mask_h_line.npy")
 gridcorners = np.load("/user/christoph.wald/u15287/insect_pest_detection/2_4_image_processing/masks/gridcorners.npy")
 
 image_folder = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/images_uncropped"
@@ -62,7 +62,7 @@ print(f"Distance: {dy}")
 # figure B with midlines
 figureb_image = create_masked_image(mask, image)
 figureb_image = check_h_line(figureb_image, mask_h, thickness=8)   # red = mask midline
-figureb_image = check_h_line(figureb_image, image_h, thickness=8)  # green = image midline
+figureb_image = check_h_line(figureb_image, image_h, color = (0,255,0), thickness=8)  # green = image midline
 
 # figure C (shifted mask)
 H, W = mask.shape[:2]
@@ -78,5 +78,10 @@ row1 = cv2.hconcat([figurea_image, figureb_image])
 row2 = cv2.hconcat([figurec_image, figured_image])
 final_grid = cv2.vconcat([row1, row2])
 
-cv2.imwrite("final_grid.jpg", final_grid)
-print("Saved: final_grid.jpg")
+# Save four images with quality = 25 (smaller file size)
+cv2.imwrite("figureA.jpg", figurea_image, [int(cv2.IMWRITE_JPEG_QUALITY), 25])
+cv2.imwrite("figureB.jpg", figureb_image, [int(cv2.IMWRITE_JPEG_QUALITY), 25])
+cv2.imwrite("figureC.jpg", figurec_image, [int(cv2.IMWRITE_JPEG_QUALITY), 25])
+cv2.imwrite("figureD.jpg", figured_image, [int(cv2.IMWRITE_JPEG_QUALITY), 25])
+
+print("Saved figureA.jpg, figureB.jpg, figureC.jpg, figureD.jpg with quality=25")

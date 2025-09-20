@@ -3,13 +3,13 @@ import matplotlib.pyplot as plt
 
 import matplotlib.patches as mpatches
 
-df = pd.read_csv("/user/christoph.wald/u15287/insect_pest_detection/2_4_image_processing/data/mask_testing_collected_results.csv")
+df = pd.read_csv("/user/christoph.wald/u15287/insect_pest_detection/3_2_image_processing_evaluation/data_labeled_training_set/mask_testing_collected_results.csv")
 
 
 # To avoid confusion with repeated mask labels, add index numbers
 df["label"] = df.index + 1 # numerical x-axis for plotting
-mask_labels = df["mask"] # store mask names separately for tick labels
-
+#mask_labels = df["mask"] # store mask names separately for tick labels
+mask_labels = ["Fig. 8b", "Fig. 8c", "Fig. 8c", "Fig. 8d", "Fig. 8e", "Fig. 8f", "Fig. 8f" ]
 
 # Plot all in one graph
 plt.figure(figsize=(12, 8))
@@ -44,7 +44,7 @@ plt.plot(df["label"], df["TP TRIAVA"], marker="o", linestyle=":", color="green",
 plt.xticks(df["label"], mask_labels, rotation=30, ha="right")
 
 
-plt.xlabel("Mask Type")
+plt.xlabel("Mask")
 plt.ylabel("Count")
 plt.grid(visible = True)
 plt.title("Evaluating different masks")
