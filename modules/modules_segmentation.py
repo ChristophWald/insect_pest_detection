@@ -3,6 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import os
 import math
+import ast
 
 '''
 general functions
@@ -604,3 +605,28 @@ def check_h_line(bw, h_mid):
     cv2.line(bw_color, (x1, y1), (x2, y2), color=(0,0,255), thickness=10)
     
     return bw_color
+
+def draw_boxes_on_images(image_folder, label_folder, output_folder):
+    os.makedirs(output_folder, exist_ok=True)
+    image_ext = ".jpg"
+
+    for label_file in os.listdir(label_folder):
+
+        # Build paths
+        base_name = os.path.splitext(label_file)[0]
+        img_path = os.path.join(image_folder, base_name + image_ext)
+        label_path = os.path.join(label_folder, label_file)
+        out_path = os.path.join(output_folder, base_name + image_ext)
+
+        # Load image
+        img = cv2.imread(img_path)
+
+        # Load boxes
+        with open(label_path, "r") as f:
+            for line in f:
+                x, y, w, h = ast.literal_eval(line.strip())
+                cv2.rectangle(img, (x, y), (x + w, y + h), (0, 255, 0), 3)
+                
+        # Save output
+        cv2.imwrite(out_path, img)
+        print(f"Saved: {out_path}")

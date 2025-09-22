@@ -10,20 +10,21 @@ copies the files for the labeled and unlabeled training set according to a given
 with open("/user/christoph.wald/u15287/big-scratch/02_splitted_data/split_info/train_labeled.json", "r") as f:
     data = json.load(f)
 
-# remove "Thrips" class
-data.pop("Thrips", None)
+
+#keep only Thrips
+data = {k: v for k, v in data.items() if k == "Thrips"}
 
 for key in data:
     for file in data[key]:
         # copy image
-        src_img = os.path.join("/user/christoph.wald/u15287/big-scratch/00_uncropped_dataset/images", file + ".jpg")
-        dest_img = os.path.join("/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/images_uncropped", file + ".jpg")
+        src_img = os.path.join("/user/christoph.wald/u15287/big-scratch/only_thrips/images", file + ".jpg")
+        dest_img = os.path.join("/user/christoph.wald/u15287/big-scratch/only_thrips/train_labeled/images_uncropped", file + ".jpg")
         os.makedirs(os.path.dirname(dest_img), exist_ok=True)
         shutil.copy2(src_img, dest_img)
 
         # copy label
-        src_lbl = os.path.join("/user/christoph.wald/u15287/big-scratch/00_uncropped_dataset/labels", file + ".txt")
-        dest_lbl = os.path.join("/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/labels_uncropped", file + ".txt")
+        src_lbl = os.path.join("/user/christoph.wald/u15287/big-scratch/only_thrips/labels", file + ".txt")
+        dest_lbl = os.path.join("/user/christoph.wald/u15287/big-scratch/only_thrips/train_labeled/labels_uncropped", file + ".txt")
         os.makedirs(os.path.dirname(dest_lbl), exist_ok=True)
         shutil.copy2(src_lbl, dest_lbl) 
 
@@ -31,13 +32,14 @@ for key in data:
 with open("/user/christoph.wald/u15287/big-scratch/02_splitted_data/split_info/train_unlabeled.json", "r") as f:
     data = json.load(f)
 
-# remove "Thrips" class
-data.pop("Thrips", None)
 
+#keep only Thrips
+data = {k: v for k, v in data.items() if k == "Thrips"}
+print(data)
 for key in data:
     for file in data[key]:
-        src_img = os.path.join("/user/christoph.wald/u15287/big-scratch/00_uncropped_dataset/images", file + ".jpg")
-        dest_img = os.path.join("/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_unlabeled/FRANOC_images_uncropped", file + ".jpg")
+        src_img = os.path.join("/user/christoph.wald/u15287/big-scratch/only_thrips/images", file + ".jpg")
+        dest_img = os.path.join("/user/christoph.wald/u15287/big-scratch/only_thrips/train_unlabeled/images_uncropped", file + ".jpg")
         
         os.makedirs(os.path.dirname(dest_img), exist_ok=True)
         shutil.copy2(src_img, dest_img)

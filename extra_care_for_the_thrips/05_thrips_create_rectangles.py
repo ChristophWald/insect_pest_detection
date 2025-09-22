@@ -5,8 +5,8 @@ import pandas as pd
 
 
 
-inspection = False
-evaluate_labels = False
+inspection = True
+evaluate_labels = True
 save_labels = True
 
 predicted_rectangles = []
@@ -16,13 +16,13 @@ overlaps = 0
 value_problems = 0
 
 #set paths
-image_folder = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_unlabeled/images_masked"
-labels_folder = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/labels_folder"
-output_labels_folder= "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_unlabeled/labels_masked_images"
+image_folder = "/user/christoph.wald/u15287/big-scratch/only_thrips_image_processing/train_labeled/images_masked"
+labels_folder = "/user/christoph.wald/u15287/big-scratch/only_thrips_image_processing/train_labeled/labels_cropped"
+output_labels_folder= "/user/christoph.wald/u15287/big-scratch/only_thrips_image_processing/train_labeled/labels_masked_images"
 os.makedirs(output_labels_folder, exist_ok= True)
 image_files = sorted(os.listdir(image_folder))
-cropped_images_folder = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_unlabeled/images_cropped"
-test_folder = "/user/christoph.wald/u15287/insect_pest_detection/image_processing_in_progress/test"
+cropped_images_folder = "/user/christoph.wald/u15287/big-scratch/only_thrips_image_processing/train_labeled/images_cropped"
+test_folder = "/user/christoph.wald/u15287/big-scratch/only_thrips_image_processing/train_labeled/test"
 if inspection: os.makedirs(test_folder, exist_ok= True)
 
 #changed to run only on one insect pest class
@@ -61,6 +61,13 @@ for i, image_file in enumerate(image_files):
         scale = 1.5
         max_ratio = 1.73 #1.75 #95the percentile
         upper_limit_rectangles = 42970 #41703 #95th percentil
+        value_threshold = None
+    elif "FRANOC" in image_file:
+        min_area_contour = 100  
+        max_area_contour = 5000
+        scale = 1.5
+        max_ratio = 2 
+        upper_limit_rectangles = None
         value_threshold = None
 
     #find bounding boxes, filtered by handcrafted features and ratio of w/h, scale them    
@@ -109,7 +116,7 @@ for i, image_file in enumerate(image_files):
 
 
 
-with open("rectangles_full_filter", "w") as f:
+with open("rectangles_no_filter", "w") as f:
     for item in predicted_rectangles:
         f.write(str(item) + "\n")
 
@@ -144,4 +151,4 @@ if evaluate_labels:
     print("Overall recall:", recall_overall)
     #grouped.to_csv("metrics.csv")
     #changed to append
-    grouped.to_csv("/user/christoph.wald/u15287/insect_pest_detection/image_processing_in_progress/metrics.csv", mode='a', header=False, index=False)
+    grouped.to_csv("/user/christoph.wald/u15287/insect_pest_detection/extra_care_for_the_thrips/metrics.csv", mode='a', header=False, index=False)
