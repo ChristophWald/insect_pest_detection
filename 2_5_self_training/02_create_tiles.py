@@ -1,8 +1,11 @@
+### this is a working copy ###
+### original from 2_2_supervised_training###
+
 import cv2
 import os
 import math
 import numpy as np
-from modules.modules import load_yolo_labels, compute_intersection_area
+from modules import load_yolo_labels, compute_intersection_area
 import ast
 
 '''
@@ -23,7 +26,7 @@ def tile_and_save(image_path, label_path, dest_path,
                   tile_size=640, stride=440, min_inside_ratio=0.8, yolo = True):
     image = cv2.imread(image_path)
     
-    pest_types = ["BRAIIM", "LIRIBO", "TRIAVA"]
+    pest_types = ["BRAIIM", "LIRIBO", "FRANOC", "TRIAVA"]
     
     # Pad image
     padded_img, orig_w, orig_h = pad_to_multiple(image, tile_size=tile_size)
@@ -108,7 +111,7 @@ def tile_and_save(image_path, label_path, dest_path,
 
 
 
-base_path =  "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled"
+base_path =  "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/SSL"
 
 
 

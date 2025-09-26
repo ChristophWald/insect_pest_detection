@@ -1,6 +1,6 @@
 import os
-from insect_pest_detection.modules.modules import get_files_by_subfolder
-from insect_pest_detection.plotting.modules_plotting import plot_label_distribution_boxplots
+from modules import get_files_by_subfolder
+from modules_plotting import plot_label_distribution_boxplots
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt

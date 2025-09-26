@@ -2,16 +2,25 @@ import os
 import cv2
 from modules_segmentation import find_contour, is_upside_orientated
 
+'''
+turns images by 180° either by automatic detection or by a list of images to be rotated (use flag automated rotating)
+can also turn the according labels (use flag use_labels)
+'''
+
 #flags for use with automated/specified rotation and for rotating labels (or not)
 automated_rotating = False #if False, set individual files below
-use_labels = False 
+use_labels = True 
 
-image_folder = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_unlabeled/images_uncropped"
+image_folder = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/SSL/01_images_uncropped"
 image_files = os.listdir(image_folder)
 
-labels_folder = "/user/christoph.wald/u15287/big-scratch/00_uncropped_dataset/labels"
-output_labels_folder = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/labels_uncropped"
-output_images_folder = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_unlabeled/images_uncropped"
+labels_folder = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/SSL/01_labels_uncropped"
+
+output_images_folder = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/SSL/02_images_rotated"
+output_labels_folder = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/SSL/02_labels_rotated"
+os.makedirs(output_labels_folder, exist_ok=True)
+os.makedirs(output_images_folder, exist_ok=True)
+
 
 if use_labels:
     os.makedirs(output_labels_folder, exist_ok=True)
@@ -73,8 +82,8 @@ if automated_rotating:
 
 #for rotating specified images
 else:
-    #falsly_detected_images = ["BRAIIM_0042.jpg", "BRAIIM_0635.jpg", "BRAIIM_0666.jpg", "BRAIIM_0668.jpg"] #labeled training set
-    falsly_detected_images = ["BRAIIM_0112.jpg", "BRAIIM_0142.jpg","LIRIBO_1263.jpg", "LIRIBO_1294.jpg"] #unlabeled training set
+    falsly_detected_images = ["BRAIIM_0042.jpg", "BRAIIM_0635.jpg", "BRAIIM_0666.jpg", "BRAIIM_0668.jpg"] #labeled training set
+    #falsly_detected_images = ["BRAIIM_0112.jpg", "BRAIIM_0142.jpg","LIRIBO_1263.jpg", "LIRIBO_1294.jpg"] #unlabeled training set
     for file in falsly_detected_images:
         print(f"Loading {file}.")
         path = os.path.join(image_folder, file)

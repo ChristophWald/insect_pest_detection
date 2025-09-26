@@ -1,5 +1,5 @@
-from insect_pest_detection.modules.modules import *
-from insect_pest_detection.plotting.modules_plotting import *
+from modules import *
+from modules_plotting import *
 import pandas as pd
 import numpy as np
 import random
@@ -9,7 +9,7 @@ import os
 random.seed(43)
 
 '''
-creates json filelists for the datasplitting (not in place)
+creates json filelists for the datasplitting that are used by 02_create_sets.py
 '''
 
 #for saving plots of label distribution in folder "split_plots"

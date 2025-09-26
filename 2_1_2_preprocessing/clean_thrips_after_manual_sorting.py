@@ -2,11 +2,12 @@ import os
 import shutil
 
 '''
-copies only files which are not manually selected (selection by putting them into folders)
+copies only files which are not manually selected
+selection is done by putting them into folders
 for thrips subset cleaning
 '''
 
-#copy the manual sorted thrips
+#set up list with files to delete (i.e. not to copy)
 
 path = "/home/wald/Schreibtisch/10_BA_Arbeit/01_data_preparation/Thrips_labels_manually_sorted/delete_batches_with_generally_bad_labels"
 low_quality = os.listdir(path)
@@ -30,15 +31,12 @@ for l in delete:
         match = re.match(r'^([^_]+_\d+)', f)
         skip.append(match.group(1))
 
+
 def copy_except_list(input_folder, output_folder, exclude_list):
     """
     Copies all files from input_folder to output_folder,
     excluding any files whose name (without extension) is in exclude_list.
     
-    Parameters:
-        input_folder (str): Source folder with files to copy
-        output_folder (str): Destination folder
-        exclude_list (list): List of filenames to exclude (no extensions)
     """
     os.makedirs(output_folder, exist_ok=True)
     
@@ -51,6 +49,7 @@ def copy_except_list(input_folder, output_folder, exclude_list):
                 shutil.copy(src_path, dst_path)
 
 
+#copy images and labels
 input_folder = "/home/wald/Schreibtisch/10_BA_Arbeit/01_data_preparation/dataset/images/Thrips"
 output_folder = "/home/wald/Schreibtisch/10_BA_Arbeit/01_data_preparation/dataset_Thrips_cleaned/images"
 

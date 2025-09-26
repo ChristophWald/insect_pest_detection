@@ -3,8 +3,8 @@ import os
 import shutil
 
 '''
-copies image/label files according to a split given by json files created with train_test_templates
 realizes planned split
+copies image/label files according to a split given by json files created with 01_train_test_templates.py
 '''
 
 

@@ -5,7 +5,7 @@ import shutil
 random.seed(43)
 
 '''
-splits the labeld files into a training/validation set
+splits the labeled files into a training/validation set
 '''
 
 def copy_pair(files, dest_img_dir, dest_lbl_dir):

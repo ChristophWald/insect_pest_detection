@@ -4,18 +4,23 @@ import cv2
 import numpy as np
 from modules_segmentation import *
 
+'''
+uses a given mask to produce masked images for segmentation
+also saves cropped images and the according labels
+'''
+
 #some flags
-only_evaluation = False #if True, no saving of cropped images and labels as well as masked images
 inspection = False #if True, saves images of single steps in a test folder
-process_labels = False #if True, also crops the given labels
+process_labels = True #if True, also crops given labels
+only_evaluation = False #if True, no saving of cropped images, labels and masked images
 
 ###Setup
-image_folder = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_unlabeled/images_uncropped"
-label_folder = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/labels_uncropped"
+image_folder = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/SSL/02_images_rotated"
+label_folder = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/SSL/02_labels_rotated"
 
-output_folder_images_masked = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_unlabeled/images_masked"
-output_folder_images_cropped = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_unlabeled/images_cropped"
-output_folder_labels = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/labels_cropped"
+output_folder_images_masked = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/SSL/03_images_masked"
+output_folder_images_cropped = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/SSL/04_images_cropped"
+output_folder_labels = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/SSL/04_labels_cropped"
 os.makedirs(output_folder_images_masked, exist_ok=True)
 os.makedirs(output_folder_images_cropped, exist_ok=True)
 if process_labels: os.makedirs(output_folder_labels, exist_ok=True)
@@ -30,7 +35,7 @@ processed_mask = cv2.imread(
 )
 
 gridcorners = np.load("/user/christoph.wald/u15287/insect_pest_detection/2_4_image_processing/masks/gridcorners.npy")
-mask_h_line = np.load("/user/christoph.wald/u15287/insect_pest_detection/2_4_image_processing/mask_h_line.npy")
+mask_h_line = np.load("/user/christoph.wald/u15287/insect_pest_detection/2_4_image_processing/masks/mask_h_line.npy")
 
 problems_corners = []
 problems_shifts = []

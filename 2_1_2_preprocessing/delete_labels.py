@@ -1,9 +1,9 @@
 import os
 
 '''
-deletes all lines given by img-files with [filename]_[filenumber]_[linenumber] created by check_false_positives.py
 for cleaning the thrips labels
-
+deletes all lines in label files given by img-files with [species]_[filenumber]_[linenumber].jpg
+these are single boxes with insects for manual inspection that are sorted into folders 
 '''
 
 source_path = "/user/christoph.wald/u15287/big-scratch/01_dataset/marcella_no_thrips"
@@ -44,4 +44,4 @@ for key, lines_to_delete in result.items():
     with open(txt_file, "w") as f:
         f.writelines(lines)
 
-    print(f"✅ Updated {txt_file}")
+    print(f"Updated {txt_file}")

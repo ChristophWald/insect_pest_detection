@@ -9,7 +9,7 @@ import ast
 creates 640x640 tiles
 the path structure/file loading has to be revisited
 '''
-
+### there may be a problem with pest type being only 3 classes
 
 
 def pad_to_multiple(image, tile_size=640, pad_value=(114,114,114)):

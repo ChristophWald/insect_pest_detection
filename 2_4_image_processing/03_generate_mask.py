@@ -3,6 +3,11 @@ import os
 from modules_segmentation import *
 import numpy as np
 
+'''
+create a mask with overlaying several images and thicken the found grid
+saves corners of the YST and two points of the horizontal midline as .npy files
+'''
+
 #load background images
 grid_folder = "/user/christoph.wald/u15287/big-scratch/00_uncropped_dataset/YSTohneInsekten"
 grid_files = os.listdir(grid_folder)

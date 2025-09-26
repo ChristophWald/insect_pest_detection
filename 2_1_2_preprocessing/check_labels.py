@@ -34,7 +34,6 @@ def report_mismatched_labels(root_path, subfolders):
                             print(f"{file} (found class {cls}, expected {idx})")
                             break  # Only report once per file
 
-# Example usage
 root_path = "/home/wald/Schreibtisch/10_BA_Arbeit/01_data_preparation/dataset/labels"
 subfolders = ["LeafMinerFlies", "WhiteFlies", "skip", "FungusGnats",  "Thrips", ]
 report_mismatched_labels(root_path, subfolders)

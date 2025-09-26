@@ -1,7 +1,7 @@
 task: detect
 mode: train
 model: yolov8s.pt
-data: /user/christoph.wald/u15287/big-scratch/SSL_training_data/training_data/data.yaml
+data: /user/christoph.wald/u15287/big-scratch/04_SSL_training_data/basic_data/data.yaml
 epochs: 30
 time: null
 patience: 100
@@ -13,7 +13,7 @@ cache: false
 device: null
 workers: 8
 project: null
-name: train3
+name: train
 exist_ok: false
 pretrained: true
 optimizer: auto
@@ -103,4 +103,4 @@ erasing: 0.4
 crop_fraction: 1.0
 cfg: null
 tracker: botsort.yaml
-save_dir: runs/detect/train3
+save_dir: runs/detect/train
