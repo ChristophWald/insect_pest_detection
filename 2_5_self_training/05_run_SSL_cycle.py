@@ -6,9 +6,9 @@ import sys
 #import matplotlib.pyplot as plt #for histogram plot
 #import cv2 #for tile prediction
 #import numpy as np #for calculation of new predictions confidence std/mean
-#import json #for saving predictions
-#from ultralytics import YOLO
-#from modules_prediction import * #for tile prediction
+import json #for saving predictions
+from ultralytics import YOLO
+from modules_prediction import * #for tile prediction
 
 
 print("Initializing.")
@@ -56,76 +56,17 @@ for i in range(1, training_runs+1):
     for image_dir, label_dir in zip(image_dirs, label_dirs):
 
         # cycles through all images in a directory
-        for filename in os.listdir(image_dir):
+        for filename in os.listdir(image_dir)[:1]:
             image_path = os.path.join(image_dir, filename)
             image = cv2.imread(image_path)
 
-
-####################################
-
             # predicts on the full images (with stride 420)
-            boxes, scores, classes = sliding_window_prediction(image, model, conf_threshold=0)
-            if boxes:
-                boxes, scores, classes = nms(boxes, scores, classes, iou_threshold=0.4)
-                boxes, scores, classes = filter_mostly_contained_boxes(boxes, scores, classes, threshold=0.5)
-            #remapping the labels to the tiles (with stride 440)
-            pred_tiles_data = get_labels_per_tile(image, boxes, classes, scores)
-            #question: what about overlaps?
-
-            # loads given labels
-            label_files = [f for f in os.listdir(label_dir) if f.startswith(os.path.splitext(filename)[0])]
-            label_files = sorted(label_files, key=extract_tile_number)
-            label_tiles_data = []
-            for f in label_files:
-                file_path = os.path.join(label_dir, f)
-                with open(file_path, 'r') as file:
-                    lines = file.read().splitlines()
-                    tile_labels = [list(map(float, line.split())) for line in lines]
-                    label_tiles_data.append(tile_labels)
-
-            # collect FN, FP, TP
-            missing_labels = []  # FN
-            extra_preds = []     # FP
-            true_positives = []  # TP
-
-            for tile_id, (tile_pred, tile_lab) in enumerate(zip(pred_tiles_data, label_tiles_data)):
-
-                # Check for missing labels (FN)
-                for label in tile_lab:
-                    _, xl, yl, wl, hl = label
-                    matched = False
-                    for pred in tile_pred:
-                        _, x, y, w, h, *rest = pred
-                        if compute_iop([x, y, w, h], [xl, yl, wl, hl]) > 0.8:
-                            matched = True
-                            break
-                    if not matched:
-                        missing_labels.append({"tile_id": tile_id, "label": label})
-
-                # Check for extra predictions and true positives
-                for pred in tile_pred:
-                    _, x, y, w, h, conf = pred
-                    matched = False
-                    for label in tile_lab:
-                        _, xl, yl, wl, hl = label
-                        if compute_iop([x, y, w, h], [xl, yl, wl, hl]) > 0.8:
-                            matched = True
-                            true_positives.append({"tile_id": tile_id, "prediction": pred})
-                            break
-                    if not matched:
-                        extra_preds.append({"tile_id": tile_id, "prediction": pred})
-
-            # determine species name (prefix before first underscore)
-            species = filename.split("_")[0]
-
-            # store results grouped by FN / FP / TP -> species -> image
-            if missing_labels:
-                results["FN"].setdefault(species, {})[filename] = missing_labels
-            if extra_preds:
-                results["FP"].setdefault(species, {})[filename] = extra_preds
-            if true_positives:
-                results["TP"].setdefault(species, {})[filename] = true_positives
-
-    # save JSON
-    with open(os.path.join(output_dir, f'predictions_{i+2}.json'), 'w') as f:
-        json.dump(results, f, indent=4)
+            boxes, confs, class_ids = sliding_window_prediction(image, model)
+            print(f"Number of predicted boxes after thresholding: {boxes.size(0)}")
+            
+            
+            if boxes.numel() > 0:
+                boxes, confs, class_ids = nms(boxes, confs, class_ids, iou_threshold=0.4, device=model.device)
+                print(f"Number of predicted boxes after NMS: {boxes.size(0)}")
+                boxes, confs, class_ids = filter_mostly_contained_boxes(boxes, confs, class_ids, threshold=0.5)
+                print(f"Number of predicted boxes after removing contained boxes: {boxes.size(0)}")
