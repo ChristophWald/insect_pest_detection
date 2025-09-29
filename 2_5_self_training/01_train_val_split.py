@@ -3,7 +3,7 @@ import random
 import shutil
 
 ###
-#working copy from 2_1_3
+#unchanged working copy from 2_1_3
 ###
 random.seed(43)
 

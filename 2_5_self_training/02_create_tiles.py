@@ -13,14 +13,14 @@ creates 640x640 tiles
 the path structure/file loading has to be revisited
 '''
 
-
-
 def pad_to_multiple(image, tile_size=640, pad_value=(114,114,114)):
     h, w = image.shape[:2]
     pad_w = math.ceil(w / tile_size) * tile_size - w
     pad_h = math.ceil(h / tile_size) * tile_size - h
     padded = cv2.copyMakeBorder(image, 0, pad_h, 0, pad_w, cv2.BORDER_CONSTANT, value=pad_value)
     return padded, w, h  # return original width/height for label conversion
+
+
 
 def tile_and_save(image_path, label_path, dest_path,
                   tile_size=640, stride=440, min_inside_ratio=0.8, yolo = True):

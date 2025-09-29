@@ -1,91 +1,93 @@
-import json
-import matplotlib.pyplot as plt
 from collections import defaultdict
+import json
 from pathlib import Path
+import matplotlib.pyplot as plt
 import re
 
-# ---------- SETTINGS ----------
-folder = Path("/user/christoph.wald/u15287/insect_pest_detection/2_5_self_training/predictions")   # change this to your folder path
-output_folder = Path("/user/christoph.wald/u15287/insect_pest_detection/2_5_self_training/metrics_plots")
-output_img = output_folder / "all_histograms.jpg"
-output_txt = output_folder / "corrections.txt"
 
-# Mapping from filename prefix to true class
-class_map = {"BRAIIM": 0, "LIRIBO": 1, "TRIAVA": 3}
+def plot_histograms():
+    folder = Path("/user/christoph.wald/u15287/insect_pest_detection/2_5_self_training/predictions")
+    output_folder = Path("/user/christoph.wald/u15287/insect_pest_detection/2_5_self_training/metrics_plots")
+    output_folder.mkdir(exist_ok=True)
+    output_img = output_folder / "all_histograms.jpg"
+    output_txt = output_folder / "corrections.txt"
 
-# ---------- NATURAL SORT HELPER ----------
-def natural_key(path):
-    """Split string into text + number chunks for natural sorting"""
-    return [int(text) if text.isdigit() else text.lower()
-            for text in re.split(r'(\d+)', path.stem)]
+    class_map = {"BRAIIM": 0, "LIRIBO": 1, "TRIAVA": 2}
 
-# ---------- LOAD & PROCESS ALL ----------
-all_confidences = []   # store (json_name, confidences dict)
-all_corrections = {}   # store {json_name: {class_id: count}}
+    def natural_key(path):
+        return [int(t) if t.isdigit() else t.lower() for t in re.split(r"(\d+)", path.stem)]
 
-for json_file in sorted(folder.glob("*.json"), key=natural_key):
-    with open(json_file, "r") as f:
-        data = json.load(f)
+    all_confidences = []   # (json_name, {species: {"TP": [...], "FP": [...]}})
+    all_corrections = {}   # {json_name: {species: FN_count}}
 
-    corrections = defaultdict(int)
-    confidences = defaultdict(list)
+    for json_file in sorted(folder.glob("*.json"), key=natural_key):
+        with open(json_file, "r") as f:
+            data = json.load(f)
 
-    # Process each image entry in JSON
-    for filename, preds in data.items():
-        # Determine true class from filename prefix
-        true_class = None
-        for prefix, class_id in class_map.items():
-            if filename.startswith(prefix):
-                true_class = class_id
-                break
-        if true_class is None:
-            continue
+        confidences = defaultdict(lambda: {"TP": [], "FP": []})
+        corrections = defaultdict(int)
 
-        # Collect predictions
-        for entry in preds:
-            pred_class = entry["prediction"][0]
-            confidence = entry["prediction"][-1]
+        for label_type in ["TP", "FP", "FN"]:
+            if label_type not in data:
+                continue
+            for species, images in data[label_type].items():
+                for image_name, entries in images.items():
+                    for entry in entries:
+                        if label_type in ["TP", "FP"]:
+                            # Use second element of prediction as confidence
+                            pred_list = entry.get("prediction", [])
+                            if len(pred_list) > 1:
+                                confidences[species][label_type].append(pred_list[1])
+                        else:  # FN
+                            corrections[species] += len(entries)
 
-            if pred_class != true_class:
-                corrections[true_class] += 1
-                entry["prediction"][0] = true_class
+        all_confidences.append((json_file.stem, confidences))
+        all_corrections[json_file.stem] = dict(corrections)
 
-            confidences[true_class].append(confidence)
+    # Save corrections
+    with open(output_txt, "w") as f:
+        for json_name, corr in all_corrections.items():
+            f.write(f"{json_name}:\n")
+            for species in class_map.keys():
+                f.write(f"  {species}: {corr.get(species, 0)} FN\n")
+            f.write("\n")
 
-    # Save results for later
-    all_confidences.append((json_file.stem, confidences))
-    all_corrections[json_file.stem] = dict(corrections)
+    print(f"Saved corrections report → {output_txt}")
 
-# ---------- SAVE CORRECTIONS AS TXT ----------
-with open(output_txt, "w") as f:
-    for json_name, corr in all_corrections.items():
-        f.write(f"{json_name}:\n")
-        for prefix, class_id in class_map.items():
-            count = corr.get(class_id, 0)
-            f.write(f"  {prefix} (class {class_id}): {count} corrections\n")
-        f.write("\n")
+    # Plot histograms
+    n_files = len(all_confidences)
+    n_species = len(class_map)
+    fig, axes = plt.subplots(n_files, n_species, figsize=(5*n_species, 4*n_files), sharey=True)
 
-print(f"Saved corrections report → {output_txt}")
+    # Make axes always a 2D list
+    if n_files == 1 and n_species == 1:
+        axes = [[axes]]
+    elif n_files == 1:
+        axes = [list(axes)]
+    elif n_species == 1:
+        axes = [[ax] for ax in axes]
+    else:
+        axes = axes.tolist()
 
-# ---------- PLOT ALL HISTOGRAMS ----------
-n_files = len(all_confidences)
-fig, axes = plt.subplots(n_files, 3, figsize=(15, 4 * n_files), sharey=True)
+    for row_idx, (json_name, confs) in enumerate(all_confidences):
+        for col_idx, species in enumerate(class_map.keys()):
+            ax = axes[row_idx][col_idx]
+            tp_vals = confs[species]["TP"]
+            fp_vals = confs[species]["FP"]
 
-if n_files == 1:
-    axes = [axes]  # ensure iterable
+            if tp_vals:
+                ax.hist(tp_vals, bins=20, alpha=0.6, label="TP", color="green", edgecolor="black")
+            if fp_vals:
+                ax.hist(fp_vals, bins=20, alpha=0.6, label="FP", color="orange", edgecolor="black")
 
-for row, (json_name, confs) in enumerate(all_confidences):
-    for col, (prefix, class_id) in enumerate(class_map.items()):
-        ax = axes[row][col] if n_files > 1 else axes[col]
-        values = confs.get(class_id, [])
-        if values:
-            ax.hist(values, bins=20, alpha=0.7, color="steelblue", edgecolor="black")
-        ax.set_title(f"{json_name} - {prefix}")
-        ax.set_xlabel("Confidence")
-        ax.set_ylabel("Frequency")
+            ax.set_title(f"{json_name} - {species}")
+            ax.set_xlabel("Confidence")
+            ax.set_ylabel("Frequency")
+            ax.legend()
+            ax.grid(True)
 
-plt.tight_layout()
-plt.savefig(output_img, dpi=150)
-plt.close()
+    plt.tight_layout()
+    plt.savefig(output_img, dpi=150)
+    plt.close()
+    print(f"Saved combined histogram grid → {output_img}")
 
-print(f"Saved combined histogram grid → {output_img}")

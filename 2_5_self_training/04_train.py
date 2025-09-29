@@ -1,41 +1,9 @@
 from ultralytics import YOLO
 
-'''
-just the model.train with parameters
-'''
-
-
-'''
-#training
-#more augmentation - train3
-model = YOLO('yolov8s.pt')
-model.train(data='/user/christoph.wald/u15287/big-scratch/03_train_background_30/data.yaml', 
-            epochs=100, 
-            patience = 10, 
-            imgsz=640,
-            
-            scale=0.3, #instead of 0.5
-            mosaic= 0.25, #instead of 1.0
-            mixup=0.05, #instead of 0.0
-            erasing=0.4, #default (increase when oberving false positives)
-            auto_augment="randaugment", #default, maybe try augmix
-            
-            crop_fraction= 0.1, #(heavy cropping!) instead of 1.0
-            multi_scale= True,
-            fliplr = 0.3 #instead fo 0.5
-            
-            
-            )
-
-
-'''
-
-
 #training
 #medium augmentation 
 model = YOLO('yolov8s.pt')
-#model = YOLO('/user/christoph.wald/u15287/insect_pest_detection/2_5_self_training/runs/detect/train/weights/best.pt')
-model.train(data="/user/christoph.wald/u15287/big-scratch/04_SSL_training_data/basic_data/data.yaml" ,
+model.train(data="/user/christoph.wald/u15287/big-scratch/04_SSL_training_data/training_data/data.yaml" ,
             epochs=30,
             #patience = 20, 
             imgsz=640,
@@ -45,9 +13,6 @@ model.train(data="/user/christoph.wald/u15287/big-scratch/04_SSL_training_data/b
             mixup=0.05, #instead of 0.0
             erasing=0.4, #default (increase when oberving false positives)
             auto_augment="randaugment", #default, maybe try augmix
-            
-            
-            
             )
 
 

@@ -1,10 +1,8 @@
-import os
 import cv2
 import torch
 from ultralytics import YOLO
 import math
-import numpy as np
-import json
+#import numpy as np
 
 def sliding_window_prediction(image, model, conf_threshold=0.5, tile_size=640, stride=420):
     height, width, _ = image.shape
@@ -89,21 +87,6 @@ def compute_intersection_area(box_a, box_b):
     inter_area = max(0, xi2 - xi1) * max(0, yi2 - yi1)
     return inter_area
 
-def pad_image_to_multiple(image, tile_size=640, pad_value=(114,114,114)):
-    """
-    Pads image to the next multiple of tile_size.
-    
-    Returns:
-        padded_image (np.ndarray)
-        orig_w (int): original width
-        orig_h (int): original height
-    """
-    h, w = image.shape[:2]
-    pad_w = math.ceil(w / tile_size) * tile_size - w
-    pad_h = math.ceil(h / tile_size) * tile_size - h
-    padded = cv2.copyMakeBorder(image, 0, pad_h, 0, pad_w, cv2.BORDER_CONSTANT, value=pad_value)
-    return padded, w, h
-
 def save_tile_labels_to_list(boxes, classes, scores, tile_box, tile_size, min_inside_ratio=0.8):
     """
     Returns a list of YOLO labels for a given tile, including class, normalized coordinates, and confidence score.
@@ -145,7 +128,7 @@ def get_labels_per_tile(image, boxes, classes, scores, tile_size=640, stride=440
     Splits boxes into tiles and returns a list of label data per tile including confidences.
     Pads image to next multiple of tile_size to match your original tiling approach.
     """
-    padded_img, orig_w, orig_h = pad_image_to_multiple(image, tile_size=tile_size)
+    padded_img, orig_w, orig_h = pad_to_multiple(image, tile_size=tile_size)
     h, w = padded_img.shape[:2]
 
     tiles_data = []
@@ -185,3 +168,9 @@ def yolo_to_xyxy(box, img_w, img_h):
     ymax = cy + bh / 2
     return [xmin, ymin, xmax, ymax]
 
+def pad_to_multiple(image, tile_size=640, pad_value=(114,114,114)):
+    h, w = image.shape[:2]
+    pad_w = math.ceil(w / tile_size) * tile_size - w
+    pad_h = math.ceil(h / tile_size) * tile_size - h
+    padded = cv2.copyMakeBorder(image, 0, pad_h, 0, pad_w, cv2.BORDER_CONSTANT, value=pad_value)
+    return padded, w, h  # return original width/height for label conversion

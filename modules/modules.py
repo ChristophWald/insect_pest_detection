@@ -153,3 +153,9 @@ def get_files_by_subfolder(root_dir, count_lines=False):
         file_dict[folder_name] = file_entries
     return file_dict
 
+def pad_to_multiple(image, tile_size=640, pad_value=(114,114,114)):
+    h, w = image.shape[:2]
+    pad_w = math.ceil(w / tile_size) * tile_size - w
+    pad_h = math.ceil(h / tile_size) * tile_size - h
+    padded = cv2.copyMakeBorder(image, 0, pad_h, 0, pad_w, cv2.BORDER_CONSTANT, value=pad_value)
+    return padded, w, h  # return original width/height for label conversion
