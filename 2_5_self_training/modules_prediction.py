@@ -35,7 +35,7 @@ def sliding_window_prediction(image, model, conf_threshold=0):
                 .to(model.device)
             )
 
-            results = model(window_tensor, verbose=False, augment=False)
+            results = model(window_tensor, verbose=False, augment=True)
             predictions = results[0].boxes
 
             valid = predictions.conf > conf_threshold

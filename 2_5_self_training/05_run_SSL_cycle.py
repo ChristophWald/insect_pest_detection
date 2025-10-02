@@ -10,6 +10,7 @@ from modules_prediction import *
 import json
 import shutil
 import random #for adding empty tiles
+import time
 
 
 #import matplotlib.pyplot as plt #for histogram plot
@@ -30,9 +31,9 @@ tiles_folder = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_l
 #folder with images and labels in yolo-format
 training_folder = "/user/christoph.wald/u15287/big-scratch/04_SSL_training_data/training_data"
 
-training_runs = 1
+training_runs = 4
 thresholds = [
-    {"BRAIIM": 0.75, "LIRIBO": 0.75, "FRANOC": 0, "TRIAVA": 0.75}  ,
+    {"BRAIIM": 0.85, "LIRIBO": 0.85, "FRANOC": 0, "TRIAVA": 0.75}  ,
     {"BRAIIM": 0.85, "LIRIBO": 0.85, "FRANOC": 0, "TRIAVA": 0.75},  
     {"BRAIIM": 0.85, "LIRIBO": 0.85, "FRANOC": 0, "TRIAVA": 0.75},
     {"BRAIIM": 0.85, "LIRIBO": 0.85, "FRANOC": 0, "TRIAVA": 0.75},
@@ -44,8 +45,8 @@ thresholds = [
     {"BRAIIM": 0.85, "LIRIBO": 0.85, "FRANOC": 0, "TRIAVA": 0.75},
     {"BRAIIM": 0.9, "LIRIBO": 0.9, "FRANOC": 0, "TRIAVA": 0.8}   
 ]
-empty_file_percentages = [0,5,5,0,0,0,0,0,5,0]
-epochs = [1,10,10,10,10,10,10,10,10,20]
+empty_file_percentages = [0,1,1,1,0,0,0,0,5,0]
+epochs = [2,2,2,2,10,10,10,10,10,20]
 
 #Main training loop
 for i in range(1, training_runs+1):
@@ -55,6 +56,7 @@ for i in range(1, training_runs+1):
     #####
     # make new predictions
     #####
+    start = time.time()
 
     print("Predicting on the tiles.")
     if i == 1:
@@ -85,8 +87,8 @@ for i in range(1, training_runs+1):
     for image_dir, label_dir in zip(image_dirs, label_dirs):
 
         # cycles through all images in a directory
-        for filename in os.listdir(image_dir)[:1]:
-            print(f"Predicting on {filename}.")
+        for filename in os.listdir(image_dir):
+            #print(f"Predicting on {filename}.")
             image_path = os.path.join(image_dir, filename)
             image = cv2.imread(image_path)
 
@@ -99,7 +101,7 @@ for i in range(1, training_runs+1):
                 boxes, confs, class_ids = nms(boxes, confs, class_ids, iou_threshold=0.4, device=model.device)
                 
                 boxes, confs, class_ids = filter_mostly_contained_boxes(boxes, confs, class_ids, threshold=0.5)
-                print(f"Predicted: {boxes.size(0)}")
+                #print(f"Predicted: {boxes.size(0)}")
             
             pred_tiles_data = get_labels_per_tile_tensor(image, boxes, class_ids, confs)
             label_tiles_data = load_label_tiles(label_dir, filename)
@@ -143,11 +145,15 @@ for i in range(1, training_runs+1):
                                 entry["prediction"] = [cls, *box, score]
                             else:
                                 entry["prediction"] = [cls, *box]
-                            print(category,entry)
+                            #print(category,entry)
                             json_results[category][species][filename].append(entry)
 
     with open(os.path.join(output_dir, f'predictions{i}.json'), 'w') as f:
         json.dump(json_results, f, indent=4)
+
+    end = time.time()
+    print(f"Predicting took {end-start:.2f} seconds.")
+    start = end
 
     ####
     # Adding newfound labels (FP) and update the yolo training set
@@ -207,9 +213,9 @@ for i in range(1, training_runs+1):
 
                 # Append the FP prediction directly
                 yolo_box = xyxy_to_yolo(x1, y1, x2, y2, tile_size=640)
-                print(f"Writing to {tile_file} and {label_file}")
+                #print(f"Writing to {tile_file} and {label_file}")
                 is_empty = os.path.getsize(tile_file) == 0
-                print(is_empty)
+                #print(is_empty)
                 with open(tile_file, "a") as f:
                     f.write(f"{class_id} {yolo_box[0]} {yolo_box[1]} {yolo_box[2]} {yolo_box[3]}\n")
                 with open(label_file, "a") as f:
@@ -222,9 +228,9 @@ for i in range(1, training_runs+1):
 
 
                 total_preds_appended += 1
-                print(base_name, tile_id)
+                #print(base_name, tile_id)
 
-    with open(os.path.join(output_folder, "class_corrections.txt"), "w") as f:
+    with open(os.path.join(output_folder, f"class_corrections{i+1}.txt"), "w") as f:
     # First line: variable names
         f.write("base_name,tile_id,pred,class_id,gt_class_id\n")
         for entry in corrections:
@@ -232,8 +238,11 @@ for i in range(1, training_runs+1):
             pred_str = "[" + ",".join(map(str, entry[2])) + "]"
             f.write(f"{entry[0]},{entry[1]},{pred_str},{entry[3]},{entry[4]}\n")
 
-    print(f"Total FP predictions appended in-place: {total_preds_appended}")
+    print(f"Total FP predictions appended: {total_preds_appended}")
 
+    end = time.time()
+    print(f"Adding the new labels took {end-start:.2f} seconds.")
+    start = end
     
     ########
     # Optional adding of empty files
@@ -268,14 +277,19 @@ for i in range(1, training_runs+1):
             # Calculate number of empty files allowed
             max_empty_allowed = int(len(label_files) * empty_file_percentages[i-1] / 100)
             empty_to_copy = min(max_empty_allowed, len(empty_files))
+            print(f"Copying {empty_to_copy} files.")
 
             if empty_to_copy > 0:
                 random_empty_files = random.sample(empty_files, empty_to_copy)  # random selection
                 for file in random_empty_files:
                     img_file = os.path.splitext(file)[0] + ".jpg"
-                    print(img_file)
+                    #print(img_file)
                     shutil.copy2(os.path.join(img_path, img_file), os.path.join(img_dest_path, img_file))
                     shutil.copy2(os.path.join(label_path, file), os.path.join(label_dest_path, file))
+
+    end = time.time()
+    print(f"Adding empty files took {end-start:.2f} seconds.")
+    start = end
 
     #######
     #training
@@ -298,3 +312,7 @@ for i in range(1, training_runs+1):
                 erasing=0.4, #default (increase when oberving false positives)
                 auto_augment="randaugment", #default, maybe try augmix
                 )
+    
+    end = time.time()
+    print(f"Training took {end-start:.2f} seconds.")
+    start = end

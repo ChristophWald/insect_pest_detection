@@ -8,7 +8,8 @@ import matplotlib.pyplot as plt
 import glob
 import re
 from pathlib import Path
-
+import numpy as np
+from modules import save_cropped_boxes
 
 
 
@@ -218,6 +219,7 @@ def plot_histograms(input_folder, output_folder):
 
     all_confidences = []   # (json_name, {species: {"TP": [...], "FP": [...]}})
     all_corrections = {}   # {json_name: {species: FN_count}}
+    all_max_fp_per_image = {}  # {json_name: {image_name: {"species": ..., "conf": ..., "box": [...]}}}
 
     for json_file in sorted(input_folder.glob("*.json"), key=natural_key):
         with open(json_file, "r") as f:
@@ -225,24 +227,66 @@ def plot_histograms(input_folder, output_folder):
 
         confidences = defaultdict(lambda: {"TP": [], "FP": []})
         corrections = defaultdict(int)
+        max_fp_per_image = {}  # Track highest FP per image for this JSON
+
+        #we already have the highest FP box per image
+        #it can be saved (see below)
+        #but coordinates are relative to the tile
+        #either tile id has to be saved or coordinates relative to the image
+        #this belongs into another function
 
         for label_type in ["TP", "FP", "FN"]:
             if label_type not in data:
                 continue
+
             for species, images in data[label_type].items():
                 for image_name, entries in images.items():
-                    for entry in entries:
-                        if label_type in ["TP", "FP"]:
-                            # Use second element of prediction as confidence
+
+                    if label_type in ["TP", "FP"]:
+                        for entry in entries:
                             pred_list = entry.get("prediction", [])
-                            if len(pred_list) > 1:
-                                confidences[species][label_type].append(pred_list[1])
-                        else:  # FN
-                            corrections[species] += len(entries)
+                            if len(pred_list) > 5:  # [cls, xmin, ymin, xmax, ymax, conf]
+                                conf = pred_list[-1]   # confidence
+                                box = pred_list[1:5]
+
+                                # Append to species confidences for histogram
+                                confidences[species][label_type].append(conf)
+
+                                # Track highest FP per image
+                                if label_type == "FP":
+                                    if image_name not in max_fp_per_image or conf > max_fp_per_image[image_name]["conf"]:
+                                        max_fp_per_image[image_name] = {
+                                            "species": species,
+                                            "conf": conf,
+                                            "box": box
+                                        }
+
+                    else:  # FN
+                        corrections[species] += len(entries)
 
         all_confidences.append((json_file.stem, confidences))
         all_corrections[json_file.stem] = dict(corrections)
+        all_max_fp_per_image[json_file.stem] = max_fp_per_image
+    
+    '''
+    for json_name, image_dict in all_max_fp_per_image.items():
+        out_data = {}
 
+        for image_name, info in image_dict.items():
+            out_data[image_name] = {
+                "species": info["species"],
+                "box": info["box"],        # [xmin, ymin, xmax, ymax]
+                "confidence": info["conf"]
+            }
+
+        out_path = output_folder / f"{json_name}_max_fp.json"
+        with open(out_path, "w") as f:
+            json.dump(out_data, f, indent=4)
+
+        print(f"Saved max FP JSON for {json_name} → {out_path}")
+    '''
+
+    '''
     # Save corrections
     with open(output_txt, "w") as f:
         for json_name, corr in all_corrections.items():
@@ -252,6 +296,7 @@ def plot_histograms(input_folder, output_folder):
             f.write("\n")
 
     print(f"Saved corrections report → {output_txt}")
+    '''
 
     # Plot histograms
     n_files = len(all_confidences)
@@ -276,8 +321,17 @@ def plot_histograms(input_folder, output_folder):
 
             if tp_vals:
                 ax.hist(tp_vals, bins=20, alpha=0.6, label="TP", color="green", edgecolor="black")
+                mean_tp = np.mean(tp_vals)
+                ax.axvline(mean_tp, color="green", linestyle="--", linewidth=2, label=f"TP mean={mean_tp:.2f}")
             if fp_vals:
                 ax.hist(fp_vals, bins=20, alpha=0.6, label="FP", color="orange", edgecolor="black")
+                mean_fp = np.mean(fp_vals)
+                ax.axvline(mean_fp, color="orange", linestyle="--", linewidth=2, label=f"FP mean={mean_fp:.2f}")
+            fn_count = all_corrections[json_name].get(species, 0)
+            if fn_count > 0:
+                ax.axhline(fn_count, color="red", linestyle=":", linewidth=2, label=f"FN={fn_count}")
+
+
 
             ax.set_title(f"{json_name} - {species}")
             ax.set_xlabel("Confidence")

@@ -14,12 +14,15 @@ import json
 import pandas as pd
 import matplotlib.pyplot as plt
 
+import time
+
 print("Initializing.")
-test_runs = 1
+
 save_images = True
 save_results = True
 skip_FRANOC = True
-conf_threshold=[0.501, 0.9]
+conf_threshold=[0.548]
+test_runs = len(conf_threshold)
 
 
 #set in- & output path
@@ -40,7 +43,10 @@ plot_histograms("/user/christoph.wald/u15287/insect_pest_detection/2_5_self_trai
 
 
 #test runs
-for i in range(test_runs+1):
+for i in range(test_runs):
+
+    start = time.time()
+
     results = []
 
     print(f"Testing model {i+1}.")
@@ -56,7 +62,7 @@ for i in range(test_runs+1):
         image_output_path = os.path.join(base_output_path, "images_w_bboxes")
         os.makedirs(image_output_path, exist_ok=True)
 
-    for filename in filenames[:1]:
+    for filename in filenames:
         if skip_FRANOC and filename.startswith("FRANOC"):
             print("skipping " + filename)
             continue
@@ -86,6 +92,10 @@ for i in range(test_runs+1):
             with open(os.path.join(base_output_path, "metrics.json"), "w") as f:
                 json.dump(metrics, f, indent=4)
             save_results_to_json(base_output_path, results)
+    
+    end = time.time()
+    print(f"Predicting took {end-start:.2f} seconds.")
+    start = end
 
 print("Doing the final evaluation.")
 
@@ -203,5 +213,3 @@ for key, df in dfs.items():
 print(f"Plots saved in {save_dir}")
 combined_df.to_csv(os.path.join(save_dir, 'all_metrics_combined.csv'))
 print(f"Combined metrics saved as all_metrics_combined.csv")
-    
-    
