@@ -12,11 +12,6 @@ import shutil
 import random #for adding empty tiles
 import time
 
-
-#import matplotlib.pyplot as plt #for histogram plot
-#import numpy as np #for calculation of new predictions confidence std/mean
-
-
 print("Initializing.")
 #make sure, that here is only "train" in the runs-folder
 if set(os.listdir("/user/christoph.wald/u15287/insect_pest_detection/2_5_self_training/runs/detect")) != {"train"}:
@@ -31,22 +26,15 @@ tiles_folder = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_l
 #folder with images and labels in yolo-format
 training_folder = "/user/christoph.wald/u15287/big-scratch/04_SSL_training_data/training_data"
 
-training_runs = 4
+training_runs = 3
 thresholds = [
-    {"BRAIIM": 0.85, "LIRIBO": 0.85, "FRANOC": 0, "TRIAVA": 0.75}  ,
-    {"BRAIIM": 0.85, "LIRIBO": 0.85, "FRANOC": 0, "TRIAVA": 0.75},  
-    {"BRAIIM": 0.85, "LIRIBO": 0.85, "FRANOC": 0, "TRIAVA": 0.75},
-    {"BRAIIM": 0.85, "LIRIBO": 0.85, "FRANOC": 0, "TRIAVA": 0.75},
-    {"BRAIIM": 0.9, "LIRIBO": 0.9, "FRANOC": 0, "TRIAVA": 0.8},
-    {"BRAIIM": 0.9, "LIRIBO": 0.9, "FRANOC": 0, "TRIAVA": 0.8},
-    {"BRAIIM": 0.9, "LIRIBO": 0.9, "FRANOC": 0, "TRIAVA": 0.8},
-    {"BRAIIM": 0.85, "LIRIBO": 0.85, "FRANOC": 0, "TRIAVA": 0.75}, 
-    {"BRAIIM": 0.80, "LIRIBO": 0.80, "FRANOC": 0, "TRIAVA": 0.70},
-    {"BRAIIM": 0.85, "LIRIBO": 0.85, "FRANOC": 0, "TRIAVA": 0.75},
-    {"BRAIIM": 0.9, "LIRIBO": 0.9, "FRANOC": 0, "TRIAVA": 0.8}   
+    {"BRAIIM": 0.6, "LIRIBO": 0.6, "FRANOC": 0, "TRIAVA": 0.6}  ,
+    {"BRAIIM": 0.65, "LIRIBO": 0.65, "FRANOC": 0, "TRIAVA": 0.65} ,
+    {"BRAIIM": 0.7, "LIRIBO": 0.7, "FRANOC": 0, "TRIAVA": 0.7} 
+      
 ]
-empty_file_percentages = [0,1,1,1,0,0,0,0,5,0]
-epochs = [2,2,2,2,10,10,10,10,10,20]
+empty_file_percentages = [0,0,0,1,0,0,0,0,5,0]
+epochs = [10,10,10,10,10,10,20]
 
 #Main training loop
 for i in range(1, training_runs+1):
@@ -72,8 +60,8 @@ for i in range(1, training_runs+1):
 
     # tile labels folder
     label_dirs = [
-        "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/SSL/tiles/train/labels_training_run",
-        "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/SSL/tiles/val/labels_training_run"
+        "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/SSL/tiles/train/labels",
+        "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/SSL/tiles/val/labels"
     ]
     
     #output folder for predictions
@@ -155,6 +143,7 @@ for i in range(1, training_runs+1):
     print(f"Predicting took {end-start:.2f} seconds.")
     start = end
 
+    
     ####
     # Adding newfound labels (FP) and update the yolo training set
     ####
@@ -214,7 +203,10 @@ for i in range(1, training_runs+1):
                 # Append the FP prediction directly
                 yolo_box = xyxy_to_yolo(x1, y1, x2, y2, tile_size=640)
                 #print(f"Writing to {tile_file} and {label_file}")
-                is_empty = os.path.getsize(tile_file) == 0
+                if os.path.exists(tile_file):
+                    is_empty = os.path.getsize(tile_file) == 0
+                else:
+                    is_empty = True
                 #print(is_empty)
                 with open(tile_file, "a") as f:
                     f.write(f"{class_id} {yolo_box[0]} {yolo_box[1]} {yolo_box[2]} {yolo_box[3]}\n")
@@ -230,7 +222,7 @@ for i in range(1, training_runs+1):
                 total_preds_appended += 1
                 #print(base_name, tile_id)
 
-    with open(os.path.join(output_folder, f"class_corrections{i+1}.txt"), "w") as f:
+    with open(os.path.join(output_folder, f"class_corrections{i}.txt"), "w") as f:
     # First line: variable names
         f.write("base_name,tile_id,pred,class_id,gt_class_id\n")
         for entry in corrections:

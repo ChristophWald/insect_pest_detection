@@ -8,7 +8,7 @@ copies image/label files according to a split given by json files created with 0
 '''
 
 
-json_dir = 'split_info'  
+json_dir = '/user/christoph.wald/u15287/big-scratch/02_splitted_data/split_info'  
 dataset_images_root = '/user/christoph.wald/u15287/big-scratch/01_dataset/images'
 dataset_labels_root = '/user/christoph.wald/u15287/big-scratch/01_dataset/labels'
 base_output_dir = "/user/christoph.wald/u15287/big-scratch/02_splitted_data"

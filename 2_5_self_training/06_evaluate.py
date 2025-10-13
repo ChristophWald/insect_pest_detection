@@ -1,3 +1,5 @@
+import sys
+sys.path.append("/user/christoph.wald/u15287/insect_pest_detection/modules")
 print("Importing.")
 from ultralytics import YOLO
 import os
@@ -18,10 +20,10 @@ import time
 
 print("Initializing.")
 
-save_images = True
+save_images = False
 save_results = True
 skip_FRANOC = True
-conf_threshold=[0.548]
+conf_threshold=[0.458, 0.450, 0.395, 0.404, 0.540, 0.504, 0.433, 0.277, 0.427, 0.230]
 test_runs = len(conf_threshold)
 
 
@@ -36,22 +38,22 @@ os.makedirs(output_path, exist_ok=True)
 filenames = os.listdir(base_image_path)
 filenames.sort()
 
-print("Plotting training curves.")
+#print("Plotting training curves.")
 plot_prec_recall(output_path)
-print("Plot histograms of predictions on tiles.")
-plot_histograms("/user/christoph.wald/u15287/insect_pest_detection/2_5_self_training/predictions", output_path)
+#print("Plot histograms of predictions on tiles.")
+#plot_histograms("/user/christoph.wald/u15287/insect_pest_detection/2_5_self_training/predictions", output_path)
 
-
+'''
 #test runs
 for i in range(test_runs):
-
+  
     start = time.time()
 
     results = []
 
-    print(f"Testing model {i+1}.")
+    print(f"Testing model {i+1}")
     if i == 0:
-        model = YOLO('/user/christoph.wald/u15287/insect_pest_detection/2_5_self_training/runs/detect/train/weights/best.pt')
+        model = YOLO(f"/user/christoph.wald/u15287/insect_pest_detection/2_5_self_training/runs/detect/train/weights/best.pt")
         base_output_path = f"/user/christoph.wald/u15287/insect_pest_detection/2_5_self_training/metrics/train"
     else:
         model = YOLO(f"/user/christoph.wald/u15287/insect_pest_detection/2_5_self_training/runs/detect/train{i+1}/weights/best.pt")
@@ -64,16 +66,16 @@ for i in range(test_runs):
 
     for filename in filenames:
         if skip_FRANOC and filename.startswith("FRANOC"):
-            print("skipping " + filename)
+            #print("skipping " + filename)
             continue
-        print(f"Processing {filename}...")
+        #print(f"Processing {filename}...")
         image = cv2.imread(os.path.join(base_image_path, filename))
         boxes, confs, class_ids = sliding_window_prediction(image, model, conf_threshold[i])
         
         if len(boxes) > 0:
             boxes, confs, class_ids = nms(boxes, confs, class_ids, iou_threshold=0.4) 
             boxes, confs, class_ids = filter_mostly_contained_boxes(boxes, confs, class_ids, threshold=0.5)    
-        print(f"Predicted: {boxes.size(0)}")
+        #print(f"Predicted: {boxes.size(0)}")
     
         label_path = os.path.join(base_label_path, os.path.splitext(filename)[0] + ".txt")
         label_boxes, label_classes_ids = load_yolo_labels(label_path, image.shape[1], image.shape[0])
@@ -82,7 +84,7 @@ for i in range(test_runs):
         label_classes_ids = torch.tensor(label_classes_ids).to("cuda")
  
         tp, fp, fn = compare_labels_vectorized(boxes, class_ids, confs, label_boxes, label_classes_ids,
-                                               tile_size = 640, iou_threshold=0.5, containment_threshold=0.9, 
+                                               tile_size = 640, iou_threshold=0.5, containment_threshold=0.8, 
                                                convert_to_xyxy=False)
         
         results.append([filename, tp, fp, fn])
@@ -96,7 +98,7 @@ for i in range(test_runs):
     end = time.time()
     print(f"Predicting took {end-start:.2f} seconds.")
     start = end
-
+'''
 print("Doing the final evaluation.")
 
 # Class name mapping

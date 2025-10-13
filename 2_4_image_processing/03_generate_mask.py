@@ -1,3 +1,5 @@
+import sys
+sys.path.append("/user/christoph.wald/u15287/insect_pest_detection/modules")
 import cv2
 import os
 from modules_segmentation import *

@@ -1,7 +1,11 @@
+import sys
+sys.path.append("/user/christoph.wald/u15287/insect_pest_detection/modules")
 import cv2
 import os
 from modules_segmentation import *
 import pandas as pd
+
+
 
 '''
 creates label files in xyxy - format based on segmenting the masked images
@@ -22,12 +26,12 @@ overlaps = 0
 value_problems = 0
 
 #set paths
-image_folder = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/SSL/03_images_masked"
-labels_folder = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/SSL/04_labels_cropped"
-output_labels_folder= "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/SSL/05_created_labels"
+image_folder = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_unlabeled/03_images_masked"
+#labels_folder = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_unlabeled/04_labels_cropped"
+output_labels_folder= "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_unlabeled/05_created_labels_new"
 os.makedirs(output_labels_folder, exist_ok= True)
 image_files = sorted(os.listdir(image_folder))
-cropped_images_folder = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/SSL/04_images_cropped"
+cropped_images_folder = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_unlabeled/SSL/04_images_cropped"
 test_folder = "/user/christoph.wald/u15287/insect_pest_detection/2_4_images_processing/test"
 if inspection: os.makedirs(test_folder, exist_ok= True)
 
@@ -49,11 +53,12 @@ for i, image_file in enumerate(image_files):
     #handcrafted features for filtering bounding boxes
     if "TRIAVA" in image_file:
         min_area_contour = 100  
-        max_area_contour = 1000
+        max_area_contour = 2000
         scale = 1.5
         max_ratio = 2 
         upper_limit_rectangles = None
-        value_threshold =97 # 5th percentile
+        value_threshold = 97 # 5th percentile
+        binary_default = False
     elif "LIRIBO" in image_file: 
         min_area_contour = 1000 
         max_area_contour = 10000 
@@ -61,6 +66,7 @@ for i, image_file in enumerate(image_files):
         max_ratio = 1.76 #95th percentile
         upper_limit_rectangles = 28530 #22340 #95th percentile
         value_threshold = None
+        binary_default = True
     elif "BRAIIM" in image_file:
         min_area_contour = 2000 
         max_area_contour = 10000
@@ -68,9 +74,10 @@ for i, image_file in enumerate(image_files):
         max_ratio = 1.73 #1.75 #95the percentile
         upper_limit_rectangles = 42970 #41703 #95th percentil
         value_threshold = None
+        binary_default = True
 
     #find bounding boxes, filtered by handcrafted features and ratio of w/h, scale them    
-    rectangles, v = get_list_of_rectangles(image, min_area_contour, max_area_contour, scale, max_ratio, upper_limit_rectangles, value_threshold)
+    rectangles, v = get_list_of_rectangles(image, min_area_contour, max_area_contour, scale, max_ratio, upper_limit_rectangles, value_threshold, binary_default)
     value_problems += v
     predicted_rectangles.append(rectangles)
     
@@ -150,4 +157,4 @@ if evaluate_labels:
     print("Overall recall:", recall_overall)
     #grouped.to_csv("metrics.csv")
     #changed to append
-    grouped.to_csv("/user/christoph.wald/u15287/insect_pest_detection/image_processing_in_progress/metrics.csv", mode='a', header=False, index=False)
+    grouped.to_csv("/user/christoph.wald/u15287/insect_pest_detection/2_4_image_processing/metrics.csv", mode='a', header=False, index=False)

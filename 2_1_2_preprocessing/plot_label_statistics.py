@@ -1,3 +1,5 @@
+import sys
+sys.path.append("/user/christoph.wald/u15287/insect_pest_detection/modules")
 import os
 from modules import get_files_by_subfolder
 from modules_plotting import plot_label_distribution_boxplots

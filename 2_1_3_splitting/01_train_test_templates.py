@@ -1,3 +1,5 @@
+import sys
+sys.path.append("/user/christoph.wald/u15287/insect_pest_detection/modules")
 from modules import *
 from modules_plotting import *
 import pandas as pd

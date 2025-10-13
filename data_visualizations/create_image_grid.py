@@ -43,4 +43,4 @@ def plot_image_grid(folder_path, cols=10, thumb_px=128, output_file="image_grid.
     plt.close(fig)  # Close to free memory
     print(f"Grid saved to {output_file}")
 
-plot_image_grid("/user/christoph.wald/u15287/big-scratch/only_thrips/train_labeled/images_uncropped")
+plot_image_grid("/user/christoph.wald/u15287/big-scratch/02_splitted_data/test_set/SSL/02_images_rotated")

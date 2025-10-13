@@ -1,3 +1,5 @@
+import sys
+sys.path.append("/user/christoph.wald/u15287/insect_pest_detection/modules")
 import time
 import os
 import cv2
@@ -15,12 +17,12 @@ process_labels = True #if True, also crops given labels
 only_evaluation = False #if True, no saving of cropped images, labels and masked images
 
 ###Setup
-image_folder = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/SSL/02_images_rotated"
-label_folder = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/SSL/02_labels_rotated"
+image_folder = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/test_set/SSL/02_images_rotated"
+label_folder = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/test_set/SSL/02_labels_rotated"
 
-output_folder_images_masked = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/SSL/03_images_masked"
-output_folder_images_cropped = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/SSL/04_images_cropped"
-output_folder_labels = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/SSL/04_labels_cropped"
+output_folder_images_masked = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/test_set/SSL/03_images_masked"
+output_folder_images_cropped = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/test_set/SSL/04_images_cropped"
+output_folder_labels = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/test_set/SSL/04_labels_cropped"
 os.makedirs(output_folder_images_masked, exist_ok=True)
 os.makedirs(output_folder_images_cropped, exist_ok=True)
 if process_labels: os.makedirs(output_folder_labels, exist_ok=True)

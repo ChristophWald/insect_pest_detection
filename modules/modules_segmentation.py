@@ -9,14 +9,35 @@ import ast
 general functions
 '''
 
-def create_binary_mask(image):
+# combined
+def create_binary_mask(image, binary_default=True):
     '''
     binary masking with manual set threshold (yellow)
     '''
-    lower_yellow = np.array([20, 100, 100])
-    upper_yellow = np.array([30, 255, 255])
+    if binary_default:
+        print("using only simple binarization.")   
+        lower_yellow = np.array([20, 100, 100])
+        upper_yellow = np.array([30, 255, 255])
+        hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+        mask = cv2.inRange(hsv, lower_yellow, upper_yellow)
+        return mask
+    
     hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+    h, s, v = cv2.split(hsv)
+    clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
+    s = clahe.apply(s)
+
+    # Adaptive S channel thresholds for yellow
+    lower_s = max(50, int(np.percentile(s, 1)))
+    lower_yellow = np.array([20, lower_s, 100])
+    upper_yellow = np.array([30, 255, 255])
     mask = cv2.inRange(hsv, lower_yellow, upper_yellow)
+
+    # Morphological cleanup #increases processing time
+    kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (9,9))
+    mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel)
+    kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (15,15))
+    mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel)
     return mask
 
 
@@ -257,7 +278,7 @@ def scale_rect(x, y, w, h, scale):
 
 
 
-def get_list_of_rectangles(image, min_area_contour, max_area_contour, scale, max_ratio, upper_limit_rectangles = None, value_threshold = None):
+def get_list_of_rectangles(image, min_area_contour, max_area_contour, scale, max_ratio, upper_limit_rectangles = None, value_threshold = None, binary_default = True):
     """
     Returns:
         rectangles : list of [x, y, w, h]
@@ -267,7 +288,7 @@ def get_list_of_rectangles(image, min_area_contour, max_area_contour, scale, max
 
 
     #find contours in bw image
-    inverted_mask = cv2.bitwise_not(create_binary_mask(image))
+    inverted_mask = cv2.bitwise_not(create_binary_mask(image, binary_default = binary_default), )
     contours, _ = cv2.findContours(inverted_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
     hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)

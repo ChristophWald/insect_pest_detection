@@ -23,7 +23,12 @@ def pad_to_multiple(image, tile_size=640, pad_value=(114,114,114)):
 
 
 def tile_and_save(image_path, label_path, dest_path,
-                  tile_size=640, stride=440, min_inside_ratio=0.8, yolo = True):
+                  tile_size=640, stride=440, min_inside_ratio=0.8, yolo=True):
+    import os
+    import cv2
+    import ast
+    from modules import load_yolo_labels, compute_intersection_area
+
     image = cv2.imread(image_path)
     
     pest_types = ["BRAIIM", "LIRIBO", "FRANOC", "TRIAVA"]
@@ -38,54 +43,52 @@ def tile_and_save(image_path, label_path, dest_path,
     os.makedirs(images_out, exist_ok=True)
     os.makedirs(labels_out, exist_ok=True)
 
-    if yolo:
-        boxes, classes = load_yolo_labels(label_path, orig_w, orig_h)
-        abs_boxes = [[classes[i], *box] for i, box in enumerate(boxes)]
+    # Load labels if file exists
+    abs_boxes = []
+    if os.path.exists(label_path):
+        if yolo:
+            boxes, classes = load_yolo_labels(label_path, orig_w, orig_h)
+            abs_boxes = [[classes[i], *box] for i, box in enumerate(boxes)]
+        else:
+            with open(label_path, 'r') as f:
+                for line in f:
+                    if line.strip():
+                        try:
+                            cls = [id in label_path for id in pest_types].index(True)
+                        except ValueError:
+                            cls = 0  # default class if not found
+                        x, y, w, h = map(float, ast.literal_eval(line))
+                        x1, y1, x2, y2 = x, y, x + w, y + h
+                        abs_boxes.append([cls, x1, y1, x2, y2])
     else:
-        abs_boxes = []
-        with open(label_path, 'r') as f:
-            for line in f:
-                if line.strip():
-                    cls = [id in label_path for id in pest_types].index(True)
-                    x, y, w, h = map(float, ast.literal_eval(line))
-                    # Convert to (x1, y1, x2, y2)
-                    x1 = x
-                    y1 = y
-                    x2 = x + w
-                    y2 = y + h
-                    abs_boxes.append([cls, x1, y1, x2, y2])
+        print(f"[INFO] No label file for {os.path.basename(image_path)}. Tiles will have empty labels.")
 
-
-    # Generate tiles by sliding window
+    # Generate tiles
     tile_id = 0
     for y in range(0, p_h - tile_size + 1, stride):
         for x in range(0, p_w - tile_size + 1, stride):
             tile = padded_img[y:y+tile_size, x:x+tile_size]
-            
-            # Find boxes with at least min_inside_ratio inside this tile
             tile_box = (x, y, x + tile_size, y + tile_size)
             tile_labels = []
+
             for (cls, bx1, by1, bx2, by2) in abs_boxes:
-                # Compute intersection area
                 inter_area = compute_intersection_area(tile_box, (bx1, by1, bx2, by2))
                 box_area = (bx2 - bx1) * (by2 - by1)
                 if box_area == 0:
                     continue
-                # Fraction of box inside tile
                 inside_ratio = inter_area / box_area
                 if inside_ratio >= min_inside_ratio:
-                    # Clip box to tile boundaries
+                    # Clip to tile
                     cx1 = max(bx1, x)
                     cy1 = max(by1, y)
                     cx2 = min(bx2, x + tile_size)
                     cy2 = min(by2, y + tile_size)
 
-                    # Convert back to YOLO normalized format relative to tile
+                    # YOLO normalized coords relative to tile
                     box_w = cx2 - cx1
                     box_h = cy2 - cy1
                     box_xc = cx1 + box_w / 2
                     box_yc = cy1 + box_h / 2
-
                     nx_c = (box_xc - x) / tile_size
                     ny_c = (box_yc - y) / tile_size
                     nw = box_w / tile_size
@@ -98,7 +101,7 @@ def tile_and_save(image_path, label_path, dest_path,
             tile_path = os.path.join(images_out, tile_filename)
             cv2.imwrite(tile_path, tile)
 
-            # Save tile labels (empty file if no labels)
+            # Save tile labels (empty if none)
             label_filename = f"{os.path.splitext(os.path.basename(image_path))[0]}_tile_{tile_id}.txt"
             label_path_out = os.path.join(labels_out, label_filename)
             with open(label_path_out, 'w') as f:
@@ -111,10 +114,12 @@ def tile_and_save(image_path, label_path, dest_path,
 
 
 
-base_path =  "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/SSL"
 
+#base_path =  "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/SSL"
+base_path =  "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_unlabeled/"
 
-
+'''
+#for train_labeled
 # Set up source image paths
 img_paths = {
     "train": os.path.join(base_path, "split/images/train"),
@@ -137,5 +142,23 @@ for split, img_path in img_paths.items():
         label_path = img.replace("images", "labels")
         label = os.path.splitext(label_path)[0] + '.txt'
 
-        # Call tile_and_save with the unified split-specific dest path
-        tile_and_save(img, label, dest_path, yolo = False)
+        # Automatically set YOLO=True for validation split
+        yolo = True if "val" in split.lower() else False
+
+        # Call tile_and_save with correct YOLO setting
+        tile_and_save(img, label, dest_path, yolo=yolo)
+'''
+#for unlabeled images
+img_path = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_unlabeled/04_images_cropped"
+label_path = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_unlabeled/05_created_labels"
+dest_path = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_unlabeled/tiles"
+os.makedirs(dest_path, exist_ok=True)
+files = os.listdir("/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_unlabeled/03_images_masked")
+for file in files:
+    img = os.path.join(img_path, file)
+
+    # Infer label path
+    label = os.path.join(label_path, os.path.splitext(file)[0] + ".txt") 
+    print(label)
+    # Call tile_and_save with correct YOLO setting
+    tile_and_save(img, label, dest_path, yolo=False)
