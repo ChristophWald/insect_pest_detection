@@ -3,6 +3,8 @@ import cv2
 import torch
 import math
 import os
+import torchvision
+
 
 
 def sliding_window_prediction(image, model, conf_threshold=0):

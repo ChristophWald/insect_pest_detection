@@ -23,7 +23,7 @@ print("Initializing.")
 save_images = False
 save_results = True
 skip_FRANOC = True
-conf_threshold=[0.458, 0.450, 0.395, 0.404, 0.540, 0.504, 0.433, 0.277, 0.427, 0.230]
+conf_threshold=[0.373, 0.535, 0.415, 0.461]
 test_runs = len(conf_threshold)
 
 
@@ -37,13 +37,13 @@ os.makedirs(output_path, exist_ok=True)
 #collecting test files
 filenames = os.listdir(base_image_path)
 filenames.sort()
+plot_histograms("/user/christoph.wald/u15287/insect_pest_detection/2_5_self_training/predictions", output_path)
 
 #print("Plotting training curves.")
 plot_prec_recall(output_path)
 #print("Plot histograms of predictions on tiles.")
-#plot_histograms("/user/christoph.wald/u15287/insect_pest_detection/2_5_self_training/predictions", output_path)
-
 '''
+
 #test runs
 for i in range(test_runs):
   
@@ -108,14 +108,15 @@ class_name_map = {
     '3': 'TRIVA'
 }
 
-# Natural sorting function
+import os, re
+
 def natural_sort_key(path):
     folder = os.path.basename(os.path.dirname(path))
-    m = re.match(r'train(\d*)_test_test_set', folder)
-    if m:
-        num = int(m.group(1)) if m.group(1) else 0
-        return (num,)
-    return (float('inf'),)
+    # Extract the number after 'train', default to 0 if missing
+    m = re.search(r'train(\d+)', folder)
+    num = int(m.group(1)) if m else 0
+    return num
+
 
 # Collect metrics.json files
 metric_files = sorted(

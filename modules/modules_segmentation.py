@@ -575,6 +575,31 @@ def generate_yolo_labels(tile_data, tile_size=640, class_id=0):
 
     return yolo_labels
 
+def rectangle_to_yolo(rect, image_width, image_height):
+    """
+    Convert a rectangle in xywh pixel format (top-left origin) to YOLO normalized format.
+
+    Parameters:
+        rect: [x_top_left, y_top_left, width, height] in pixels
+        image_width: width of the image in pixels
+        image_height: height of the image in pixels
+
+    Returns:
+        yolo_bbox: [x_center_norm, y_center_norm, width_norm, height_norm]
+    """
+    x, y, w, h = rect
+
+    # Convert top-left xy to center xy
+    x_center = x + w / 2.0
+    y_center = y + h / 2.0
+
+    # Normalize
+    x_center_norm = x_center / image_width
+    y_center_norm = y_center / image_height
+    width_norm = w / image_width
+    height_norm = h / image_height
+
+    return [x_center_norm, y_center_norm, width_norm, height_norm]
 
 
 '''

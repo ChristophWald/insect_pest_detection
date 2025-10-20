@@ -56,52 +56,38 @@ def split_and_tile(
     train_ratio=0.8,
     seed=43,
     crop_images=True  # <--- New flag to toggle cropping
-):
-    random.seed(seed)
+):  
+    #will only work, if folders are not created yet
+    files = os.listdir(images_dir)
 
     # Create output directories
-    img_train = os.path.join(output_dir, 'images/train')
-    img_val = os.path.join(output_dir, 'images/val')
-    lbl_train = os.path.join(output_dir, 'labels/train')
-    lbl_val = os.path.join(output_dir, 'labels/val')
-    for d in [img_train, img_val, lbl_train, lbl_val]:
+    img_out = os.path.join(output_dir, 'images')
+    lbl_out = os.path.join(output_dir, 'labels')
+    for d in [img_out, lbl_out]:
         os.makedirs(d, exist_ok=True)
 
-    # Split images first
-    image_files = [f for f in os.listdir(images_dir) if f.lower().endswith(('.jpg', '.png', '.jpeg'))]
-    random.shuffle(image_files)
-    split_idx = int(len(image_files) * train_ratio)
-    train_files = image_files[:split_idx]
-    val_files = image_files[split_idx:]
+    total_tiles = 0
+    for img_name in files:
+        image_path = os.path.join(images_dir, img_name)
+        image = cv2.imread(image_path)
+        print(image_path)
 
-    print(f"Train images: {len(train_files)}, Validation images: {len(val_files)}")
+        # Crop if enabled
+        if crop_images:
+            cropped = crop(image)
+            if cropped is None:
+                print(f"Skipping {img_name} (no yellow region found).")
+                continue
+        else:
+            cropped = image  # use full image if cropping disabled
 
-    # Process a split
-    def process_split(files, img_out, lbl_out):
-        total_tiles = 0
-        for img_name in files:
-            image_path = os.path.join(images_dir, img_name)
-            image = cv2.imread(image_path)
+        base_name = os.path.splitext(img_name)[0]
+        tiles = tile_and_save(cropped, base_name, img_out, lbl_out, tile_size, stride)
+        total_tiles += tiles
+    
 
-            # Crop if enabled
-            if crop_images:
-                cropped = crop(image)
-                if cropped is None:
-                    print(f"Skipping {img_name} (no yellow region found).")
-                    continue
-            else:
-                cropped = image  # use full image if cropping disabled
 
-            base_name = os.path.splitext(img_name)[0]
-            tiles = tile_and_save(cropped, base_name, img_out, lbl_out, tile_size, stride)
-            total_tiles += tiles
-        return total_tiles
-
-    # Tile each split
-    train_tiles = process_split(train_files, img_train, lbl_train)
-    val_tiles = process_split(val_files, img_val, lbl_val)
-
-    print(f"Created {train_tiles} training tiles and {val_tiles} validation tiles.")
+    print(f"Created {total_tiles} tiles.")
     print(f"All saved under: {output_dir}")
 
 
@@ -112,19 +98,17 @@ split_and_tile(
     output_dir="/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/SSL/empty_tiles",
     tile_size=640,
     stride=440,
-    train_ratio=0.8,ssh gl
+    train_ratio=0.8,
     crop_images=True  # toggle cropping here
 )
 '''
 
 #creating tiles from unsegmented images
-images_dir = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/SSL/04_images_cropped"
-train_val_dir = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/SSL/split/images"
 output_dir = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/SSL/images_not_segmented"
+images_dir ="/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/SSL/04_images_cropped"
 
 # Get list of files already segmented
-files_used = os.listdir(os.path.join(train_val_dir, "train"))
-files_used.extend(os.listdir(os.path.join(train_val_dir, "val")))
+files_used = os.listdir("/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/SSL/split/images/train")
 print(f"Files that are segmented: {len(files_used)}.")
 
 # Find files that are not yet segmented
@@ -134,6 +118,7 @@ print(f"Files that are not already segmented: {len(files_to_use)}.")
 
 # Create output folder
 os.makedirs(output_dir, exist_ok=True)
+
 
 # Copy files to output_dir
 for f in files_to_use:
@@ -148,3 +133,4 @@ split_and_tile(
     train_ratio=0.8,
     crop_images=False
 )
+

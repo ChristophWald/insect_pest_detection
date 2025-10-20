@@ -6,7 +6,7 @@ base_dir = "/user/christoph.wald/u15287/insect_pest_detection/2_5_self_training/
 out_dir = "/user/christoph.wald/u15287/insect_pest_detection/2_5_self_training/metrics"
 
 # Count how many runs
-num_runs = len(os.listdir(base_dir))
+num_runs = len(os.listdir(base_dir))-1
 
 
 # Create a figure with rows = num_runs, cols = 2

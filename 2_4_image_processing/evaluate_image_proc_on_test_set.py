@@ -2,7 +2,7 @@ import sys
 sys.path.append("/user/christoph.wald/u15287/insect_pest_detection/modules")
 from modules_prediction import compare_labels_vectorized
 from modules import load_yolo_labels
-from modules_evaluation import compute_metrics, save_results_to_json
+from modules_evaluation import compute_metrics, save_results_to_json, make_image_with_boxes
 
 def parse_coords(line):
     line = line.strip()
@@ -26,7 +26,8 @@ def evaluate_on_test_set_from_txt(save_images=False, save_results=True, skip_FRA
 
     #images are rotated, so original test set images&labels would be wrong
     base_image_path = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/test_set/SSL/04_images_cropped"
-    base_label_path = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/test_set/SSL/04_labels_cropped"
+    #base_label_path = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/test_set/SSL/04_labels_cropped"
+    base_label_path = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/test_set/SSL/04_labels_cropped_and_filtered"
     base_pred_path = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/test_set/SSL/05_created_labels"
 
     #only the images of the test set that could be segmented are considered
@@ -126,4 +127,4 @@ def evaluate_on_test_set_from_txt(save_images=False, save_results=True, skip_FRA
     end = time.time()
     print(f"Evaluation took {end-start:.2f} seconds.")
 
-evaluate_on_test_set_from_txt()
+evaluate_on_test_set_from_txt(save_images=True)

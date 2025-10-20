@@ -2,6 +2,8 @@ import os
 import shutil
 import yaml
 
+#uneccesarily copies val foler
+
 #Copying 1: Make a working copy of the labels in the tiles directory
 
 base_train = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/SSL/tiles/train"
@@ -80,28 +82,33 @@ for u in use_types:
     img_dest_path = os.path.join(training_folder, "images", u)
     label_files = os.listdir(label_path)
 
-    # First pass: copy non-empty files and track empty files
+    
     for file in label_files:
-        with open(os.path.join(label_path, file), "r") as f:
-            if f.read().strip() == "":
-                skipped += 1
-                empty_files.append(file)
-            else:
-                img_file = os.path.splitext(file)[0] + ".jpg"
-                img_src = os.path.join(img_path, img_file)
-                img_dest = os.path.join(img_dest_path, img_file)
+        label_src = os.path.join(label_path, file)
+        with open(label_src, "r") as f:
+            label_content = f.read().strip()
 
-                # only copy if the image file isn’t already there
-                if not os.path.exists(img_dest):
-                    shutil.copy2(img_src, img_dest)
+        is_empty = (label_content == "")
+        img_file = os.path.splitext(file)[0] + ".jpg"
+        img_src = os.path.join(img_path, img_file)
+        img_dest = os.path.join(img_dest_path, img_file)
 
-                # copy label every time (might have changed)
-                shutil.copy2(
-                    os.path.join(label_path, file),
-                    os.path.join(label_dest_path, file)
-                )
+        # --- Behavior change here ---
+        # Skip empty labels only for TRAIN
+        if u == "train" and is_empty:
+            skipped += 1
+            empty_files.append(file)
+            continue  # skip this one
+
+        # Copy image if not already there
+        if not os.path.exists(img_dest):
+            shutil.copy2(img_src, img_dest)
+
+        # Copy label file (always for val, only non-empty for train)
+        shutil.copy2(label_src, os.path.join(label_dest_path, file))
 
     total_files = len(label_files)
     copied_non_empty = total_files - skipped
-    print(f"Copied {copied_non_empty} files from {total_files} files.")
-
+    print(f"Copied {copied_non_empty} label files from {total_files} total.")
+    if skipped > 0:
+        print(f"Skipped {skipped} empty label files ({u}).")

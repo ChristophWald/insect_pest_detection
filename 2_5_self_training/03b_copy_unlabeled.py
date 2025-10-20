@@ -13,7 +13,7 @@ training_folder = "/user/christoph.wald/u15287/big-scratch/04_SSL_training_data/
 # Setup file structure for destination
 file_types = ["images", "labels"]
 
-# Copy all tiles and labels from train/val source folders
+# Copy all tiles and labels from train source folders
 
 
 skipped = 0
