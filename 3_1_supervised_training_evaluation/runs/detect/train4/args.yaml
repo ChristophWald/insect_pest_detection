@@ -1,7 +1,7 @@
 task: detect
 mode: train
-model: yolov8s.pt
-data: /user/christoph.wald/u15287/big-scratch/03_train_old_thrips_labels/data.yaml
+model: runs/detect/train6/weights/last.pt
+data: /user/christoph.wald/u15287/big-scratch/03_train_background_30/data.yaml
 epochs: 100
 time: null
 patience: 10
@@ -13,7 +13,7 @@ cache: false
 device: null
 workers: 8
 project: null
-name: train5
+name: train6
 exist_ok: false
 pretrained: true
 optimizer: auto
@@ -24,12 +24,12 @@ single_cls: false
 rect: false
 cos_lr: false
 close_mosaic: 10
-resume: false
+resume: runs/detect/train6/weights/last.pt
 amp: true
 fraction: 1.0
 profile: false
 freeze: null
-multi_scale: false
+multi_scale: true
 overlap_mask: true
 mask_ratio: 4
 dropout: 0.0
@@ -76,7 +76,7 @@ momentum: 0.937
 weight_decay: 0.0005
 warmup_epochs: 3.0
 warmup_momentum: 0.8
-warmup_bias_lr: 0.1
+warmup_bias_lr: 0.0
 box: 7.5
 cls: 0.5
 dfl: 1.5
@@ -92,7 +92,7 @@ scale: 0.3
 shear: 0.0
 perspective: 0.0
 flipud: 0.0
-fliplr: 0.5
+fliplr: 0.3
 bgr: 0.0
 mosaic: 0.25
 mixup: 0.05
@@ -100,7 +100,7 @@ copy_paste: 0.0
 copy_paste_mode: flip
 auto_augment: randaugment
 erasing: 0.4
-crop_fraction: 1.0
+crop_fraction: 0.1
 cfg: null
 tracker: botsort.yaml
-save_dir: runs/detect/train5
+save_dir: runs/detect/train6

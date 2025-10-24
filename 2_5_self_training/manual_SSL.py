@@ -15,7 +15,7 @@ image_select_folder = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/
 label_src_folder = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/supervised/tiles/train/labels"
 image_src_folder = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/supervised/tiles/train/images"
 
-dest_folder = "/user/christoph.wald/u15287/big-scratch/04_SSL_training_data/training_data_for_1m"
+dest_folder = "/user/christoph.wald/u15287/big-scratch/04_SSL_training_data/training_data_for1m"
 unused_dest_folder = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/manual_SSL/tiles"
 os.makedirs(unused_dest_folder, exist_ok=True)
 unused_full_dest_folder = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/manual_SSL/images"
@@ -23,7 +23,7 @@ os.makedirs(unused_full_dest_folder, exist_ok=True)
 
 
 prefixes = ["BRAIIM", "LIRIBO", "TRIAVA"]
-line_limit = 2500
+line_limit = 1500
 
 random.seed(43)  # reproducibility
 
@@ -74,7 +74,7 @@ for prefix in prefixes:
     
     # Copy all corresponding TILE files (labels + images)
     all_tile_labels = os.listdir(label_src_folder)
-    '''
+
     # Selected
     copied_count_selected = 0
     for base_name in selected_basenames:
@@ -92,7 +92,7 @@ for prefix in prefixes:
             copied_count_selected += 1
 
     print(f"✅ Copied {copied_count_selected} tile-level label/image pairs for {prefix} (selected).")
-    
+'''    
     # Unselected
     copied_count_unselected = 0
     for base_name in unselected_basenames:
@@ -108,7 +108,7 @@ for prefix in prefixes:
             copied_count_unselected += 1
     
     print(f"📁 Copied {copied_count_unselected} tile-level label/image pairs for {prefix} (unselected).")
-    '''
+ 
     copied_full_unselected = 0
     for base_name in unselected_basenames:
         src_full_image = os.path.join(image_select_folder, base_name + ".jpg")
@@ -119,3 +119,4 @@ for prefix in prefixes:
             print(f"⚠️ Missing full image for {base_name}.jpg")
 
 print("\n✅ Done — both selected and unselected sets copied successfully.")
+'''

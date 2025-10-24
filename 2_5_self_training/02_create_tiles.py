@@ -1,6 +1,7 @@
 ### this is a working copy ###
 ### original from 2_2_supervised_training###
-
+import sys
+sys.path.append("/user/christoph.wald/u15287/insect_pest_detection/modules")
 import cv2
 import os
 import math
@@ -114,11 +115,11 @@ def tile_and_save(image_path, label_path, dest_path,
 
 
 
-
-#base_path =  "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/SSL"
-base_path =  "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_unlabeled/"
-
 '''
+base_path =  "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/SSL"
+
+
+
 #for train_labeled
 # Set up source image paths
 img_paths = {
@@ -147,13 +148,35 @@ for split, img_path in img_paths.items():
 
         # Call tile_and_save with correct YOLO setting
         tile_and_save(img, label, dest_path, yolo=yolo)
-'''
+
 #for unlabeled images
+
+base_path =  "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_unlabeled/"
 img_path = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_unlabeled/04_images_cropped"
-label_path = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_unlabeled/05_created_labels"
-dest_path = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_unlabeled/tiles"
+label_path = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_unlabeled/05_created_labelsv2_pure"
+dest_path = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_unlabeled/tilesv2_pure"
 os.makedirs(dest_path, exist_ok=True)
 files = os.listdir("/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_unlabeled/03_images_masked")
+for file in files:
+    img = os.path.join(img_path, file)
+
+    # Infer label path
+    label = os.path.join(label_path, os.path.splitext(file)[0] + ".txt") 
+    print(label)
+    # Call tile_and_save with correct YOLO setting
+    tile_and_save(img, label, dest_path, yolo=False)
+'''
+
+#only train for labeled images
+
+#base_path =  "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_unlabeled/"
+img_path = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/SSL/04_images_cropped"
+label_path = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/SSL/05_created_labelsv2_pure"
+dest_path = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/SSL/tilesv2_pure"
+os.makedirs(dest_path, exist_ok=True)
+#files = os.listdir("/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/SSL/03_images_masked")
+#to make sure only images from the train set are tiled
+files = os.listdir("/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/SSL/split/images/train")
 for file in files:
     img = os.path.join(img_path, file)
 

@@ -3,7 +3,7 @@ sys.path.append("/user/christoph.wald/u15287/insect_pest_detection/modules")
 from modules_testing import *
 
 predict = False
-model_number = "5"
+model_number = "4"
 predict_on_new = False
 update_labels = False
 #add_empty_tiles()
@@ -38,12 +38,12 @@ if predict or predict_on_new:
 if update_labels:
     add_labels(
         pred_file = "predictions_on_all_images.json", #change if needed!
-        thresholds = {"BRAIIM": 0.75, "LIRIBO": 0.75, "FRANOC": 0, "TRIAVA": 0.75},
-        run_number = "075added_labels",
+        thresholds = {"BRAIIM": 0.71, "LIRIBO": 0.8, "FRANOC": 0, "TRIAVA": 0.41},
+        run_number = "unlabeled_add",
         correct_labels = True,
         threshold_steps = False,
         write = True,
-        write_into_tiles = True,
+        write_into_tiles = False,
         add_weights=True
     )
 
@@ -61,8 +61,8 @@ if train_model:
 
     train(
         train_data_dir = base_path,
-        model_number= "5",
-        epochs = 5
+        model_number= None,
+        epochs = 10
     )
 
 
@@ -71,9 +71,9 @@ if train_model:
 ####################
 
 if eval_run:
-    conf_thresholds = [0.603]
+    conf_thresholds = [0.377]
 
-    evaluate_on_test_set(conf_thresholds[0], "6",  save_images = True)
+    evaluate_on_test_set(conf_thresholds[0], "11",  save_images = False)
 
 #tests the model on the image processed labels to compare to the other test
 #evaluate_on_test_set_image_proc(conf_thresholds[0], "9")

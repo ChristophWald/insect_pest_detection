@@ -31,17 +31,17 @@ test_runs = len(conf_threshold)
 base_input_path = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/test_set"
 base_image_path = os.path.join(base_input_path, "images")
 base_label_path = os.path.join(base_input_path, "labels")
-output_path  = "/user/christoph.wald/u15287/insect_pest_detection/2_5_self_training/metrics"
+output_path  = "/user/christoph.wald/u15287/insect_pest_detection/2_5_self_training/metrics_second_iteration"
 os.makedirs(output_path, exist_ok=True)
 
 #collecting test files
 filenames = os.listdir(base_image_path)
 filenames.sort()
-plot_histograms("/user/christoph.wald/u15287/insect_pest_detection/2_5_self_training/predictions", output_path)
+#plot_histograms("/user/christoph.wald/u15287/insect_pest_detection/2_5_self_training/predictions", output_path)
 
 #print("Plotting training curves.")
-plot_prec_recall(output_path)
-#print("Plot histograms of predictions on tiles.")
+#plot_prec_recall(output_path)
+print("Plot histograms of predictions on tiles.")
 '''
 
 #test runs
@@ -124,6 +124,8 @@ metric_files = sorted(
     key=natural_sort_key
 )
 
+print
+
 if not metric_files:
     raise FileNotFoundError(f"No metrics files found under {output_path}")
 
@@ -187,6 +189,20 @@ for key, df in dfs.items():
     ax2.set_ylim(0,1.0)
     ax2.tick_params(axis='y', labelcolor='tab:orange')
     ax2.grid(False)
+
+    # --- Add F1 score (red line) ---
+    if 'precision' in df.columns and 'recall' in df.columns:
+        f1 = 2 * df['precision'] * df['recall'] / (df['precision'] + df['recall'])
+        f1.fillna(0, inplace=True)
+        ax2.plot(
+            range(len(x_values)),
+            f1,
+            color='red',
+            marker='s',
+            linestyle='-',
+            linewidth=2,
+            label='F1-score'
+        )
 
     ax1.set_xticks(range(len(x_values)))
     ax1.set_xticklabels(x_labels)

@@ -7,8 +7,8 @@ import yaml
 #Copying 2: Creating a YOLO training set
 
 # Setup base folder
-tiles_folder = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_unlabeled/tiles"
-training_folder = "/user/christoph.wald/u15287/big-scratch/04_SSL_training_data/training_data_new_more_tiles"
+tiles_folder = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/SSL/tilesv2_pure"
+training_folder = "/user/christoph.wald/u15287/big-scratch/04_SSL_training_data/training_data_labeled_purev2"
 
 # Setup file structure for destination
 file_types = ["images", "labels"]
@@ -25,7 +25,6 @@ label_dest_path = os.path.join(training_folder, "labels/train")
 img_dest_path = os.path.join(training_folder, "images/train")
 label_files = os.listdir(label_path)
 
-# First pass: copy non-empty files and track empty files
 for file in label_files:
     with open(os.path.join(label_path, file), "r") as f:
         if f.read().strip() == "":
@@ -50,3 +49,25 @@ total_files = len(label_files)
 copied_non_empty = total_files - skipped
 print(f"Copied {copied_non_empty} files from {total_files} files.")
 
+src_folder = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/empty_tiles"
+label_path = os.path.join(src_folder, "labels")
+img_path = os.path.join(src_folder, "images")
+label_files = os.listdir(label_path)
+
+for file in label_files:
+
+
+    img_file = os.path.splitext(file)[0] + ".jpg"
+    img_src = os.path.join(img_path, img_file)
+    img_dest = os.path.join(img_dest_path, img_file)
+
+
+    shutil.copy2(img_src, img_dest)
+
+    shutil.copy2(
+        os.path.join(label_path, file),
+        os.path.join(label_dest_path, file)
+    )
+
+total_files = len(label_files)
+print(f"Copied {total_files} empty tiles.")

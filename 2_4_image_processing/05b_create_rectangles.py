@@ -26,12 +26,12 @@ overlaps = 0
 value_problems = 0
 
 #set paths
-image_folder = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_unlabeled/03_images_masked"
+image_folder = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/SSL/03_images_masked"
 #labels_folder = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_unlabeled/04_labels_cropped"
-output_labels_folder= "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_unlabeled/05_created_labels_new"
+output_labels_folder= "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/SSL/05_created_labelsv2_pure"
 os.makedirs(output_labels_folder, exist_ok= True)
 image_files = sorted(os.listdir(image_folder))
-cropped_images_folder = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_unlabeled/SSL/04_images_cropped"
+cropped_images_folder = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/SSL/04_images_cropped"
 test_folder = "/user/christoph.wald/u15287/insect_pest_detection/2_4_images_processing/test"
 if inspection: os.makedirs(test_folder, exist_ok= True)
 
@@ -57,22 +57,22 @@ for i, image_file in enumerate(image_files):
         scale = 1.5
         max_ratio = 2 
         upper_limit_rectangles = None
-        value_threshold = 97 # 5th percentile
-        binary_default = False
+        value_threshold = None #95 # 5th percentile
+        binary_default = True
     elif "LIRIBO" in image_file: 
         min_area_contour = 1000 
         max_area_contour = 10000 
         scale = 1.5
         max_ratio = 1.76 #95th percentile
-        upper_limit_rectangles = 28530 #22340 #95th percentile
+        upper_limit_rectangles = 22340 #95th percentile
         value_threshold = None
         binary_default = True
     elif "BRAIIM" in image_file:
         min_area_contour = 2000 
         max_area_contour = 10000
         scale = 1.5
-        max_ratio = 1.73 #1.75 #95the percentile
-        upper_limit_rectangles = 42970 #41703 #95th percentil
+        max_ratio = 1.75 #1.75 #95the percentile
+        upper_limit_rectangles = 41704 #95th percentil
         value_threshold = None
         binary_default = True
 

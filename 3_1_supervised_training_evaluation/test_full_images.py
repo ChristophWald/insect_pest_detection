@@ -1,3 +1,5 @@
+import sys
+sys.path.append("/user/christoph.wald/u15287/insect_pest_detection/modules")
 from ultralytics import YOLO
 import os
 import cv2
@@ -5,7 +7,7 @@ import torch
 import numpy as np
 from collections import defaultdict
 import json
-from modules.modules import draw_box, load_yolo_labels, save_cropped_boxes, compute_intersection_area
+from modules import draw_box, load_yolo_labels, save_cropped_boxes, compute_intersection_area
 
 '''
 testing prediction on full images
@@ -278,11 +280,11 @@ def save_results_to_json(output_path,results):
         json.dump(formatted, f, indent=4)
 
 #load model
-model = YOLO('/user/christoph.wald/u15287/big-scratch/runs/detect/train7/weights/best.pt')
+model = YOLO('/user/christoph.wald/u15287/insect_pest_detection/3_1_supervised_training_evaluation/runs/detect/train/weights/best.pt')
 
 #set in- & output path
-base_input_path = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/test_set"
-base_output_path = "/user/christoph.wald/u15287/insect_pest_detection/train7_test_prediction_468_no_fp_containment"
+base_input_path = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/val_set"
+base_output_path = "/user/christoph.wald/u15287/insect_pest_detection/3_1_supervised_training_evaluation/val_metrics"
 base_image_path = os.path.join(base_input_path, "images")
 base_label_path = os.path.join(base_input_path, "labels")
 image_output_path = os.path.join(base_output_path, "images_w_bboxes")
@@ -294,11 +296,11 @@ os.makedirs(boxes_output_path, exist_ok=True)
 filenames = os.listdir(base_image_path)
 filenames.sort()
 
-save_images = True #explain
+save_images = False #explain
 save_boxes = False
 save_results = True
 
-conf_threshold=0.468
+conf_threshold=0.484
 
 results = []
 

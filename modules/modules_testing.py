@@ -101,11 +101,11 @@ def train(train_data_dir, model_number, epochs):
                 imgsz=640,
                 close_mosaic=epochs, #no mosaic
                 scale=0.3, #instead of 0.5
-                mosaic= 0.0, #0.25, #instead of 1.0
-                mixup=0.0, #0.05 #instead of 0.0
+                mosaic= 0.25, #0.25, #instead of 1.0
+                mixup=0.05, #0.05 #instead of 0.0
                 erasing=0.4, #default (increase when oberving false positives)
                 auto_augment="randaugment", #default, maybe try augmix
-                #degrees=90.0
+                degrees=90.0
                 )
 
 
