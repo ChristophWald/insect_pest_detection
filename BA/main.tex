@@ -72,24 +72,22 @@
 
 \tableofcontents
 
-{\color{red} Question@Elias: Ich habe am Ende einen Glossar angefangen. Hilft dir das? Wenn ja, soll das ausführlicher oder fehlt was? Wenn nein, kann ich irgendwas anderes tun oder ist das alles so ok für dich mit den ganzen Fachbegriffen?}
-
 \section{Introduction}
 
 Insect pests are responsible for significant production losses in agriculture \cite{climate}. However, pesticides threaten the environment by reducing biodiversity \cite{mamy:hal-03777257}, particularly among insects, including pollinators that support agricultural production \cite{Smith2022PollinatorDeficits}. Overuse of pesticides causes resistance in pests. Additionally, global warming leads to increasing pest populations, which aggravates the problem further \cite{climate}. To address these challenges, the concept of integrated pest management (IPM) was developed. As defined by the Food and Agriculture Organization of the United Nations (FAO), it sets the goal of minimizing the use of pesticides by applying alternative management strategies wherever possible \cite{IPM_FAO, IPM_book}. %For a detailed look into to history and components of IPM compare Messelink and Kruidhof 2019 \cite{IPM_book}. 
-IPM is also the legal basis for the use of pesticides in the EU \cite{IPM_EU}, which, among other things, prescribes the monitoring of insect pests when using pesticides. This enables the early and targeted use of pesticides for only small infested patches, the use of less harmful pesticides, or alternative ways of control like beneficial insects. Monitoring is usually based on setting up a grid of sticky traps, which are regularly checked for trapped insects. Because the manual counting requires expertise and takes a lot of time, it is not feasible for larger applications \cite{survey2022}. Hence, computer vision-based systems for automated monitoring of insect pests are considered to be part of the solution. Ongoing efforts to automatize insect pest monitoring have more recently adopted the methods of deep learning (see the surveys Teixeira et al. 2023 \cite{survey2023} and Mittal et al. 2024 \cite{survey2024b}). 
-My project aims to facilitate the implementation of deep learning-based, automated insect pest monitoring in the controlled environment of the greenhouse.
+IPM is also the legal basis for the use of pesticides in the EU \cite{IPM_EU}, which, among other things, prescribes the monitoring of insect pests when using pesticides. Precise monitoring facilitates the early and targeted use of pesticides for only small infested patches, the use of less harmful pesticides, or alternative ways of control like beneficial insects. Monitoring is usually based on setting up a grid of sticky traps, which are regularly checked for trapped insects. Because the manual counting requires expertise and takes a lot of time, it is not feasible for larger applications \cite{survey2022}. Hence, computer vision-based systems for automated monitoring of insect pests are considered to be part of the solution. Ongoing efforts to automatize insect pest monitoring have more recently adopted the methods of deep learning (see the surveys Teixeira et al. 2023 \cite{survey2023} and Mittal et al. 2024 \cite{survey2024b}). 
+My project aims to facilitate the implementation of deep learning-based, automated insect pest monitoring.
 
 The dominant approach in pest monitoring in general involves the supervised training of YOLO models. YOLO ("You Only Look Once") is a deep learning architecture that unifies the tasks of object localization and classification into a single step. It was introduced by Redmon et al. in 2016 \cite{redmon2016you} and has been improved on since then in several iterations by different contributors. For greenhouses, specifically designed neural network models have been employed successfully in 2021 \cite{rustia_automatic_2021, li_field_2021}, but the recent studies from 2023 onwards use YOLO models on individual datasets \cite{costa_intelligent_2023, zhang_automatic_2023, wang_deep-learning-based_2024, shi_small_2025}. These six papers all report high performance, with mean average precision (mAP) or F1 scores ranging from 0.89 to 0.94.
 
 Main challenges in the implementation are the small size of pests—which, even with high-resolution cameras, occupy only a very tiny fraction of an image—and the high degree of morphological variation among individuals. In less controlled environments additional complications arise from high morphological similarity between different species.
-These challenges create a demand for large annotated datasets; however, the collection and labeling of biological data require considerable effort and expertise. As a result, datasets are often small and exhibit other limitations, such as class imbalance. For an overview of these specific challenges, see Teixeira et al. (2023) \cite{survey2023}. As a remedy, the authors recommend semi-supervised learning (SSL), a family of methods for training with only partially data. Despite this, no survey reports applications of SSL in the field of pest monitoring in general and only one study in the context of the greenhouse makes use of SSL methods. Rustia et al. \cite{rustia_online_2021} proposed a self-training pipeline as a supplement to a fully supervised model as early as 2021. While the results were promising, the implementation was highly intricate, involving multi-stage setups with hand-tailored solutions. This complexity may explain why the approach has not been further explored. Outside of the greenhouse, in open-field settings, some efforts were made from 2024 onwards, either focusing on a single insect species with more diverse backgrounds or on a set of larger insects \cite{li_mateacher_2024, majewski_improved_2024, zhou_mutual_2024, zhou_perceptive_2025, gomez-zamanillo_semi-supervised_2025}. Another notable paper in this context is Dang et al. (2024) \cite{dang_efficient_2024}, who employ a field dataset of ten larger insect species and perform segmentation without manual annotation by leveraging a grounding language–image model. While extending this approach with classification and adapting it to the smaller insect pests typically found in greenhouses might be feasible, grounding models will not be considered in this study due to their limited speed and efficiency compared to YOLO-based methods. 
+These challenges create a demand for large annotated datasets; however, the collection and labeling of biological data require considerable effort and expertise. As a result, datasets are often small and exhibit other limitations, such as class imbalance. For an overview of these specific challenges, see Teixeira et al. (2023) \cite{survey2023}. As a remedy, the authors recommend semi-supervised learning (SSL), a family of methods for training with only partially data. Despite this, no survey reports applications of SSL in the field of pest monitoring in general and only one study in the context of the greenhouse makes use of SSL methods: Rustia et al. \cite{rustia_online_2021} proposed a self-training pipeline as a supplement to a fully supervised model as early as 2021. While the results were promising, the implementation was highly intricate, involving multi-stage setups with hand-tailored solutions. This complexity may explain why the approach has not been further explored. Outside of the greenhouse, in open-field settings, some efforts were made from 2024 onwards, either focusing on a single insect species with more diverse backgrounds or on a set of larger insects \cite{li_mateacher_2024, majewski_improved_2024, zhou_mutual_2024, zhou_perceptive_2025, gomez-zamanillo_semi-supervised_2025}. Another notable paper in this context is Dang et al. (2024) \cite{dang_efficient_2024}, who employ a field dataset of ten larger insect species and perform segmentation without manual annotation by leveraging a grounding language–image model. While extending this approach with classification and adapting it to the smaller insect pests typically found in greenhouses might be feasible, grounding models will not be considered in this study due to their limited speed and efficiency compared to YOLO-based methods. 
 
 Table~\ref{tab:literature-overview} below shows an overview over the relevant literature. Green indicates a correspondence with the demands of my project, red the opposite, and orange overlappings. Because of the differing datasets and metrics, the results are not directly comparable and left out. Also not seen in the table are the pest classes included in the datasets: Only Rustia et. al \cite{rustia_automatic_2021} covered the same pest classes featured in this project. As of now no YOLO model has been trained to identify common greenhouse pests without relying on supervised training. Although working solutions for automatic insect pest monitoring in the greenhouse have been successfully tested, practical deployment stagnates and is hindered by the need for large, manually annotated datasets for new target domains. To my knowledge, there is no adequate method to reduce the amount of labels needed. The goal of the thesis is therefore an improvement in implementation efficiency by adapting the labeling and training method.
 
 \newpage
 
-\begin{table}[htbp]
+\begin{table}[H]
 \centering
 {\footnotesize
 \begin{tabularx}{\textwidth}{l c c c l}
@@ -136,55 +134,75 @@ Zhou and Shi 2025 \cite{zhou_perceptive_2025}
 \hline
 \end{tabularx}
 }
-\caption{Overview over relevant papers.}
+\caption{Overview over relevant papers. Colors indicate overlaps to my study (green: identical, orange: overlap, and red: different; yes/no indicate if the respective paper is settled in the greenhouse context or uses a YOLO-model respectively). None of these studies uses a simple self-training approach and none tries any type of SSL with a YOLO-model in the greenhouse setting.}
 \label{tab:literature-overview}
 \end{table}
 
  I propose that given a specifically structured training dataset, a model can be trained without the need for manual labeling. This is achieved by a combination of image processing and a semi-supervised learning method (SSL) called self-training. The results are expected to contribute to a software foundation for a low-cost, open-source insect pest monitoring solution. It should be trainable on a single GPU and also provide efficient inference. Such a system could support practical deployment in greenhouse production settings and serve as a research tool for further studies.
  
- The key requirement for the proposed solution is the specific structure of the dataset, which should be partitioned into subsets. All images in one subset should only contain one specific pest class as objects. With already existing labels a supervised YOLO model is trained as reference point, which should reach achieve at least 0.9 precision and 0.8 recall per class. Precision is prioritized in this target values over recall for two reasons. First, recall can be improved later through denser placement of sticky traps, whereas precision depends primarily on model quality. Second, low precision risks erroneous pesticide use, which conflicts with the principles of IPM. 
+ The key requirement for the proposed solution is the specific structure of the dataset, which should be partitioned into subsets. All images in one subset should only contain one specific pest class as objects. With already existing labels a supervised YOLO model is trained as reference point, which should achieve at least 0.9 precision and 0.8 recall per class. Precision is prioritized in this target values over recall for two reasons. First, recall can be improved later through denser placement of sticky traps, whereas precision depends primarily on model quality. Second, low precision risks erroneous pesticide use, which conflicts with the principles of IPM. 
  
 The envisioned adapted automated labeling and SSL is done in two stages. First, with image processing segmentation algorithms bounding boxes for the pest classes are created. Since the images are presorted to contain only one pest class, the detected bounding boxes can be directly associated with the corresponding label, yielding a partially labeled dataset. In the second stage, the partially labeled dataset as given by stage one is used in a self-training SSL framework with an adapted YOLO to produce a model.
 
-{\color{red} ToDo: Actualize this in the end, especially the final solution found for the thrips problem}
+{\color{blue} ToDo: Update this. At the moment the self-training does not work and I only created labels by image processing followed by one training with the created labels. So no SSL/self training really. But still without manual labels. Also adapt use case: It could be useful for implementing new insects to existing models.}
 
 \section {Methods}
 
+\subsection{Overview}
+
+{\color{blue}: 
+\begin{itemize}
+    \item code is here: \url{https://github.com/ChristophWald/insect_pest_detection} (documentation is lagging)
+    \item Data was prepared for experiments by cleaning and splitting into set ~\ref{sec:data}
+    \item Evaluation pipeline was set up ~\ref{sec:evaluation}
+    \item Supervised training on manual labels was done as a baseline ~\ref{sec:supervised_methods}
+    \item labels and training data were generated by image processing ~\ref{sec:imag_proc_methods}
+    \item a model was trained on the generated labels, the model was used to predict new labels for more training iterations ~\ref{sec:self_training_methods}
+    
+\end{itemize}}
+
+
 \subsection{Data}
+\label{sec:data}
 
 \subsubsection{Dataset description}
 \label{sec:data_description}
-{\color{red} ToDo: Include mixed images, also in the other sections}\\
 The data is provided by the Julius-Kühn-Institut (JKI) and was collected as part of the Smart-Checkpots project \cite{raaz_smart_2023}. It consists of four subsets of images each associated with one of four insect pest classes (see Table 2). Every image in a subset is supposed to depict several instances of only one pest class  trapped on a yellow sticky trap (YST)\footnote{In general, there are different types of traps e.g. pheromone traps and there are also sticky traps with different colours, but YSTs are the most commonly used traps in greenhouses. Yellow is a compromise which most attract most insect pests.} (see Figure~\ref{fig:example_YSTs}). 
 
-\begin{table}[h!]
+\begin{table}[htbp]
 \centering
-\begin{tabular}{|l|p{6cm}|l|}
+\begin{tabular}{l p{6cm} l}
 \hline
-\textbf{Common Name} & \textbf{Scientific Name} & \textbf{EPPO Code} \\ \hline
-Fungus gnats & Bradysia impatiens, \textsc{Johannsen} 1912 (Diptera: Sciaroidea) & BRAIIM \\ \hline
-Tomato leaf miner & Liriomyza bryoniae, \textsc{Kaltenbach} 1858 (Diptera: Agromyzidae) & LIRIBO \\ \hline
-Western flower thrips & Frankliniella occidentalis, \textsc{Pergande} 1895 (Thysanoptera: Thripidae) & FRANOC \\ \hline
-Greenhouse whitefly & Trialeurodes vaporariorum, \textsc{Westwood} 1856 (Hemiptera: Aleyrodidae) & TRIAVA \\ \hline
+Common Name & Scientific Name & EPPO Code \\
+\hline
+Fungus gnats         & Bradysia impatiens, \textsc{Johannsen} 1912 (Diptera: Sciaroidea) & BRAIIM \\
+\hline
+Tomato leaf miner    & Liriomyza bryoniae, \textsc{Kaltenbach} 1858 (Diptera: Agromyzidae) & LIRIBO \\
+\hline
+Western flower thrips & Frankliniella occidentalis, \textsc{Pergande} 1895 (Thysanoptera: Thripidae) & FRANOC \\
+\hline
+Greenhouse whitefly  & Trialeurodes vaporariorum, \textsc{Westwood} 1856 (Hemiptera: Aleyrodidae) & TRIAVA \\
+\hline
 \end{tabular}
-\caption{Overview of insect pest classes.}
+\caption{Overview of insect pest classes present in the dataset.}
 \label{tab:insect_classes}
 \end{table}
 
+
 \begin{figure}[H]  % 
     \centering
-    \includegraphics[width=1.0\textwidth]{images/figure1.jpg}  % Adjust width as needed
+    \includegraphics[width=1.0\textwidth]{images/figure1_example_images.jpg}  % Adjust width as needed
     \caption{Example images from the four subsets with images from fungus gnats, leaf miner flies, thrips, and whiteflies (left to right, top to bottom). Reduced resolution.}
     \label{fig:example_YSTs}
 \end{figure}
 
 
 The chosen insect pests are common in greenhouses, particularly on crops such as tomatoes and cucumbers, where they can cause severe damage, up to complete crop loss \cite{rustia_automatic_2021}. As Figure~\ref{fig:example_insects} shows, the size of the pest classes and thereby the number of pixels they cover differs considerable. In thrips, also male and female differ in appearance. The female individuals are larger and have good contrast against the yellow background, whereas the smaller and more transparent males are harder to detect (Row 3, box 3,7, and 9). \\
-{\color{red} Question@JKI: Are there wrong insects in the figure? Are male/female thrips assigned correctly?}
+{\color{red} ToDO: Change Row3/Image1}
 
 \begin{figure}[H]  % 
     \centering
-    \includegraphics[width=1.0\textwidth]{images/figure2.jpg}  % Adjust width as needed
+    \includegraphics[width=1.0\textwidth]{images/figure2_example_instances.jpg}  % Adjust width as needed
     \caption{Cropped boxes with fungus gnats, leaf miner flies, thrips, and whiteflies (top to bottom). Original resolution.}
     \label{fig:example_insects}
 \end{figure}
@@ -196,7 +214,7 @@ The populated YSTs in this dataset were created at the JKI by breeding the insec
     % First image
     \begin{subfigure}{0.45\textwidth}
         \centering
-        \includegraphics[width=\linewidth]{images/figure3a_zucht.jpg}
+        \includegraphics[width=\linewidth]{images/figure3a_breeding.jpg}
         \caption{Breeding station}
         \label{fig:breeding}
     \end{subfigure}
@@ -204,7 +222,7 @@ The populated YSTs in this dataset were created at the JKI by breeding the insec
     % Second image
     \begin{subfigure}{0.45\textwidth}
         \centering
-        \includegraphics[width=\linewidth]{images/figure3b_canon.jpg}
+        \includegraphics[width=\linewidth]{images/figure3b_camera_setup.jpg}
         \caption{Camera setup}
         \label{fig:canon}
     \end{subfigure}
@@ -213,9 +231,8 @@ The populated YSTs in this dataset were created at the JKI by breeding the insec
     \label{fig:data_creation}
 \end{figure}
 
-{\color{red} Question@JKI: How was this done exactly and why?}\\
-{\color{red} Question@JKI: Is Figure 4b an example for not labeled male thrips or just some larvae present?}\\
-{\color{red} ToDo: Describe thrips image creation and the problems it presents and rewrite the following paragraph}\\
+{\color{red} A more thorough explanation for the exclusion of the thrips is needed (and in the next section there is also paragraph on this). How was the catching done, why couldn't it be done otherwise? Is it possible to distinguish between larvae and male thrips or is it more of a guess? Remark that thrips larvae do not fly and will not be on the images in the final use case. Also remark, that the final image has lower resolution, which will even more problematic. Give some more images of problematic thrips. Replace Figure 4b, as there are wrong labels on it. Maybe show images, were even Marcella was unsure.}\\
+
 On the images of the thrips subset sometimes larger amounts of foliage (see Figure~\ref{fig:folliage}) are present. Also there are thrips in larval stages, which are hard to distinguish from the male individuals. This posed difficulties for the manual labeling, but is also a critical problem for the automated labeling process.
 
 \begin{figure}[H]
@@ -223,7 +240,7 @@ On the images of the thrips subset sometimes larger amounts of foliage (see Figu
     % First image
     \begin{subfigure}{0.45\textwidth}
         \centering
-        \includegraphics[width=\linewidth]{images/figure_folliage_FRANOC_0046_with_boxes.jpg}
+        \includegraphics[width=\linewidth]{images/figure4a_thrips_folliage.jpg}
         \caption{Labeled thrips with foliage on the image}
         \label{fig:folliage}
     \end{subfigure}
@@ -231,7 +248,7 @@ On the images of the thrips subset sometimes larger amounts of foliage (see Figu
     % Second image
     \begin{subfigure}{0.45\textwidth}
         \centering
-        \includegraphics[width=\linewidth]{images/figure_large_boxes_FRANOC_0675_with_boxes.jpg}
+        \includegraphics[width=\linewidth]{images/figure4b_thrips_large_boxes.jpg}
         \caption{Labeled thrips with large bounding boxes}
         \label{fig:large_boxes}
     \end{subfigure}
@@ -242,7 +259,31 @@ On the images of the thrips subset sometimes larger amounts of foliage (see Figu
 
 For each pest class a proportion of images were manually labeled. Other than for the thrips, visual inspection showed the label quality to be consistent, although with a noticeable proportion unlabeled individuals for the fungus gnats. Also the size of the bounding boxes may differ for the batches that different persons labeled (see Figure~\ref{fig:thrips_YSTs}), which will be taken into account. 
 
+ {\color{red} Addition: Later on, the missing labels for the fungus gnats led to a high number of false positives and  precision was comparably low although the model performed ok. Therefore the test set is checked for missing labels by the JKI right now, independently of results of course. See Figures below.}
+
+
+\begin{figure}[H]  % 
+    \centering
+    \includegraphics[width=1.0\textwidth]{images/figure7_false_positive_BRAIIM.jpg}  % Adjust width as needed
+    \caption{False positive fungus gnats (blue boxes) are actually correct and only considered false due to missing labels. Green boxes are true positives, red false negatives.}
+    \label{fig:false_positive_BRAIIMS}
+\end{figure}
+
+%Visual inspection of the false positives showed that for the fungus gnats a significant number of unlabeled images caused false positives (see Figure~\ref{fig:false_positive_BRAIIMS} which in turns leads to a low precision. Therefore the common false positives predicted by the best model/evaluation pair train7/eval3 and train10/eval3 were selected, their confidence scores averaged and the predictions filtered for confidences higher than 0.6. This resulted in 156 predictions for the fungus gnats, 66 for the leaf miner flies and 91 for the whiteflies. As Figure~\ref{fig:fp_best_confidences} shows, the false positives for the last two pest classes are indeed of mixed quality. However, a visual inspection of the fungus gnat detections returned 116 correctly detected instances. Recalculating the precision now returns precision 0.94 and 0.93 for the two best training results. With this correction, all classes but the thrips fulfill the required minimum precision and recall values (see Figure~\ref{fig:supervised_final_results} below).
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{images/figure11a_BRAIIM_fp_canvas_1.jpg} % first image
+    \includegraphics[width=\textwidth]{images/figure11b_LIRIBO_fp_canvas_1.jpg} % second image
+    \includegraphics[width=\textwidth]{images/figure11c_TRIAVA_fp_canvas_1.jpg} % third image
+    \caption{False positive labels with maximum confidences for fungus gnats (BRAIIM), leaf miner flies (LIRIBO) and whiteflies (TRIAVA) (from top to bottom) In the fungus gnats all of this are actually correct but the labels are missing in the ground truth annotation.}
+    \label{fig:fp_best_confidences}
+\end{figure}
+
+
+
 \subsubsection{Preprocessing}
+
 
 As preparation for the project, I sorted the image files by their creation time given by the metadata. The first 100 images for each class were visually inspected and images with identical YSTs and different camera settings were removed manually. These were leftovers of early experiments with the camera setup. I removed further duplicates (identical images)  by comparing file checksums. Images with labels that indicated no insects or unexpected insects not belonging to the class of the subset were also removed. 
 
@@ -269,29 +310,29 @@ WhiteFlies      & 1105 & 433  & 39.19 \% & 25735  & 59.43  \\
 \label{tab:insect-stats}
 \end{table}
 
-Because of the summed difficulties the thrips images and labels posed, the class had to be discarded for further experiments after the supervised training, which showed that no satisfying results are to be expected in the proposed self-training. There are three major reasons for this decision: low sample size, presence of non-target objects, and low label quality.  Because of size and morphological differences between adult males and females the thrips is the hardest pest class to detect and has to be represented with an according number of images and instances in the dataset. Unfortunately, after cleaning the thrips subset has the lowest number of images and labels in the dataset. Furthermore the thrips are easiest to be mixed up with other objects like foliage and therefore require clean images. But the thrips images are the only pest class that has lots of non-target objects, including thrips larvae on their images. The 1276 false labels clearly show that the automated labeling cannot work under the assumption that all objects on an image are instances of the respective pest classes. Finally, the inconsistent labeling quality prohibits proper testing. 
+Because of the summed difficulties the thrips images and labels posed, the class had to be discarded for all experiments but the supervised training, which showed that no satisfying results are to be expected in the proposed self-training. There are three major reasons for this decision: low sample size, presence of non-target objects, and low label quality.  Because of size and morphological differences between adult males and females the thrips is the hardest pest class to detect and has to be represented with an according number of images and instances in the dataset. Unfortunately, after cleaning the thrips subset has the lowest number of images and labels in the dataset. Furthermore the thrips are easiest to be mixed up with other objects like foliage and therefore require clean images. But the thrips images are the only pest class that has lots of non-target objects, including thrips larvae on their images. The 1276 false labels clearly show that the automated labeling cannot work under the assumption that all objects on an image are instances of the respective pest classes. Finally, the inconsistent labeling quality prohibits proper testing. 
 
 Some labels were found to contain negative coordinates. After visual inspection of samples, these values were interpreted as their absolute counterparts, since this matched the actual object positions. The underlying cause of the negative coordinates could not be identified.
 
 \subsubsection{Splitting}
-
-From the dataset, three sets are built (see Figure~\ref{fig:split}). 
+\label{sec:spliting}
+From the dataset, three sets are built (see Figure~\ref{fig:split}). {\color{blue} Short version: From all labeled files, a subset was chosen. From this subset a test set and a train/val set was chosen (all random). Also a set without labels built.}
 
 \begin{figure}[H]
     \centering
     % First image
     \begin{subfigure}{0.45\textwidth}
         \centering
-        \includegraphics[width=\linewidth]{images/dataset_splitting.png}
-        \caption{Subsets}
+        \includegraphics[width=\linewidth]{images/figure5a_dataset_splitting.png}
+        \caption{Number of images in the randomly created subsets. Sets are balanced because the absolute number of species per images is different for each class.}
         \label{fig:split}
     \end{subfigure}
     \hfill
     % Second image
     \begin{subfigure}{0.45\textwidth}
         \centering
-        \includegraphics[width=\linewidth]{images/labeled_sets.png}
-        \caption{Mean instances per image for the labeled (sub)sets}
+        \includegraphics[width=\linewidth]{images/figure5b_labeled_sets_box_distribution.png}
+        \caption{Mean instances per image for the labeled (sub)sets. The differences between sets are minimal.}
         \label{fig:mean_labels}
     \end{subfigure}
     
@@ -299,172 +340,333 @@ From the dataset, three sets are built (see Figure~\ref{fig:split}).
     \label{fig:dataset_splitting}
 \end{figure}
 
-To balance the labeled sets, only 200 randomly chosen labeled images from the fungus gnat and the white flies are used, because these pest classes have considerably more instances on a single image than thrips and leaf miner flies. The other labels are discarded and the images retained as unlabeled. The labeled set is then further divided randomly into 20\% test set and 80\% training set. As Figure~\ref{fig:mean_labels} shows, the mean instances per image are comparable for the full labeled set, the reduced labeled set, the test set, and the training set. From the unlabeled images excluding the thrips a set is drawn with comparable sizes as the training set. Finally, both training sets are further split into training and validation subsets, using the same 80/20 ratio.
-
-\subsection{Supervised training}
-
-{\color{red} Question@Alex: Do I have to include more info on YOLOv8 here?}\\
-{\color{red} Question@Alex: I did not do this by the book. Do I have to redo it?}\\
-{\color{red} Question@Alex maybe just train on full images, as escarda did?}\\
-{\color{red} Question@Alex Isn't it strange to train on the tiles but predict on the images, because validation test metrics could diverge?}\\
-As a reference point for the automated labeling process, a YOLOv8 model is trained using the manual labels provided. The aim is to demonstrate that the data is sufficient to reach the target metrics of a minimum per-class precision of 0.9 and recall of 0.8. Since supervised training is not the main focus of this project, experiments are not designed to fully optimize results. A small YOLOv8s model pretrained on COCO is chosen because initial tests showed that larger models or later versions did not improve performance. With 4-5 GB of weights, the small model also meets the requirement of single-GPU training and the more modular code of version 8 is easier to adapt for self-training. No task-specific pretrained models are available to my knowledge. 
-
-The images are cropped to the size of the YST with color threshold based segmentation (compare YSTs in Figure~\ref{fig:example_YSTs} and Figure~\ref{fig:thrips_YSTs}). This decreases the size of the dataset by 17,1 GB but also introduces different image sizes. Labels are therefore recalculated after cropping. Since YOLO labels are relative to image width and height, the new image dimensions must be used when transforming labels back into absolute coordinates. 
-
-YOLO expects images of size 640x640 and resizes images with larger resolution. Because the insect pest classes are of small size, this resizing might may cause difficulties. Therefore images are tiled. After padding each image such that its dimensions are divisible by 640, the images are tiled into 640×640 patches with a stride of 440. The overlap of 200 pixels corresponds to the size of the largest pest class, the fungus gnats, such that an instance is at least contained in one tile. The labels are recalculated according to the tiles and labels and are only kept if they are contained to at least 80\% inside the respective tile.  The resulting tiles contain a large number of empty background tiles, which account for over 68\% of the tiles in the labeled training set.
-
-{\color{red} Question@Alex: Do I have to document all this augmenation techniques?}\\
-Starting from the default settings, short training runs with selected parameter changes were conducted to identify optimization potential, where augmentation settings and the ratio of background to foreground images are identified as the main factors influencing performance. Changing the default optimizer (stochastic gradient descent), learning rate schedule, and loss weights did not yield improvements. Two augmentation parameter sets (see Table~\ref{tab:paramters-supervised}) are tested in longer training runs. Because the dataset already contains considerable variance (see Section~\ref{sec:data_description}), augmentations are applied only subtly. In parameter set 1, the scaling factor is reduced to avoid unrealistic size differences between objects, and the probability of mosaic augmentation is lowered to prevent the model from learning lighting differences between images. A small amount of mixup is introduced with a 5\% probability. All other parameters are kept at the default values. Parameter set 2 is designed to counteract the reduced variance caused by lowering the number of background images in the training set. It retains the changes of Set 1 but additionally reduces the probability of horizontal flipping, to avoid generating mirrored text in the backgrounds. To compensate for the reduced background variance, cropping with a maximum fraction of 10\% is allowed, and multiscale training (rescaling of complete batches) is enabled.
-
-\begin{table}[h]
-\centering
-\begin{tabular}{lccc}
-\hline
-\textbf{Parameter} & \textbf{Default} & \textbf{Parameter Set 1} & \textbf{Parameter Set 2} \\
-\hline
-Scale           & 0.5   & 0.3   & 0.3 \\
-Mosaic          & 1.0   & 0.25  & 0.25 \\
-Mixup           & 0.0   & 0.05  & 0.05 \\
-Crop fraction   & 0.0   & 0.0    & 0.1 \\
-Multiscale      & no    & no    & yes \\
-FlipLR          & 0.5   & 0.5   & 0.3 \\
-\hline
-\end{tabular}
-\caption{Adapted parameter sets}
-\label{tab:paramters-supervised}
-\end{table}
-
-For the training runs the proportion of background tiles (tiles without objects) is varied (seeTable~\ref{tab:train_params}). The initial training contains 68\% background tiles, which is reduced to 10\% and 30\% in a number of training runs. To test the effect of the thrips images on the training of the other classes, the set with only 30\% background images is stripped from all images from the thrips subset which changed the background to foreground ratio to 47\%. All but the last three trainings are run 100 epochs and a batch size of 16. Though not necessary for regularization, early stopping with patience 10 is used, to prohibit unneccessary training. Two additional trainings are run with 200 epochs and early stopping and a last one also at 200 epochs without early stopping.
-
-\begin{table}[h!]
-\centering
-\begin{tabular}{lcccc}
-\hline
-\textbf{Train} & \textbf{Parameterset} & \textbf{Background} & \textbf{Epochs} & \textbf{Patience} \\
-\hline
-train1 & 1 & 68 & 100 & 10 \\
-train2 & 1 & 10 & 98 & 10 \\
-train3 & 2 & 10 & 100 & 10 \\
-train6 & 2 & 30 & 100 & 10 \\
-train7 & 1 & 30 & 100 & 10 \\
-train8 & 1 & 30 & 148 & 10 \\
-train9 & 1 & 47* & 111 & 10 \\
-train10 & 1 & 47* & 200 & - \\
-\hline
-\multicolumn{5}{l}{\footnotesize{* 30\% background → thrips deleted}}
-\end{tabular}
-\caption{Training parameters for different runs.}
-\label{tab:train_params}
-\end{table}
-
-\subsection{Testing the model}
 
 
+To balance the labeled sets, only 200 randomly chosen labeled images from the fungus gnats and the white flies are used, because these pest classes have considerably more instances on a single image than thrips and leaf miner flies. The other labels are discarded and the images retained as unlabeled. The labeled set is then further divided randomly into 20\% test set and 80\% training set. As Figure~\ref{fig:mean_labels} shows, the mean instances per image are comparable for the full labeled set, the reduced labeled set, the test set, and the training set. From the unlabeled images excluding the thrips a set is drawn with comparable sizes as the training set. Finally, both training sets are further split into training and validation subsets, using the same 80/20 ratio.
 
-The prediction on the test set images is done by sliding over full images with a given stride, predicting on the tiles and afterwards filtering the detected bounding boxes. For stride the value used in tiling the training set is compared to a slightly reduced one. Bounding boxes detected are then first filtered by a confidence threshold. As starting point, the confidence threshold chosen during YOLO training (based on the best F1-score across classes) is used. This value gives the optimal balance between precision and recall. Since precision is favored over recall in this study, prediction with confidence values increased by 0.1 and 0.2 are used for testing. Table~\ref{tab:eval_param} ) shows different combination of stride and confidence threshold that are used in testing.
+\subsection{Evaluation}
+\label{sec:evaluation}
 
-\begin{table}[h!]
-\centering
-\begin{tabular}{|c|c|c|}
-\hline
- & confidence threshold & stride \\
-\hline
-eval1 & F1max & 440 \\
-eval2 & F1max+.1 & 440 \\
-eval3 & F1max+.1 & 420 \\
-eval4 & F1max+.2 & 420 \\
-eval5 & F1max+.2 & 440 \\
-\hline
-\end{tabular}
-\caption{Evaluation settings for F1 and stride values.}
-\label{tab:eval_param}
-\end{table}
+{\color{red} This section should contain:
+\begin{itemize}
+    \item the sliding window prediction + nms + containment but without confidence threshold to get all predictions
+    \item testing of stride 420/440 and containment filter on/off (see results, for stride include images from cpu\_vs\_gpu.ipynb)
+    \item comparing the boxes to the ground truth with thresholds for iou and another containment filter, greedy matching to allow only one true positive per GT box
+    \item testing containment off/0.9/0.5 (see results)
+    \item building of the prec/recall curve, find best thresholds by: a) if prec/recall arrive target values: take best f1 or b) take prec/recall with lowest distance
+    \item sliding window prediction with per class confidence threshold applied to predict boxes
+    \item for the evaluation of the image processing only the comparing to GT is needed
+    \item best model found by comparing a) number of classes that reached target metrics, b) distance to target metrics area, c) f1 values
+    \item filters build on visual inspections of the false positives/negatives and illustrated here with example images
+    \item include a flowchart
+    
+\end{itemize}
 
-{\color{red} Question: Is the following correctly part of the methods or does it belong to results already?}
+}
+%The prediction on the test set images is done by sliding over full images with a given stride, predicting on the tiles and afterwards filtering the detected bounding boxes. For stride the value used in tiling the training set is compared to a slightly reduced one. Bounding boxes detected are then first filtered by a confidence threshold.
 
 Non-maximum suppression (NMS) is used to filter overlapping bounding boxes for the same object. It relies on the intersection of union (IoU) metric, which is the ratio between the area where two boxes overlap and the area that the boxes cover when combined. When two boxes have an IoU above a threshold, only the box with the higher confidence is kept. However, if a small box is completely or partially inside a larger box, the IoU will be low, because the intersection is only as small as the small box and the union is as big as the large box. As visual inspection shows, the small objects in the dataset make it necessary to include an extra filtering for this case. IoU for NMS was set to 0.4 and the threshold to filter out the other case was set to 0.5. See Figure~\ref{fig:iou_problems} a and b for false positives that occour without the extra filter and see Table~\ref{tab:extra_overlap_filtering} that the extra filter reduces the number of false positives.
 
-Comparison to the ground truth also relies on IoU and as usual, predicted bounding boxes were counted as true positives with an IoU equal or larger than 0.5. Again, visual inspection shows small correct predictions inside larger ground truth boxes are not covered by this procedure. In an additional routine, also predicted boxes contained at least with 0.9 of their area in ground truth boxes are counted as true positive. See Figure~\ref{fig:iou_problems} c and d for false positives that occur without the extra comparision and see Table~\ref{tab:extra_overlap_filtering} that the extra comparision reduces the number of false negatives.
-
-\begin{table}[h!]
-    \centering
-    \begin{tabular}{lccc}
-        \toprule
-        & TP & FP & FN \\
-        \midrule
-        No extras & 5646  & 1157 &  993 \\
-        Additional containment filtering for NMS & 5644  & 983 & 994  \\
-        Additional containment comparison of ground truth & 5788 & 1175 & 850   \\
-        Both & 5788 & 839  & 850 \\
-        \bottomrule
-    \end{tabular}
-    \caption{Comparison of detection results under different settings of extra thresholds. Model is taken from training run 7, evaluation setting are set 3.}
-    \label{tab:extra_overlap_filtering}
-\end{table}
+Comparison to the ground truth also relies on IoU and as usual, predicted bounding boxes were counted as true positives with an IoU equal or larger than 0.5. Again, visual inspection shows small correct predictions inside larger ground truth boxes are not covered by this procedure. In an additional routine, also predicted boxes contained at least with 0.5 of their area in ground truth boxes are counted as true positive. See Figure~\ref{fig:iou_problems} c and d for false positives that occur without the extra comparision and see Table~\ref{tab:extra_overlap_filtering} that the extra comparision reduces the number of false negatives.
 
 \begin{figure}[H]
     \centering
     % First row
     \begin{subfigure}[b]{0.45\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{images/low_iou_nms_BRAIIM.png}
-        \caption{Overlapping Bounding boxes not detected by NMS (fungus gnats)}
+        \includegraphics[width=\textwidth]{images/figure6a_low_iou_nms_BRAIIM.png}
+        \caption{Overlapping Bounding boxes not detected by NMS (fungus gnats), which creates a false positive box.}
     \end{subfigure}
     \hfill
     \begin{subfigure}[b]{0.45\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{images/low_io_nms_LIRIBO.png}
-        \caption{Overlapping Bounding boxes not detected by NMS (leaf miner fly)}
+        \includegraphics[width=\textwidth]{images/figure6b_low_io_nms_LIRIBO.png}
+        \caption{Overlapping Bounding boxes not detected by NMS (leaf miner fly), which creates a false positive box.}
     \end{subfigure}
     
     % Second row
     \begin{subfigure}[b]{0.45\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{images/low_iou_LIRIBO.png}
-        \caption{Bounding boxes counted as FP because of low IoU (leaf miner flies)}
+        \includegraphics[width=\textwidth]{images/figure6c_low_iou_LIRIBO.png}
+        \caption{Bounding boxes counted as FP because of low IoU with the larger ground truth box (leaf miner flies).}
     \end{subfigure}
     \hfill
     \begin{subfigure}[b]{0.45\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{images/low_iou_TRIAVA.png}
-        \caption{Bounding boxes counted as FP because of low IoU (whitefly)}
+        \includegraphics[width=\textwidth]{images/figure6d_low_iou_TRIAVA.png}
+        \caption{Bounding boxes counted as FP because of low IoU with the larger ground truth box (whitefly).}
     \end{subfigure}
     
-    \caption{Detection errors because of low IoU with small boxes. Green boxes are TP, blue boxes FP, red boxes FN}
+    \caption{Detection errors because of low Intersection over Union (IoU) with small boxes. Green boxes are true positives (TP), blue boxes false positives (FP), red boxes false negatives (FN).}
     \label{fig:iou_problems}
 \end{figure}
 
-Visual inspection further revealed, that a proportion of the false positives are due to missing labels (see Figure~\ref{fig:false_positive_BRAIIMS}). Therefore for the best models the false positives in the test set are inspected visually and corrected precision metrics are calculated were necessary. 
 
+\subsection{Supervised training}
+\label{sec:supervised_methods}
+{\color{blue} Short version: I used a YOLOv8 model. I trained on the full images resized to 1024 internally by YOLO and by two different sets of 640x640 segments built with stride 440. The sets differ by the inclusion strategy: The first set simply includes all resulting tiles. In the second tiling approach, for each object only one tile was allowed to avoid redundancy in the training set and tiles with partial objects were dropped. Additionally for the first set the proportion of empty background images included and the exclusion of the thrips were tested. Augmentation was applied only carefully. }
 
-\begin{figure}[H]  % 
-    \centering
-    \includegraphics[width=1.0\textwidth]{images/false_positive_BRAIIM.jpg}  % Adjust width as needed
-    \caption{False positive fungus gnats (blue boxes) are actually correct and only false due to missing labels. Green boxes are true positives, red false negatives.}
-    \label{fig:false_positive_BRAIIMS}
-\end{figure}
+As a reference point for the automated labeling process, a YOLOv8 model is trained using the manual labels provided. The aim is to demonstrate that the data is sufficient to reach the target metrics of a minimum per-class precision of 0.9 and recall of 0.8. Since supervised training is not the main focus of this project, experiments are not designed to fully optimize results. A small YOLOv8s model pretrained on COCO is chosen because initial tests showed that larger models or later versions did not improve performance. With 4-5 GB of weights, the small model also meets the requirement of single-GPU training and the more modular code of version 8 is easier to adapt for self-training. No task-specific pretrained models are available to my knowledge. 
 
-Metrics taken are per class as well as summarized precision, recall and F1 scores.
+The images are cropped to the size of the YST with color threshold based segmentation (compare YSTs in Figure~\ref{fig:example_YSTs} and Figure~\ref{fig:thrips_YSTs}). This decreases the size of the dataset by 17,1 GB but also introduces different image sizes. Labels are therefore recalculated after cropping. Since YOLO labels are relative to image width and height, the new image dimensions must be used when transforming labels back into absolute coordinates. 
 
+YOLO expects images of size 640x640 and resizes images with larger resolution. Because the insect pest classes are of small size, this resizing might cause difficulties. Therefore images are tiled. After padding each image such that its dimensions are divisible by 640, the images are tiled into 640×640 patches with a stride of 440. The overlap of 200 pixels corresponds to the size of the largest pest class, the fungus gnats, such that an instance is at least contained in one tile. The labels are recalculated according to the tiles and labels and are only kept if they are contained to at least 80\% inside the respective tile.  The resulting tiles contain a large number of empty background tiles, which account for over 68\% of the tiles in the labeled training set.
 
+Starting from the default settings, short training runs with selected parameter changes were conducted to identify optimization potential, where augmentation settings and the ratio of background to foreground images are identified as the main factors influencing performance. Changing the default optimizer (stochastic gradient descent), learning rate schedule, and loss weights did not yield improvements. Because the dataset already contains considerable variance (see Section~\ref{sec:data_description}), augmentations are applied only subtly. The scaling factor is reduced to avoid unrealistic size differences between objects, and the probability of mosaic augmentation is lowered to prevent the model from learning lighting differences between images. A small amount of mixup is introduced with a 5\% probability. All other parameters are kept at the default values. 
 
+All models were trained up to 200, then the best epoch (in terms of mAP@90:95) was taken. 
 
+\begin{table}[h]
+\centering
+\begin{tabular}{lccc}
+\hline
+\textbf{Training run} & \textbf{Dataset} & \textbf{Background ratio} & \textbf{Best epoch} \\
+\hline
+train1      & tile v1   & 68\% &   144 \\
+train2          & tile v1   & 30\%  & 127 \\
+train3           & tile v1 without thrips   & 47\%  & 136 \\
+train4      & full images   & 0 \%    & 94 \\
+train5          & tile v2    & 10\%    & 181 \\
 
+\hline
+\end{tabular}
+\caption{Selected training runs for supervised training}
+\label{tab:train_params}
+\end{table}
+
+For the training runs the proportion of background tiles (tiles without objects) is varied (see Table~\ref{tab:train_params}). The initial training contains 68\% background tiles, which is reduced to 10\% and 30\% in a number of training runs. To test the effect of the thrips images on the training of the other classes, the set with only 30\% background images is stripped from all images from the thrips subset which changed the background to foreground ratio to 47\%. 
 
 \subsection{Image processing}
+\label{sec:imag_proc_methods}
+{\color{blue} Here I tried to summarize the basic ideas of the complete section, so this might be worth reading:
+The aim of the image processing is to detect a proportion of objects and create labels including bounding box coordinates, which will serve as the starting point for semi-supervised training of a YOLO model. The simple main idea of this step is to separate background and foreground with a color threshold and then keep all coherent foreground contours as objects. A rectangle around the contour serves as bounding box and the class id can simply be derived from the subset of the image, as all insects on an image are of the same pest class. For images without background structures the process reduces to the short and fast procedure reported in section~\ref{sec:segmentation}. However, when images contain background structures—as in the dataset used in this study—more complex preprocessing is required, as detailed in Section~\ref{sec:image_preprocessing}.
+The presented pipeline was developed with the labeled training set. In between evaluation is done on the ground truth given by the manual labels. Raising the absolute number of true positives and minimizing the number of false positives are the main metrics. Precision is also tracked but is considered secondary, as it might come at the cost of too less true positives. Final evaluation was done on the test set. }
 
-%easy thresholds: size, color, orientation/shape
-%edge density, texture
-%selective search -> see papar in the original R_CNN [39]
+\subsubsection{Preprocessing for segmentation}
+\label{sec:image_preprocessing}
 
-%attention heads?
-%will be low computation cost
-%Clustering for improvement and for visualization may be implemented, as time allows.
-%get thresholds
+{\color{blue} Short version: I created some masks (Figure ~\ref{fig:masks}) and devised a processing pipeline to apply them (schematic is now only a bullet point list, illustrations Figure ~\ref{fig:masking}). The result is a binarized image which divides foreground and background.}
+
+To filter out background structures, a mask covering these regions is applied to each image. The pixels within the mask are changed to a yellow hue, allowing them to be identified as background during segmentation. Direct detetion of the lines was tried, but led to no useable results, as the detected line segments were often very short and could not be separated from the line segments of the objects, that should be kept. Because the images in the dataset were captured from slightly different angles, the mask must be aligned individually for each image. All image processing was performed using the cv2 Python library. Binarization, which is used at several steps, is achieved through color thresholding in the HSV color space, as the hue component provides robustness against variations in lighting. The thresholds used were: Hue 20–30, Saturation 100–255, and Value 100–255.
+
+The processing pipeline begins with a subset of uncropped images, as determined by the splitting described in Section~\ref{sec:spliting}. Since the masking procedure assumes the header is located at the top of the YST, images were rotated when necessary. The required rotation was detected by dividing the YST area into horizontal halves and comparing the summed black pixel area in each half, with black pixels defined as having a value below 50. This method becomes unreliable when the YST is crowded with a large number of black insects, so a visual inspection was performed to ensure accuracy. Correspondingly, the labels used for manual evaluation were rotated to match the corrected image orientation.
+%0,078\% or 134 of the images in both sets combined could not be used, because the detection of keypoints for the alignment failed. These images can be used in the self-training later. In both training sets combined, 0.06\% or 103 of the images could not be shifted for better alignment, because a wrong horizontal midline was detected. The images were kept in the set.
+%number of images in labeled/unlabeled set: 848 + 870
+%after corner detection: 773 + 811 (134 unprocessed)
+%shifts skipped: 44 + 59
+
+Creating the mask required balancing line thickness to fully cover background structures despite minor misalignments, while avoiding excessive coverage of the objects. Binarized and denoised images of empty YSTs, captured under the same conditions as the dataset images, were used for mask generation. Two approaches were employed: a handcrafted mask, where background structures were manually overlaid with black lines (thickness 63 and 96 pixels) in GIMP (Figure~\ref{fig:masks}\subref{fig:mc}), and an image-processing-based mask, created by combining several empty YST images with projective transformations and thickening the black structures via dilation (kernel size 25) (Figure~\ref{fig:masks}\subref{fig:mb}). From this mask, three additional variations were generated by applying further dilation (kernel size 50) (Figure~\ref{fig:masks}\subref{fig:md}), manually thickening the right border lines to cover the holes completely (Figure~\ref{fig:masks}\subref{fig:me}), and drawing a rectangle over the header (Figure~\ref{fig:masks}\subref{fig:mf}). For subsequent alignment, the corners of the YST contour and two points of the horizontal midline calculated from the original masks were saved.
+
+\begin{figure}[H]
+    \centering
+    % Row 1
+    \begin{subfigure}[b]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{images/figure8_masks/a_IMG_5885_reduced_resolution.jpg}
+        \caption{Image used for the creation of masks.}
+        \label{fig:ma}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{images/figure8_masks/b_generated_mask_slim.jpg}
+        \caption{Mask created by overlaying other images to the initial one and then thickening the lines.}
+        \label{fig:mb}
+    \end{subfigure}
+
+    % Row 2
+    \begin{subfigure}[b]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{images/figure8_masks/c_handcrafted_mask_fat.jpg}
+        \caption{Mask created with a graphics program (GIMP).}
+        \label{fig:mc}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{images/figure8_masks/d_generated_mask_fat.jpg}
+        \caption{Mask from b) with thicker lines.}
+        \label{fig:md}
+    \end{subfigure}
+
+    % Row 3
+    \begin{subfigure}[b]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{images/figure8_masks/e_generated_mask_fat_thick_line_right.jpg}
+        \caption{Mask from d) that covers the holes.}
+        \label{fig:me}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{images/figure8_masks/f_generated_mask_fat_plus.jpg}
+        \caption{Mask from e) with a rectangle as header.}
+        \label{fig:mf}
+    \end{subfigure}
+
+    \caption{Masks used for masking out the background structures.}
+    \label{fig:masks}
+\end{figure}
+
+With the masks prepared, preprocessed and masked versions of the image set were created. The pipeline of this process is divided into the following steps.
+
+\begin{itemize}
+ \item Find contours on the binarized image. Take the largest, which is the YST. (algorithm used: cv2.findContours)
+ \item Assuming a rectangle shape find the corners or exclude the image from further processing. (see the corners in Figure~\ref{fig:masking}\subref{fig:a}, algorithms used: cv2.arcLenght, cv2.approxPolyDP)
+ \item Using the corners of the mask and the image, do a projective transformation of the mask and of the midline of the mask. (see Figure~\ref{fig:masking}\subref{fig:b},  algorithms used: cv2.findHomography, cv2.warpPerspective)
+ \item Using the middlepoints of middle horizontal lines of the mask and the image, do another affine transformation of the mask, if the difference is lower than 500 pixels. If the result is larger, a wrong horizontal line was picked and the transformation is skipped. (see Figure~\ref{fig:masking}\subref{fig:c}, algorithms used: cv2.HoughLines, cv2.perspectiveTransform, cv2.warpAffine)
+ \item Color the pixels given by the aligned mask in the image yellow (background) as seen in image Figure~\ref{fig:masking}.
+ \item Crop the image to the YST (and recalculate the manual labels for evaluation).
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    % Row 1
+    \begin{subfigure}[b]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{images/figure9_masking_process/figureA.jpg}
+        \caption{Image with empty YST used as mask (Figure~\ref{fig:masks}\subref{fig:ma}).}
+        \label{fig:a}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{images/figure9_masking_process/figureB.jpg}
+        \caption{Projective transformation of Figure~\ref{fig:masks}\subref{fig:md}, detected horizontal lines marked with green and red.}
+        \label{fig:b}
+    \end{subfigure}
+
+    % Row 2
+    \begin{subfigure}[b]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{images/figure9_masking_process/figureC.jpg}
+        \caption{Same as b) but with extra vertical shift.}
+        \label{fig:c}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{images/figure9_masking_process/figureD.jpg}
+        \caption{Image c) binarized by color thresholding.}
+        \label{fig:d}
+    \end{subfigure}
+
+    \caption{Steps for creating binarized images.}
+    \label{fig:masking}
+\end{figure}
+
+\subsubsection{Segmentation}
+\label{sec:segmentation}
+
+{\color{blue} Short version: The foreground objects need to be filtered further. For testing the mask above this was done by simply thresholding the size of the foreground contours. For final use a more refined set of thresholds is proposed that includes statistically derived thresholds for the size and the shape of the rectangles created around the contours. (see Table~\ref{tab:filter_parameters} and Figure~\ref{fig:size_comparisons} for illustrations).}
+
+
+The segmentation is done on the binarized, preprocessed images as seen in Figure~\ref{fig:masking}\subref{fig:d}. The results of the segmentation are filtered by several thresholds. A first set of threshold is used to evaluate the effects of the different masks as seen in Figure~\ref{fig:masks}. A second, more refined set of thresholds is derived from inspecting the data given by the best evaluated mask (Figure~\ref{fig:masks}\subref{fig:me}. Evaluating was done on the manual labels of the labeled training set. Comparing to GT was reduced to IOP, because it gives nearly identical results for smaller predictions inside ground truth and is more strict for overlapping ones.)
+
+The first set entails guessed lower and upper threshold for the area contours detected. For fungus gnats and leaf miner flies only contours with an area in the range between 1000 and 10000 pixels are kept, for the whiteflies the range is between 100 and 1000 pixels. The rectangles around the contours kept are then scale with factor 1.5, because the contours lost small features like legs, that would cause the rectangles to be too small (see Figure~\ref{fig:size_comparisons}. A second threshold then filters the rectangles by the ratio of their height and width. Assuming that more oblong rectangles are likely to be non-insect objects (e.g. left over background elements, foliage, parts of insects), the maximum ratio was set to 2. This excludes rectangles with one side being more than twice as long as the other side. 
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\linewidth]{images/figure10_size_comparisions.jpg}
+    \captionsetup{width=\linewidth, justification=raggedright} % caption matches image width
+    \caption{Size comparison, from top to bottom: Fungus gnats, Leaf miner flies, Whiteflies. Green circles are the minimum and maximum contour area allowed. Green rectangles are the resultant rectangles for the areas, which are squares in this case. }
+    \label{fig:size_comparisons}
+\end{figure}
+
+For each mask, segmentation is done for all preprocessed images and the results were evaluated by comparing to the manual ground truth with the Intersection over Prediction metric with threshold 0.5. The results from the best performing mask Figure~\ref{fig:masks}\subref{fig:me} are used to inspect the distribution of box sizes, box ratios and, only for the whiteflies, the value in the HSV-space for all rectangles. Additional filter thresholds were then tested on the calculated rectangles that are given in Table~\ref{tab:filter_parameters}. Goals were to reduce the number of small insect parts and occasional non-insect objects, as well as the number of large boxes with more than one insect occluding each other. Only for the whiteflies a considerable number of overlapping boxes were created, presumable because individual objects often led to two separate contours. Therefore this case was checked and only one rectangle kept.
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|l|l|l|l|}
+\hline
+\textbf{Species} & \textbf{Threshold} & \textbf{Filter set 1} & \textbf{Filter set 2} \\ \hline
+\multirow{5}{*}{Fungus gnats} 
+    & Min contour   & 1000 & 2000  \\ \cline{2-4}
+    & Max contour   & 10000 & \textit{same}  \\ \cline{2-4}
+    & Max box size  & - & 95th percentile \\ \cline{2-4}
+    & Max box ratio & -  & 95th percentile \\ \cline{2-4}
+    & Min value     & - & - \\ \hline
+\multirow{5}{*}{Leaf miner flies} 
+    & Min contour   & 1000 & \textit{same} \\ \cline{2-4}
+    & Max contour   & 10000 & \textit{same}  \\ \cline{2-4}
+    & Max box size  & -  & 95th percentile \\ \cline{2-4}
+    & Max box ratio & - & 95th percentile  \\ \cline{2-4}
+    & Min value     & -  & - \\ \hline
+\multirow{5}{*}{Whiteflies} 
+    & Min contour   & 100 & \textit{same}  \\ \cline{2-4}
+    & Max contour   & 1000 & \textit{same}  \\ \cline{2-4}
+    & Max box size  & - &  95th percentile  \\ \cline{2-4}
+    & Max box ratio & -  & 95th percentile \\ \cline{2-4}
+    & Min value     & -  & 5th percentile \\ \hline
+\end{tabular}
+\caption{Thresholds of the two filter sets for filtering the results of the segmentation.}
+\label{tab:filter_parameters}
+\end{table}
+
+\subsubsection{Augmenting the data}
+
+{\color{blue} Masking the black background structures creates a biased label set and the model learns to ignore insects on background structures. As a remedy, cut out insect will be pasted onto empty YSTs to create artificial data with correct labels (see Figure below for an example). The results can be used as additional training data.}
+
+\begin{figure}[H]
+    \centering
+    % Row 1
+    \begin{subfigure}[b]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{images/augmented_data/populated_header.jpg}
+        \caption{Empty YST with some leaf miner flies pasted.}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{images/augmented_data/tile.jpg}
+        \caption{Original tile as used for training.}
+    \end{subfigure}
+
+    % Row 2
+    \begin{subfigure}[b]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{images/augmented_data/background_tile.jpg}
+        \caption{Empty background tile with background structures.}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{images/augmented_data/new_tile.jpg}
+        \caption{Merged tiles usable as new training data.}
+    \end{subfigure}
+
+    \caption{Examples for augmented training data.}
+    \label{fig: augment}
+\end{figure}
 
 \subsection{Self-Training}
+\label{sec:self_training_methods}
+{\color{blue} Short version: I trained on the labels created by image processing and tested a bunch of things.}
 
-The SSL approach implemented in this work follows the self-training paradigm, originally introduced as ``pseudo-labeling'' by Lee (2013)~\cite{lee_pseudo-label_nodate}. In its simplest form, it entails training a model on a small amount of labeled data, use the model to predict on unlabeled data and then use the prediction as pseudo-labels to retrain the model. According to the comprehensive survey on the topic by Amini et al. (2025)~\cite{amini_self-training_2025}, self-training remains one of the most prevalent and effective strategies in semi-supervised learning, particularly in domains with partially labeled data. 
+\subsubsection{Training on the labels created by image processing}
+
+\begin{itemize}
+    \item was done on tiles (as explicated in the section on supervised training)
+    \item only tiles including at least one labeled instance were included in the train set
+    \item for validation subset the manual labels are kept
+    \item augmentations were taken from above (filter set 2), but also rotation was tested
+    \item tests on epoch lengths %(5,10,20,30 in train7,6,1,2)
+    \item tests on inclusion of empty tiles
+    \item also compared to the results on the unlabeled set
+    \item will also be tested with artificially populated empty YSTs
+\end{itemize}
+
+\subsubsection{Further training on predicted labels}
+
+\begin{itemize}
+    \item as of now this is not included in the results, because no improvements were made
+    \item new labels were included as pseudo-labels filtered by a confidence threshold
+    \item predicted class was hardcoded from the species given by the filename/datasubset
+    \item epoch length 5 \&10 was tested
+    \item inclusion of new images with new predictions was tested (on unprocessed images)
+    \item weighing of the losses for the pseudo-labels (with disabled mosaic/mixup augmentations) was tested
+    \item for later iterations the addition of tiles with no predictions at all as empty tiles was tested
+
+    
+\end{itemize}
+
+
+%Begin with tiling (analog to training)
+%{\color{red} ToDo: Find the right place for this piece of information. Maybe in the introduction.}
+%The SSL approach implemented in this work follows the self-training paradigm, originally introduced as ``pseudo-labeling'' by Lee (2013)~\cite{lee_pseudo-label_nodate}. In its simplest form, it entails training a model on a small amount of labeled data, use the model to predict on unlabeled data and then use the prediction as pseudo-labels to retrain the model. According to the comprehensive survey on the topic by Amini et al. (2025)~\cite{amini_self-training_2025}, self-training remains one of the most prevalent and effective strategies in semi-supervised learning, particularly in domains with partially labeled data. 
 
 %The trained model is then used to generate predictions on both completely unlabeled and on the partially labeled data. The predictions generated by the model are filtered using a confidence threshold, and those above the threshold and not already labeled are considered pseudo-labels. These pseudo-labeled samples iteratively incorporated into subsequent rounds of training, gradually expanding and refining the training set. 
 %YOLO8 or 9: has been proven to work for small objects (later transformer based models not so), is easier to hack, has lower training and inference costs - maybe test later versions.
@@ -483,124 +685,277 @@ The SSL approach implemented in this work follows the self-training paradigm, or
 
 \section{Results}
 
+
+\subsection{Comparing supervised training and self-training}
+
+{\color{red} I would first compare the final result of the best supervised model and the best model trained on the image processed labels side by side. As of now, both do not meet the target metrics.}
+
+\subsection{Evaluation settings}
+
+{\color{blue} Topic sentence: The additional filtering of the predicted boxes and the additional checking for contained boxes in the comparision to the ground truth allows better detection results.}
+
+\begin{table}[H]
+    \centering
+    \begin{tabular}{lccccccc}
+        \toprule
+        run & Stride & Containment filter & Containment comparison & TP & FP & FN \\
+        \midrule
+        train1 & 440 & -   & -   & 3240 & 637 & 1024 \\
+        train1 & 440 & 0.5 & -   & 3240 & 592 & 1027 \\
+        train1 & 440 & 0.5 & 0.9 & 3331 & 501 & 936  \\
+        train1 & 420 & 0.5 & 0.9 & 3569 & 540 & 698  \\
+        train1 & 440 & 0.5 & 0.5 & 3601 & 508 & 666  \\
+        train1 & 420 & 0.5 & 0.5 & 3601 & 508 & 666  \\
+        train2 & 440 & -   & -   & 3469 & 664 & 798  \\
+        train2 & 440 & 0.5 & -   & 3469 & 664 & 798  \\
+        train2 & 440 & 0.5 & 0.9 & 3469 & 584 & 798  \\
+        train2 & 420 & 0.5 & 0.9 & 3737 & 716 & 539  \\
+        train2 & 440 & 0.5 & 0.5 & 3469 & 587 & 798  \\
+        train2 & 420 & 0.5 & 0.5 & 3737 & 637 & 530  \\
+        \bottomrule
+    \end{tabular}
+    \caption{Comparison of detection results under different settings of extra thresholds. The models are trained each 100 epochs, train1 on the full trained label set, train2 with only 30\% of the empty background tiles. Confidence threshold is set to 0.5, non-maximum supression threshold for filtering before the ground truth to 0.4 and IoU threshold for comparision to ground truth to 0.5 in all tests. Changing the stride to 420 always brings a boost for the number of true positives, the extra containment filter before comparing the boxes brings a slight reduction in false negatives only for train1. The extra containment section in the comparing to the ground truth with 0.9 always brings benefits in all three metrics, but setting the threshold to 0.5 only improves results for stride 420. }
+    \label{tab:containment_results}
+\end{table}
+
+
 \subsection{Supervised training}
 \label{sec:results_supervised}
-In the training runs with all four insect pest classes included, the best balance of precision and recall was achieved in training run 7, which used 30\% background images and parameter set~1 with slight augmentations over 100 epochs (see Table~\ref{tab:thrips_included}, and compare Table~\ref{tab:paramters-supervised} and Table~\ref{tab:train_params} for settings). For testing, always the weights which gave the best results are taken, which are reported by YOLO and detected by the mAP@50:95 metric. Testing was performed with evaluation set~3, i.e., predictions with a confidence threshold of maximum F1 plus 0.1 and a stride of 420 for the sliding 640~$\times$~640 window. Longer training, as in training run~8, led to the best overall recall, but at the cost of reduced precision. The highest precision values were associated with the lowest recall values and were mostly obtained when applying stricter evaluation thresholds, as in evaluation sets~4 and~5. 
 
-\begin{table}[h!]
-\centering
-\begin{tabular}{|c|c|c|c|c|}
-\hline
-train & eval & precision & recall & F1 \\
-\hline
-7 & 3 & 0.87 & 0.87 & \textbf{0.87} \\
-8 & 3 & 0.85 & 0.88 & 0.87 \\
-2 & 3 & 0.85 & \textbf{0.88} & 0.87 \\
-3 & 3 & 0.86 & 0.87 & 0.87 \\
-1 & 2 & 0.90 & 0.84 & 0.87 \\
-1 & 1 & 0.88 & 0.84 & 0.86 \\
-7 & 4 & 0.90 & 0.81 & 0.85 \\
-6 & 3 & 0.89 & 0.81 & 0.85 \\
-1 & 3 & 0.90 & 0.79 & 0.84 \\
-3 & 4 & 0.90 & 0.79 & 0.84 \\
-6 & 4 & 0.91 & 0.77 & 0.83 \\
-7 & 5 & 0.91 & 0.76 & 0.83 \\
-6 & 5 & \textbf{0.91} & 0.73 & 0.81 \\
-\hline
-\end{tabular}
-\caption{Metrics with thrips included in training.}
-\label{tab:thrips_included}
-\end{table}
+{\color{blue} Topic sentences: 
+\begin{itemize}
+    
+    
+    \item Training on the full images let the larger insect pest classes arrive the target metrics consistently. The two smaller classes either missed one (whiteflies) or both targets.
+    \item Training on the full tile sets let only the leaf miner flies arrive the target metrics consistently. Fungus gnats and also whiteflies came close. The small pest classes profited from the tiling approach.
+    \end{itemize}
+ }
 
-Table~\ref{tab:supervised_performance} summarizes the best results per class. For the F1 scores, leaf miner flies and whiteflies benefited slightly from training without thrips (runs~9 and~10), whereas thrips achieved their best value when empty images were included. Precision across all classes was maximized in the shorter training runs (100 epochs) combined with stricter confidence thresholds, with whiteflies in particular profiting from the stronger augmentations of parameter set~2 in run~3. Recall, in contrast, was highest in the longer training runs (8 and~10) with more lenient confidence thresholds; in this case, leaf miner flies profited from increased augmentations. 
-
-\begin{landscape}
-\begin{table}[h!]
-\centering
-\begin{tabular}{cccccccccccccc}
-\hline
-train & eval & Fun\_F1 & Leaf\_F1 & Whi\_F1 & Tr\_F1 & Fun\_P & Leaf\_P & Whi\_P & Tr\_P & Fun\_R & Leaf\_R & Whi\_R & Tr\_R \\
-\hline
-1 & 1 & 0.85 & 0.92 & 0.88 & \textbf{0.75} & 0.87 & 0.93 & 0.92 & 0.75 & 0.83 & 0.90 & 0.85 & 0.75 \\
-1 & 2 & 0.88 & 0.92 & 0.89 & 0.72 & 0.89 & 0.93 & 0.93 & 0.79 & 0.87 & 0.91 & 0.86 & 0.67 \\
-1 & 3 & 0.84 & 0.91 & 0.87 & 0.71 & 0.89 & 0.94 & 0.94 & 0.79 & 0.80 & 0.89 & 0.81 & 0.65 \\
-2 & 3 & 0.88 & 0.93 & 0.90 & 0.73 & 0.85 & 0.92 & 0.92 & 0.68 & 0.90 & \textbf{0.94} & 0.89 & 0.79 \\
-3 & 3 & 0.87 & 0.93 & 0.90 & 0.73 & 0.85 & 0.92 & 0.93 & 0.69 & 0.90 & 0.94 & 0.87 & 0.77 \\
-3 & 4 & 0.87 & 0.93 & 0.85 & 0.67 & 0.88 & 0.93 & \textbf{0.95} & 0.77 & 0.86 & 0.92 & 0.78 & 0.59 \\
-6 & 3 & 0.84 & 0.92 & 0.87 & 0.73 & 0.88 & 0.94 & 0.94 & 0.76 & 0.82 & 0.90 & 0.82 & 0.71 \\
-6 & 4 & 0.87 & 0.93 & 0.85 & 0.63 & 0.89 & 0.94 & 0.95 & \textbf{0.82} & 0.84 & 0.92 & 0.76 & 0.52 \\
-6 & 5 & 0.83 & 0.91 & 0.82 & 0.62 & \textbf{0.90} & 0.94 & 0.95 & 0.82 & 0.77 & 0.89 & 0.72 & 0.51 \\
-7 & 3 & \textbf{0.88} & 0.93 & 0.90 & 0.74 & 0.86 & 0.93 & 0.93 & 0.72 & 0.89 & 0.93 & 0.88 & 0.76 \\
-7 & 4 & 0.87 & 0.92 & 0.88 & 0.70 & 0.88 & 0.93 & 0.94 & 0.79 & 0.86 & 0.91 & 0.82 & 0.62 \\
-7 & 5 & 0.83 & 0.91 & 0.85 & 0.69 & 0.89 & \textbf{0.94} & 0.95 & 0.80 & 0.78 & 0.87 & 0.77 & 0.60 \\
-8 & 3 & 0.88 & 0.93 & 0.90 & 0.73 & 0.85 & 0.92 & 0.92 & 0.68 & \textbf{0.90} & 0.94 & 0.89 & \textbf{0.79} \\
-9 & 3 & 0.88 & \textbf{0.94} & 0.89 & & 0.88 & 0.93 & 0.93 & & 0.88 & 0.94 & 0.85 & \\
-10 & 3 & 0.88 & 0.93 & \textbf{0.91} & & 0.86 & 0.92 & 0.91 & & 0.89 & 0.93 & \textbf{0.92} & \\
-\hline
-\end{tabular}
-\caption{Performance metrics for each train/eval combination, ordered by F1, precision, and recall values.}
-\label{tab:supervised_performance}
-\end{table}
-\end{landscape}
-
-The experiments were structured to first identify evaluation parameters that maximize precision on the dataset with all backgrounds included (see train~1, eval~1--3 in Table~\ref{tab:supervised_performance}). This showed that evaluation set~3 yielded the best per-class precision values. Reducing the proportion of background images in the training set shortens training time considerably. On a single GPU core {\color{red} Question@Martin: Which GPU?}, an epoch on the full training set takes ca. 18 minutes (100 epochs are approx. 30 hours) and on the training set with only 10\% images it takes ca. 7 min. (100 epochs are approx. 12 hours).
-
-Therefore the subsequent runs aimed to reproduce or improve the results with reduced background-to-foreground ratios. Runs~2 and~3 used only 10\% background images with parameter sets~1 and~2, respectively. Runs~6 and~7 used 30\% background images and compared parameter set~2 (run~6) with set~1 (run~7), as well as the three evaluation settings~3--5, which led to the best overall results presented above. Run~8 tested the effect of longer training. Runs~9 and~10 explored shorter and longer training while excluding thrips images from the training set. Compared with the best results from run~7 (eval~3), the shorter run without thrips maintained precision and slightly improved recall for leaf miner flies. The longer run~10 again reduced per-class precision but achieved the best recall for whiteflies. Across all classes, run~10 slightly outperformed run~7. 
-
-\begin{table}[h!]
-\centering
-\begin{tabular}{|c|c|c|c|c|c|}
-\hline
-train & eval & precision & recall & F1 & thrips included in training \\
-\hline
-10 & 3 & 0.90 & \textbf{0.91} & \textbf{0.91} & no \\
-7 & 3 & \textbf{0.91} & 0.90 & 0.90 & yes \\
-\hline
-\end{tabular}
-\caption{Metrics with thrips excluded from training.}
-\label{tab:thrips_excluded}
-\end{table}
-
-Visual inspection of th false positives showed that for the fungus gnats a significant number of unlabeled images caused to false positives (see Figure~\ref{fig:false_positive_BRAIIMS} which in turns leads to a low precision. Therefore the common false positives predicted by the best model/evaluation pair train7/eval3 and train10/eval3 were selected, their confidence scores averaged and the predictions filtered for confidences higher than 0.6. This resulted in 156 predictions for the fungus gnats, 66 for the leaf miner flies and 91 for the whiteflies. As Figure~\ref{fig:fp_best_confidences} shows, the false positives for the last two pest classes are indeed of mixed quality. However, a visual inspection of the fungus gnat detections returned 116 correctly detected instances. {\color{red} Question@JKI: Is this correct? See images in Dropbox.} Recalculating the precision now returns precision 0.94 and 0.93 for the two best training results. With this correction, all classes but the thrips fulfill the required minimum precision and recall values (see Figure~\ref{fig:supervised_final_results} below).
-
-\begin{figure}[h!]
-    \centering
-    \includegraphics[width=\textwidth]{images/BRAIIM_fp_canvas_1.jpg} % first image
-    \includegraphics[width=\textwidth]{images/LIRIBO_fp_canvas_1.jpg} % second image
-    \includegraphics[width=\textwidth]{images/TRIAVA_fp_canvas_1.jpg} % third image
-    \caption{False positive with maximum confidences for fungus gnats (BRAIIM), leaf miner flies (LIRIBO) and whiteflies (TRIAVA) (from top to bottom)}
-    \label{fig:fp_best_confidences}
-\end{figure}
 
 
 \begin{figure}[H]
     \centering
-    % Left image
-    \begin{minipage}{0.48\textwidth}
+    \includegraphics[width=\textwidth]{images/figures_supervised/prec_recall_train1.png} % first image
+    \includegraphics[width=\textwidth]{images/figures_supervised/prec_recall_train4.png} % second image
+    \caption{Training curves for train1 (on full tiled set) and train4 (on full images) as seen in Table~\ref{tab:train_params}. Longer training brings no benefits. {\color{red} The smoothness of the first curve shows how the tiling reduced the noise? But not the problematic noise, as results are not better?}}
+    \label{fig:supervised_training_curves}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \begin{minipage}[t]{0.48\textwidth}
         \centering
-        \includegraphics[width=\linewidth]{images/train7eval3.png}
-        \caption{Results for training 7, evaluation set 3. Purple are the corrected labels.}
-    \end{minipage}\hfill
-    % Right image
-    \begin{minipage}{0.48\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{images/train10eval3.png}
-        \caption{Results for training 10, evaluation set 3. Purple are the corrected labels.}
+        \includegraphics[width=\textwidth]{images/figures_supervised/pr_curve_train1.jpg}
+        \caption*{(a) Train1 – tiled set}
     \end{minipage}
-    \caption{Results with corrected labels for fungus gnats false positives.}
-    \label{fig:supervised_final_results}
+    \hfill
+    \begin{minipage}[t]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{images/figures_supervised/pr_curve_train4.jpg}
+        \caption*{(b) Train4 – full images}
+    \end{minipage}
+    \caption{Precision–recall curves for train1 (on full tiled set) and train4 (on full images) as seen in Table~\ref{tab:train_params}. Target metrics are marked as shaded boxes. Training on full images improves results for larger pest classes slightly, while training on tiles is better for smaller objects.}
+    \label{fig:supervised_pr_curves}
 \end{figure}
 
-Comparing the validation metrics (Figure~\ref{fig:supervised_curves}) shows the improvements by reducing the background (upper to middle) and by omitting the thrips images (lower). Because the validation is done on tiles, metrics are not comparable to the metrics reported above, which were taken on full images. The loss curves in the two upper images still show underfitting, however, in the longer training (bottom) the balance between precision and recall degrades: Best mAP@50:05 is already in epoch 135 (which is chosen for above metrics) ({\color{red} ToDo: include the right mAP-metric in the graphs}), best recall is reported before, in epoch 124 but best precision is in epoch 162.
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=\textwidth]{images/prec_recall_train.png} % first image
-    \includegraphics[width=\textwidth]{images/prec_recall_train7.png} % second image
-    \includegraphics[width=\textwidth]{images/prec_recall_train10.png} % third image
-    \caption{Validation metrics and loss curves for training run 1 (complete training set), 7 (background tiles reduced to 30\%) and 10 (without thrips, background images 47\%) (top to bottom)}
-    \label{fig:supervised_curves}
+    \includegraphics[width=\textwidth]{images/figures_supervised/confusions_train1.png} % first image
+    \includegraphics[width=\textwidth]{images/figures_supervised/confusions_train1_test-set.png} % second image
+    \caption{Top/down: Confusion matrices for train1 (on full tiled set) on validation and test set. The results are consistent.}
+    \label{fig:supervised_confusion_matrices}
 \end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{images/figures_supervised/confusion_train4.png} % first image
+    \includegraphics[width=\textwidth]{images/figures_supervised/confusion_test_set_train4.png} % second image
+    \caption{Top/down: Confusion matrices for train4 (on full images) on validation and test set. The results are consistent.}
+    \label{fig:supervised_confusion_matrices}
+\end{figure}
+
+
+\subsection{Image processing}
+
+{\color{blue}
+The first subsection gives the results for testing the different masks that are  needed to filter out background structures. In the second subsection the results for the different sets of thresholds that are  needed to filter the rectangles created by the image processing are reported.}
+
+\subsubsection{Preprocessing for segmentation}
+
+{\color{blue} Topic sentence: The masks are used to filter out the background structures from the image before segmenting it to find the insects. The best mask decreased the number of false positives while retaining a sufficient number of true positives for the self-training.\\
+
+Figures\&Tables: Results for the different masks and the application procedures can be compared in Figure ~\ref{fig:mask_evaluation}. Thresholds used for creating the results are found in the methods section, Table ~\ref{tab:filter_parameters}, filter set 1. Using this filter set and the mask with the best results, statistics where taken and used as threshold for filter set 2 (see  Table~\ref{tab:relative_rectangle_stats}).}
+
+Figure~\ref{fig:mask_evaluation} shows the results of applying the different masks, filtered with the first set of thresholds given in Table~\ref{tab:filter_parameters} and evaluated with the given manual labels. First the masks Figure~\ref{fig:masks}\subref{fig:ma} and Figure~\ref{fig:masks}\subref{fig:mb}  are simply overlayed two the respective image without transformation and as the direct comparision to test 3 show, the alignment of the mask improves the results overall. The same is true for the mask with thicker lines Figure~\ref{fig:masks}\subref{fig:md} tested with alignment in test 4, albeit at the cost of reducing the count of the true positives. Further reworking of the masked Figure~\ref{fig:masks}\subref{fig:me} and Figure~\ref{fig:masks}\subref{fig:mf} lead to slightly reducing false positives again at the costs of reducing true positives. Introducing the vertical shift for better alignment of the mask in the last test, again with Figure~\ref{fig:masks}\subref{fig:mf} reduces the false positives of the leaf miner flies considerably. The mask and the two transformations of the last test are used as basis for further experiments.
+{\color{red} Exact results in (mask\_testing\_collected\_results.csv)}
+
+\begin{figure}[H]  % 
+    \centering
+    \includegraphics[width=1.0\textwidth]{images/figure14_mask_evaluation.jpg}  % Adjust width as needed
+    \caption{Evaluating the masks given in Figure~\ref{fig:masks}. The thicker lines of mask 8c in combination with the transformation (i.e. adapting the mask to each single image) reduces false positives by a large margin. Even thicker lines tend to also decrease the true positives. The extra shift of the mask mainly reduces the number of false positives for the leaf miner flies.}
+    \label{fig:mask_evaluation}
+\end{figure}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{lcccc}
+\toprule
+Training Set & Metric & Fungus Gnats & Leaf Miner Flies & Whiteflies \\
+\midrule
+\multirow{3}{*}{Labeled Training Set} 
+& 95th percentile box size & 41704 & 22340 & 3168 \\
+& 95th percentile box ratio & 1.75 & 1.76 & 1.88  \\
+& 5th percentile box value & - & - & 97 \\
+\midrule
+\multirow{3}{*}{Unlabeled Training Set} 
+& 95th percentile box size & 42970  &  28530 & 3477 \\
+& 95th percentile box ratio & 1.73 & 1.76 & 1.84 \\
+& 5th percentile box value & - & - & 96 \\
+\bottomrule
+\end{tabular}
+\caption{Found possible thresholds for labeled and unlabeled training set.}
+\label{tab:relative_rectangle_stats}
+\end{table}
+
+The mask with the best results (Figure~\ref{fig:masks}\subref{fig:mf}) produced distributions of boxes sizes, deviations from 1:1 ratio of sidelenghts and distribution of values for the whitefly rectangles, all taken from the results of the simple filter set 1 (see Table~\ref{tab:filter_parameters}. Table~\ref{tab:absolute_rectangle_stats} gives the found values for the metrics for both the labeled and the unlabeled training set, which are similar as expected. 
+
+
+\subsubsection{Segmentation}
+
+{\color{blue} Topic Sentence: Applying a refined filter set with thresholds derived by statistics reduced the number of false positives further and increased precision while retaining a sufficient number of true positives for the following self-training.\\
+
+Figures\&Tables: Figure~\ref{fig:filter_tests} shows the results of applying the filters. Table ~\ref{tab:absolute_rectangle_stats} shows the resulting numbers of rectangles created by the image processing. Figure ~\ref{fig:imag_proc_confusion_matrix} shows the results of applying the image processing to the test set.}
+
+Figure~\ref{fig:filter_tests} shows the results for the tests with the found thresholds. The two filter sets 1 and 2 as given in Table~\ref{tab:filter_parameters} are always the first and last steps in the graphs. In between single changes to set 1 are visualized. For the fungus gnats, all tried changes yield smaller effects by tolerable reducements of the number of true positives and were combined in the end. The number of false positives is still the highest compared to the other classes, which as already observed in the evaluation of the supervised training might be mainly due to missing labels. For the leaf miner flies, the effect are comparable but less prominent as in the fungus gnats, but precision and number of false positives were also already acceptable only with the first filter set. For the whiteflies, filtering the rectangles by box size and ratio was not taken over into the filter set, because it reduced the number of already scarce true positives too much. Instead overlapping boxes were deleted and filtering by value of the rectangles reduced false positives and at the same time retained the number of true positives. 
+
+\begin{figure}[H]
+    \centering
+
+    \begin{minipage}{0.32\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{images/figure17a_filter_tests_BRAIIM.jpg}
+        % Optional subcaption if you like:
+        % \subcaption{BRAIIM}
+    \end{minipage}\hfill
+    \begin{minipage}{0.32\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{images/figure17b_filter_tests_LIRIBO.jpg}
+        % \subcaption{LIRIBO}
+    \end{minipage}\hfill
+    \begin{minipage}{0.32\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{images/figure17c_filter_tests_TRIAVA.jpg}
+        % \subcaption{TRIAVA}
+    \end{minipage}
+
+    \caption{Results for different filters for each species. Leftmost is always the parameter set 1 with no extra filtering, rightmost is parameter set 2. In between single additions to set1 are tested. (Tested on lables of the labeled training set) {\color{red} Species do not follow my usual naming convention. Visual style is different from later figures with comparable content (two y-axes)}}
+    \label{fig:filter_tests}
+\end{figure}
+
+As to be expected objects of the same color, shape and size cannot be filtered out. This concerns mainly parts of the insects as well as malformed or very untypical instances, as well as insects occluding each other. Table~\ref{tab:absolute_rectangle_stats} gives the absolute numbers of rectangles returned which each filter set for the labeled and unlabeled training set. As expected they turn out to be very similar with exception of the total numbers of whiteflies, which is doubled in the unlabeled training set. As the number of filtered out rectangles is also proportionally larger, this is possibly only a effect of more crowded whitely images in the unlabeled set.
+
+\begin{table}[H]
+    \centering
+    \begin{tabular}{l c c c c}  % l = left-aligned, c = center-aligned
+        \hline
+        Class & \multicolumn{2}{c}{Labeled training set} & \multicolumn{2}{c}{Unlabeled training set} \\  % major columns
+        \cline{2-5}  % horizontal line under sub-columns
+        & Filter set 1 & Filter set 2 & Filter set 1 & Filter set 2 \\  % sub-columns
+        \hline
+        Fungus gnats & 3647 & 2800 & 3477 & 2691 \\
+        Leaf miner flies & 3587 & 3297 & 3112 & 2714 \\
+        Whiteflies & 2200 & 2141 & 5010 & 4916 \\
+        Total & 9434 & 8238 & 11599 & 10321 \\
+        \hline
+    \end{tabular}
+    \caption{Absolute number of rectangles created {\color{red} Why are the whitefly counts in the labeled training set not balanced?}}
+    \label{tab:absolute_rectangle_stats}
+\end{table}
+
+\begin{figure}[H]  % 
+    \centering
+    \includegraphics[width=1.0\textwidth]{images/01_image_procv2_vs_testset.png}  % Adjust width as needed
+    \caption{Comparing the image processed labels of the test set to the ground truth. Precision is about 0.1 below the target and is supposed to lead to good quality labels in training on these labels, recall is very low. {\color{red} The confusion matrices actually show the result of a slightly improved image processing pipeline (only for the whiteflies though and without much improvement). This is not reported in the methods yet. Also I should maybe emphasize that all other results in this section are taken on the manual labels of the training set and I should recheck the evaluation process of these in comparision to the evaluation on the test set.}}
+    \label{fig:imag_proc_confusion_matrix}
+\end{figure}
+
+\subsection{Training on the labels created by image processing}
+
+{\color{blue} Topic sentences: 
+A model trained for 10 epochs on the image processed labels with empty background tiles included and rotation as augmentation enabled reached the best results.
+
+
+\begin{figure}[H]
+    \centering
+    % Row 1
+    \begin{subfigure}[b]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{images/BRAIIM_first_it.jpg}
+        \label{fig:sa}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{images/LIRIBO_first_it.jpg}
+        \label{fig:sb}
+    \end{subfigure}
+
+    % Row 2
+    \begin{subfigure}[b]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{images/TRIVA_first_it.jpg}
+        \label{fig:sc}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{images/summary_first_it.jpg}
+        \label{fig:sd}
+    \end{subfigure}
+
+    \caption{Results of initial image processed labels ("0") and different models trained on those labels (details in methods tba) tested on the test set (but should have been tested on the val set with correct conf threshold). Training run 9 combined lowest number of false negatives with highest number of true positives and has therefore the highest F1-score. Whiteflies (= TRIVA) do not profit from training. }
+    \label{fig:summary_first_it}
+\end{figure}
+
+The model learned to discriminate classes but also improved recall compared to the image processed labels.
+
+\begin{figure}[H]  % 
+    \centering
+    \includegraphics[width=1.0\textwidth]{images/02a_first_iteration_train9_vs_testset.png}
+    \caption{Comparing the predictions on the test set (should be val set with correct conf threshold.) of the model trained on the image processed labels to the ground truth. For leaf miner flies and fungus gnats recall increased, for whiteflies precision increased.}
+    \label{fig:first_it_vs_test_set_confusion_matrix}
+\end{figure}
+
+The model did not simply copy the implicit rules of the image processed labels.}
+
+\begin{figure}[H]  % 
+    \centering
+    \includegraphics[width=1.0\textwidth]{images/02b_first_iteration_train9_vs_pseudolabeled_testset.png}
+    \caption{Comparing the predictions on the test set (should be val set with correct conf threshold.) of the model trained on the image processed labels on the image processed labels of the test set {\color{red} This is probably not the most intuitive comparison. Maybe make a graph do visualize the idea behind it?}. The model has lower precision on the image processed labels than on the ground truth (as seen above in Figure ~\ref{fig:first_it_vs_test_set_confusion_matrix}), which may be a sign of generalization.}
+    \label{fig:first_it_vs_imag_proc_confusion_matrix}
+\end{figure}
+
+{\color{red} At least 39\% of the false positives are at least 50\% inside the masked regions and also at least 34\% of the false positives are located fully in that area - or in other words, if I would ignore false detections in the masked area the model would be much better. The model learns to reject insects on the background structures and also learns some background structures as insects. I will try adding augmented image with insects placed on background structures to circumvent this.}
+
+%\subsubsection{Further training on predicted labels}
+%{\color{blue} Using the labels predicted by a model did not improve its performance considerable. Small improvements by weighing the pseudo-label loss in a second iteration are observed, but further iterations only brought tradings between precision and recall. 
+
+%\begin{figure}[H]  % 
+%    \centering
+%    \includegraphics[width=1.0\textwidth]{images/summary_second_it.jpg}
+%    \caption{Different trainings on the image processed labels combined with pseudo-labels predicted by the first model with confidence above 0.75 (details in methods tba). Training run 4 was trained for 5 epochs with weighted pseudo-label loss and made a small improvement. }
+%    \label{fig:summary_second_it}
+%\end{figure}
+
+%\begin{figure}[H]  % 
+ %   \centering
+ %   \includegraphics[width=1.0\textwidth]{images/histograms_pred_first.jpg}
+%    \caption{Green true positive predictions compared to yellow false positive predictions from the best model trained on the image processed labels (train 9). the false positives are candidates for pseudo labels. Mean confidence for true positives (green dotted line) might be a threshold for pseudo label filtering. Also the point, where per-bin-precision (solid red line) crosses mean bin confidence (dotted blue line) is an indicator for the quality of predictions. ({\color{red} However, I found the threshold by visually inspecting the false positive labels and took 0.75 for all classes. May be worth another experiment.}) }
+ %   \label{fig:all_histograms_second_it}
+%\end{figure}
+
+}
+
+
 
 
 \section{Discussion}
@@ -610,6 +965,9 @@ results supervised: why the thrips are hard to detect? because male adults and l
 Data in a later implementation will differ in at least two aspects. Most notably a domain shift has to be expected, as images taken in real use cases will likely be of much lower resolution. 
 {\color{red} add picture of the checkpot? mention resolution of thrips, might be solvable by SSL, too
 } Also, in the final usage, several pictures of the same YST are taken over the day. Because the individuals can interact with the glue and become partially hidden or change their appearance over time, this poses an additional problem to be addressed. If the difference between the individuals in the training data and those in the final data becomes too great, individuals might no longer be detected, and the population might be underestimated.
+
+
+
 \section{Conclusion}
 
 

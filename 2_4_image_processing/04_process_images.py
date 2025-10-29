@@ -77,20 +77,6 @@ problems_corners = []
 problems_shifts = []
 image_files = os.listdir(image_folder)
 
-'''
-#these are files that used to cause problems with shifting in the labeled training set
-image_files = []
-prefix = "BRAIIM_"
-filenumber = ["0166","0413","0490","0704","0709","0947","0968","0971","1192"]
-for n in filenumber:
-    image_files.append(prefix + n + ".jpg")
-
-prefix = "LIRIBO_"
-filenumber = ["0059", "0073","0178","0183","0196","0223","0231","0239","0240","0252","0261","0328"]
-for n in filenumber:
-    image_files.append(prefix + n + ".jpg") 
-'''
-
 ###Processing
 
 for i, image_file in enumerate(image_files):
@@ -112,6 +98,7 @@ for i, image_file in enumerate(image_files):
     cropped_image = image[y:y+h, x:x+w]
     if save_images: cv2.imwrite(os.path.join(output_folder_images_cropped, image_file), cropped_image)
 
+    
     #find corners if possible, if not skip the image
     imagecorners = find_corners(image, imageYST)
     if len(imagecorners) == 0:
@@ -119,6 +106,7 @@ for i, image_file in enumerate(image_files):
         problems_corners.append(image_file)
         continue
 
+    ''''
     #find transformation
     H, _ = cv2.findHomography(gridcorners, imagecorners, cv2.RANSAC)
 
@@ -133,12 +121,13 @@ for i, image_file in enumerate(image_files):
     mask_h = (x1w, y1w, x2w, y2w)
 
     #second transformation: correct vertical misalignment
-    
+
     dy = get_distance_h_mid(create_binary_mask(image), mask_h)
     H, W = mask.shape[:2]
     M = np.float32([[1, 0, 0], [0, 1, dy]])  # translation matrix
     mask= cv2.warpAffine(mask, M, (W, H), borderValue=255)  # white background
     if inspection: cv2.imwrite(os.path.join(test_folder, filename + "_02b_shifted_mask.jpg"), mask) 
+    '''
 
     '''
     old shifting
@@ -159,7 +148,7 @@ for i, image_file in enumerate(image_files):
         mask= cv2.warpAffine(mask, M, (W, H), borderValue=255)  # white background
         if inspection: cv2.imwrite(os.path.join(test_folder, filename + "_02b_shifted_mask.jpg"), mask) 
     '''
-
+    mask = processed_mask
 
     #replace black background in image with yellow (background color) by using the mask
     yellow_mask = mask == 0 

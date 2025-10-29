@@ -339,7 +339,14 @@ def scale_rect(x, y, w, h, scale):
 
 
 
-def get_list_of_rectangles(image, min_area_contour, max_area_contour, scale, max_ratio, upper_limit_rectangles = None, value_threshold = None, binary_default = True):
+def get_list_of_rectangles(image, 
+                           min_area_contour, 
+                           max_area_contour, 
+                           scale, 
+                           max_ratio, 
+                           upper_limit_rectangles = None, 
+                           value_threshold = None, 
+                           binary_default = True):
     """
     Returns:
         rectangles : list of [x, y, w, h]
