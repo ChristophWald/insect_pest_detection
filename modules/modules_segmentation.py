@@ -15,13 +15,14 @@ def create_binary_mask(image, binary_default=True):
     binary masking with manual set threshold (yellow)
     '''
     if binary_default:
-        print("using only simple binarization.")   
+        
         lower_yellow = np.array([20, 100, 100])
         upper_yellow = np.array([30, 255, 255])
         hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
         mask = cv2.inRange(hsv, lower_yellow, upper_yellow)
         return mask
     
+    print("Using enhanced binarization.")   
     hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
     h, s, v = cv2.split(hsv)
     clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
@@ -183,6 +184,66 @@ def get_h_mid(image):
     
     return longest
 
+def get_distance_h_mid(image, mask_h):
+    """
+    Find the longest horizontal line in an image
+    """
+
+    def horizontal_mid_y(line):
+        _, y1, _, y2 = line
+        return (y1 + y2) / 2
+
+    def line_length(line):
+        x1, y1, x2, y2 = line
+        return np.hypot(x2-x1, y2-y1)
+    
+    # invert so lines become white
+    bw = cv2.bitwise_not(image)
+
+    # detect lines
+    lines = cv2.HoughLinesP(bw, 1, np.pi/180,
+                            threshold=100,
+                            minLineLength=1000,
+                            maxLineGap=100)
+
+    # filter for horizontal lines
+    h_lines = []
+    for l in lines:
+        x1, y1, x2, y2 = l[0]
+        angle = np.degrees(np.arctan2(y2-y1, x2-x1))
+        if abs(angle) < 10:  # near horizontal
+            h_lines.append((x1, y1, x2, y2))
+
+    # restrict to central band to exclude borders of YST
+    H = image.shape[0]
+    upper_bound = H * 0.25
+    lower_bound = H * 0.75
+    h_lines_mid = [l for l in h_lines if upper_bound <= horizontal_mid_y(l) <= lower_bound]
+
+
+    if not h_lines_mid:
+        return None
+    
+
+    image_h = max(h_lines_mid, key = line_length)
+    dy = get_midpoint(image_h)- get_midpoint(mask_h)
+    print(dy)
+    if dy > 500:
+        upper_bound = H * 0.25
+        lower_bound = H * 0.5
+        h_lines_mid = [l for l in h_lines if upper_bound <= horizontal_mid_y(l) <= lower_bound]
+        image_h = max(h_lines_mid, key = line_length)
+        dy = get_midpoint(image_h)- get_midpoint(mask_h)
+
+    if dy < -500:
+        upper_bound = H * 0.5
+        lower_bound = H * 0.75
+        h_lines_mid = [l for l in h_lines if upper_bound <= horizontal_mid_y(l) <= lower_bound]
+        image_h = max(h_lines_mid, key = line_length)
+        dy = get_midpoint(image_h)- get_midpoint(mask_h)
+
+
+    return dy
 
 
 def get_midpoint(mid_h):

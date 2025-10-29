@@ -256,19 +256,22 @@ def add_labels(pred_file,
     start = end
 
 
-def evaluate_on_test_set(conf_threshold, model_number = "", save_images = False, save_results = True,  skip_FRANOC = True):
+def evaluate(conf_threshold, model_number = "", save_images = False, save_results = True,  skip_FRANOC = False, per_class_confs = None):
     start = time.time()
 
     results = []
 
     print(f"Testing model {model_number}.")
-    model = YOLO(f"/user/christoph.wald/u15287/insect_pest_detection/2_5_self_training/runs/detect/train{model_number}/weights/best.pt")
-    base_output_path = f"/user/christoph.wald/u15287/insect_pest_detection/2_5_self_training/metrics/train{model_number}"
+    model = YOLO(f"/user/christoph.wald/u15287/insect_pest_detection/3_1_supervised_training_evaluation/runs/detect/train{model_number}/weights/best.pt")
+    base_output_path = f"/user/christoph.wald/u15287/insect_pest_detection/3_1_supervised_training_evaluation/metrics/train{model_number}_test_set"
+    #model = YOLO(f"/user/christoph.wald/u15287/insect_pest_detection/2_5_self_training/runs/detect/train{model_number}/weights/best.pt")
+    #base_output_path = f"/user/christoph.wald/u15287/insect_pest_detection/2_5_self_training/metrics/train{model_number}"
     os.makedirs(base_output_path, exist_ok=True)
 
     base_input_path = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/test_set"
-    base_image_path = os.path.join(base_input_path, "images")
-    base_label_path = os.path.join(base_input_path, "labels")   
+    #base_input_path = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/split"
+    base_image_path = os.path.join(base_input_path, "images") #add /val
+    base_label_path = os.path.join(base_input_path, "labels") #add /val 
 
     #added for testing on masked test set
     #base_image_path = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/test_set/SSL/03_images_masked"
@@ -296,6 +299,11 @@ def evaluate_on_test_set(conf_threshold, model_number = "", save_images = False,
         image = cv2.imread(os.path.join(base_image_path, filename))
         boxes, confs, class_ids = sliding_window_prediction(image, model, conf_threshold)
         
+
+        if per_class_confs is not None:
+            boxes, confs, class_ids = filter_by_class_confidence(boxes, confs, class_ids, per_class_confs)
+
+
         if len(boxes) > 0:
             boxes, confs, class_ids = nms(boxes, confs, class_ids, iou_threshold=0.4) 
             boxes, confs, class_ids = filter_mostly_contained_boxes(boxes, confs, class_ids, threshold=0.5)    
@@ -306,22 +314,27 @@ def evaluate_on_test_set(conf_threshold, model_number = "", save_images = False,
  
         label_boxes = torch.tensor(label_boxes).to("cuda")
         label_classes_ids = torch.tensor(label_classes_ids).to("cuda")
- 
+
+
         tp, fp, fn = compare_labels_vectorized(boxes, class_ids, confs, label_boxes, label_classes_ids,
-                                               tile_size = 640, iou_threshold=0.5, containment_threshold=0.8, 
+                                               tile_size = 640, iou_threshold=0.5, containment_threshold=0.5, 
                                                convert_to_xyxy=False)
+
         
+
         results.append([filename, tp, fp, fn])
+        
         if save_images: make_image_with_boxes(image, tp, fp, fn, image_output_path, filename)    
         metrics = compute_metrics(results)
         if save_results: 
             with open(os.path.join(base_output_path, "metrics.json"), "w") as f:
                 json.dump(metrics, f, indent=4)
             save_results_to_json(base_output_path, results)
-    
-    end = time.time()
-    print(f"Predicting took {end-start:.2f} seconds.")
-    start = end
+        
+      
+        end = time.time()
+        print(f"Predicting took {end-start:.2f} seconds.")
+        start = end
 
 
 def evaluate_on_test_set_image_proc(conf_threshold, model_number = "", save_images = True, save_results = True,  skip_FRANOC = True):
@@ -370,7 +383,7 @@ def evaluate_on_test_set_image_proc(conf_threshold, model_number = "", save_imag
             boxes, confs, class_ids = filter_mostly_contained_boxes(boxes, confs, class_ids, threshold=0.5)    
         
 
-        label_path = os.path.join(base_label_path, os.path.splitext(filename)[0] + ".txt")
+        label_path = os.path.sjoin(base_label_path, os.path.splitext(filename)[0] + ".txt")
         label_boxes = []
         with open(label_path, "r") as f:
               for line in f:
@@ -391,7 +404,7 @@ def evaluate_on_test_set_image_proc(conf_threshold, model_number = "", save_imag
             label_classes_ids = torch.tensor([row_index]*len(label_boxes), dtype=torch.long).to("cuda")
 
         tp, fp, fn = compare_labels_vectorized(boxes, class_ids, confs, label_boxes, label_classes_ids,
-                                               tile_size = 640, iou_threshold=0.5, containment_threshold=0.8, 
+                                               tile_size = 640, iou_threshold=0.5, containment_threshold=1.1, 
                                                convert_to_xyxy=False)
         print(tp)
         results.append([filename, tp, fp, fn])

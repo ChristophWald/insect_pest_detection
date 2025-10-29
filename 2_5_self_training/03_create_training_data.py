@@ -2,7 +2,7 @@ import os
 import shutil
 import yaml
 
-#uneccesarily copies val foler
+#uneccesarily copies val folder
 
 #Copying 1: Make a working copy of the labels in the tiles directory
 

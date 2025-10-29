@@ -62,6 +62,30 @@ def sliding_window_prediction(image, model, conf_threshold=0):
         torch.cat(all_classes, dim=0),
     )
 
+def filter_by_class_confidence(boxes, scores, classes, class_conf_thresholds):
+    """
+    Filter predictions per class based on a minimum confidence threshold for each class.
+
+    Args:
+        boxes (torch.Tensor): Tensor of shape (N, 4)
+        scores (torch.Tensor): Tensor of shape (N,)
+        classes (torch.Tensor): Tensor of shape (N,)
+        class_conf_thresholds (dict): e.g., {0: 0.5, 1: 0.6, 2: 0.4} mapping class_id to min confidence
+
+    Returns:
+        boxes, scores, classes filtered tensors
+    """
+    if boxes.numel() == 0:
+        return boxes, scores, classes
+
+    keep_mask = torch.zeros_like(scores, dtype=torch.bool)
+
+    for cls_id, min_conf in class_conf_thresholds.items():
+        class_mask = classes == cls_id
+        keep_mask |= class_mask & (scores >= min_conf)
+
+    return boxes[keep_mask], scores[keep_mask], classes[keep_mask]
+
 def nms(boxes, scores, classes, iou_threshold=0.5, device="cuda"):
     if boxes.numel() == 0:
         return boxes, scores, classes
@@ -228,8 +252,6 @@ def load_label_tiles(label_dir, filename, tile_size=640, device='cuda'):
 
     return label_tiles_tensors
 
-
-
 def compare_labels_vectorized(
     pred_boxes,
     pred_classes,
@@ -287,10 +309,12 @@ def compare_labels_vectorized(
     containment = inter / (min_area + 1e-6)
     '''
 
+    
     containment_pred_in_gt = inter / (pred_areas[:, None] + 1e-6)
     containment_gt_in_pred = inter / (gt_areas[None, :] + 1e-6)
     containment_match = (containment_pred_in_gt >= containment_threshold) | \
                         (containment_gt_in_pred >= containment_threshold)
+    
 
     # Class matching
     class_match = pred_classes[:, None] == gt_classes[None, :]

@@ -71,9 +71,16 @@ if train_model:
 ####################
 
 if eval_run:
-    conf_thresholds = [0.377]
+    
+    #train4
+    class_conf_thresholds = {0: 0.6434290409088135, 
+                             1: 0.4253721833229065, 
+                             2: 0.5093783140182495, 
+                             3: 0.5793536305427551}
+    
 
-    evaluate_on_test_set(conf_thresholds[0], "11",  save_images = False)
+
+    evaluate(0.4, "4",  save_images = False, per_class_confs = class_conf_thresholds)
 
 #tests the model on the image processed labels to compare to the other test
 #evaluate_on_test_set_image_proc(conf_thresholds[0], "9")

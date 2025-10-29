@@ -1,3 +1,6 @@
+
+import sys
+sys.path.append("/user/christoph.wald/u15287/insect_pest_detection/modules")
 import os
 import cv2
 from modules_segmentation import find_contour, is_upside_orientated
@@ -8,24 +11,24 @@ can also turn the according labels (use flag use_labels)
 '''
 
 #flags for use with automated/specified rotation and for rotating labels (or not)
-automated_rotating = True #if False, set individual files below
+automated_rotating = False #if False, set individual files below
 use_labels = True 
 
-#image_folder = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/SSL/01_images_uncropped"
+image_folder = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/SSL/01_images_uncropped"
 #image_folder = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_unlabeled/01_images_uncropped"
-image_folder = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/test_set/SSL/01_images_uncropped"
+#image_folder = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/test_set/SSL/01_images_uncropped"
 
 image_files = os.listdir(image_folder)
 
-#labels_folder = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/SSL/01_labels_uncropped"
-labels_folder = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/test_set/SSL/01_labels_uncropped"
+labels_folder = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/SSL/01_labels_uncropped"
+#labels_folder = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/test_set/SSL/01_labels_uncropped"
 
-#output_images_folder = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/SSL/02_images_rotated"
-#output_labels_folder = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/SSL/02_labels_rotated"
-output_images_folder = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_unlabeled/02_images_rotated"
-output_labels_folder = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_unlabeled/02_labels_rotated"
-output_images_folder = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/test_set/SSL/02_images_rotated"
-output_labels_folder = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/test_set/SSL/02_labels_rotated"
+output_images_folder = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/SSL/02_images_rotated"
+output_labels_folder = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/SSL/02_labels_rotated"
+#output_images_folder = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_unlabeled/02_images_rotated"
+#output_labels_folder = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_unlabeled/02_labels_rotated"
+#output_images_folder = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/test_set/SSL/02_images_rotated"
+#output_labels_folder = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/test_set/SSL/02_labels_rotated"
 
 os.makedirs(output_labels_folder, exist_ok=True)
 os.makedirs(output_images_folder, exist_ok=True)
@@ -96,7 +99,7 @@ if automated_rotating:
 #for rotating specified images
 else:
     #falsly_detected_images = ["BRAIIM_0042.jpg", "BRAIIM_0635.jpg", "BRAIIM_0666.jpg", "BRAIIM_0668.jpg"] #labeled training set
-    falsly_detected_images = ["BRAIIM_0112.jpg", "BRAIIM_0142.jpg","LIRIBO_1263.jpg", "LIRIBO_1294.jpg"] #unlabeled training set
+    #falsly_detected_images = ["BRAIIM_0112.jpg", "BRAIIM_0142.jpg","LIRIBO_1263.jpg", "LIRIBO_1294.jpg"] #unlabeled training set
     test_set = [] #all correct
     for file in falsly_detected_images:
         print(f"Loading {file}.")

@@ -18,6 +18,7 @@ label_ext = '.txt'
 
 json_files = [f for f in os.listdir(json_dir) if f.endswith('.json')]
 
+
 for json_file in json_files:
     json_path = os.path.join(json_dir, json_file)
 
