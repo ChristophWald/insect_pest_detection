@@ -268,7 +268,7 @@ def evaluate(conf_threshold, model_number = "", save_images = False, save_result
     #base_output_path = f"/user/christoph.wald/u15287/insect_pest_detection/2_5_self_training/metrics/train{model_number}"
     os.makedirs(base_output_path, exist_ok=True)
 
-    base_input_path = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/test_set"
+    base_input_path = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/test_set/test_set_w_new_labels"
     #base_input_path = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/split"
     base_image_path = os.path.join(base_input_path, "images") #add /val
     base_label_path = os.path.join(base_input_path, "labels") #add /val 

@@ -115,5 +115,8 @@ def process_all_images(image_root='images', label_root='labels', output_root='ou
 
             process_image(image_path, annotation_path, output_image_path, output_label_path)
 
-if __name__ == "__main__":
-    process_all_images()
+process_all_images(
+    image_root = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/test_set/test_set_w_new_labels_uncropped/images",
+    label_root = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/test_set/test_set_w_new_labels_uncropped/labels",
+    output_root = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/test_set/test_set_w_new_labels"
+)

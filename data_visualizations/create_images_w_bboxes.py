@@ -1,5 +1,7 @@
 import os
 import cv2
+import sys
+sys.path.append("/user/christoph.wald/u15287/insect_pest_detection/modules")
 from modules import draw_box, load_yolo_labels, visualize_yolo_boxes
 
 '''
@@ -45,9 +47,9 @@ this is for only one specific folder
 '''
 
 
-image_root ="/user/christoph.wald/u15287/big-scratch/only_thrips/train_labeled/images_uncropped"
-label_root = "/user/christoph.wald/u15287/big-scratch/only_thrips/train_labeled/labels_uncropped"
-output_path = "/user/christoph.wald/u15287/big-scratch/only_thrips/train_labeled/images_uncropped_w_labels"
+image_root ="/user/christoph.wald/u15287/big-scratch/02_splitted_data/test_set/test_set_w_new_labels/images"
+label_root = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/test_set/test_set_w_new_labels/labels"
+output_path = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/test_set/test_set_w_new_labels/images_w_labels"
 os.makedirs(output_path, exist_ok=True)
 
 visualize_labels(label_root, image_root, output_path)
