@@ -555,6 +555,9 @@ With the masks prepared, preprocessed and masked versions of the image set were 
 
 {\color{blue} Short version: The foreground objects need to be filtered further. For testing the mask above this was done by simply thresholding the size of the foreground contours. For final use a more refined set of thresholds is proposed that includes statistically derived thresholds for the size and the shape of the rectangles created around the contours. (see Table~\ref{tab:filter_parameters} and Figure~\ref{fig:size_comparisons} for illustrations).}
 
+{\color{red} Maybe add examples: LIRIBO\_0614 for effect of shift, TRIAVA\_0037 for effect of fatter maks, TRIAVA 0320 for missing unsaturated whiteflies, TRIAVA 506 for the detrimental effects of other filtering, all files in image Processing evaluation - mask tests}
+
+{\color{red} More intricate binarization for TRIVA was tried, but was not succesfull. Value thresholding for TRIAVA was tried but was not successfull.}
 
 The segmentation is done on the binarized, preprocessed images as seen in Figure~\ref{fig:masking}\subref{fig:d}. The results of the segmentation are filtered by several thresholds. A first set of threshold is used to evaluate the effects of the different masks as seen in Figure~\ref{fig:masks}. A second, more refined set of thresholds is derived from inspecting the data given by the best evaluated mask (Figure~\ref{fig:masks}\subref{fig:me}. Evaluating was done on the manual labels of the labeled training set. Comparing to GT was reduced to IOP, because it gives nearly identical results for smaller predictions inside ground truth and is more strict for overlapping ones.)
 
@@ -564,7 +567,7 @@ The first set entails guessed lower and upper threshold for the area contours de
     \centering
     \includegraphics[width=0.8\linewidth]{images/figure10_size_comparisions.jpg}
     \captionsetup{width=\linewidth, justification=raggedright} % caption matches image width
-    \caption{Size comparison, from top to bottom: Fungus gnats, Leaf miner flies, Whiteflies. Green circles are the minimum and maximum contour area allowed. Green rectangles are the resultant rectangles for the areas, which are squares in this case. }
+    \caption{Size comparison, from top to bottom: Fungus gnats, Leaf miner flies, Whiteflies. Green circles are the minimum and maximum contour area allowed as of filter set 2. Green rectangles are the resultant rectangles for the areas, which are squares in this case. }
     \label{fig:size_comparisons}
 \end{figure}
 
@@ -576,23 +579,20 @@ For each mask, segmentation is done for all preprocessed images and the results 
 \hline
 \textbf{Species} & \textbf{Threshold} & \textbf{Filter set 1} & \textbf{Filter set 2} \\ \hline
 \multirow{5}{*}{Fungus gnats} 
-    & Min contour   & 1000 & 2000  \\ \cline{2-4}
+    & Min contour   & 1000 & \textit{same}  \\ \cline{2-4}
     & Max contour   & 10000 & \textit{same}  \\ \cline{2-4}
     & Max box size  & - & 95th percentile \\ \cline{2-4}
-    & Max box ratio & -  & 95th percentile \\ \cline{2-4}
-    & Min value     & - & - \\ \hline
+    & Max box ratio & 2  & 95th percentile \\ \cline{2-4}
 \multirow{5}{*}{Leaf miner flies} 
     & Min contour   & 1000 & \textit{same} \\ \cline{2-4}
     & Max contour   & 10000 & \textit{same}  \\ \cline{2-4}
     & Max box size  & -  & 95th percentile \\ \cline{2-4}
-    & Max box ratio & - & 95th percentile  \\ \cline{2-4}
-    & Min value     & -  & - \\ \hline
+    & Max box ratio & 2 & 95th percentile  \\ \cline{2-4}
 \multirow{5}{*}{Whiteflies} 
     & Min contour   & 100 & \textit{same}  \\ \cline{2-4}
-    & Max contour   & 1000 & \textit{same}  \\ \cline{2-4}
+    & Max contour   & 1000 & 2000  \\ \cline{2-4}
     & Max box size  & - &  95th percentile  \\ \cline{2-4}
-    & Max box ratio & -  & 95th percentile \\ \cline{2-4}
-    & Min value     & -  & 5th percentile \\ \hline
+    & Max box ratio & 2  & 95th percentile \\ \cline{2-4}
 \end{tabular}
 \caption{Thresholds of the two filter sets for filtering the results of the segmentation.}
 \label{tab:filter_parameters}
@@ -792,7 +792,7 @@ Figure~\ref{fig:mask_evaluation} shows the results of applying the different mas
 
 \begin{figure}[H]  % 
     \centering
-    \includegraphics[width=1.0\textwidth]{images/figure14_mask_evaluation.jpg}  % Adjust width as needed
+    \includegraphics[width=1.0\textwidth]{images/figure_mask_evaluation.jpg}  % Adjust width as needed
     \caption{Evaluating the masks given in Figure~\ref{fig:masks}. The thicker lines of mask 8c in combination with the transformation (i.e. adapting the mask to each single image) reduces false positives by a large margin. Even thicker lines tend to also decrease the true positives. The extra shift of the mask mainly reduces the number of false positives for the leaf miner flies.}
     \label{fig:mask_evaluation}
 \end{figure}
@@ -804,14 +804,12 @@ Figure~\ref{fig:mask_evaluation} shows the results of applying the different mas
 Training Set & Metric & Fungus Gnats & Leaf Miner Flies & Whiteflies \\
 \midrule
 \multirow{3}{*}{Labeled Training Set} 
-& 95th percentile box size & 41704 & 22340 & 3168 \\
-& 95th percentile box ratio & 1.75 & 1.76 & 1.88  \\
-& 5th percentile box value & - & - & 97 \\
+& 95th percentile box size & 42260 & 23544 & 3275 \\
+& 95th percentile box ratio & 1.74 & 1.77 & 1.88  \\
 \midrule
 \multirow{3}{*}{Unlabeled Training Set} 
-& 95th percentile box size & 42970  &  28530 & 3477 \\
+& 95th percentile box size & 43456  &  28480 & 3477 \\
 & 95th percentile box ratio & 1.73 & 1.76 & 1.84 \\
-& 5th percentile box value & - & - & 96 \\
 \bottomrule
 \end{tabular}
 \caption{Found possible thresholds for labeled and unlabeled training set.}
@@ -834,18 +832,18 @@ Figure~\ref{fig:filter_tests} shows the results for the tests with the found thr
 
     \begin{minipage}{0.32\textwidth}
         \centering
-        \includegraphics[width=\linewidth]{images/figure17a_filter_tests_BRAIIM.jpg}
+        \includegraphics[width=\linewidth]{images/filter_tests_BRAIIM.jpg}
         % Optional subcaption if you like:
         % \subcaption{BRAIIM}
     \end{minipage}\hfill
     \begin{minipage}{0.32\textwidth}
         \centering
-        \includegraphics[width=\linewidth]{images/figure17b_filter_tests_LIRIBO.jpg}
+        \includegraphics[width=\linewidth]{images/filter_tests_LIRIBO.jpg}
         % \subcaption{LIRIBO}
     \end{minipage}\hfill
     \begin{minipage}{0.32\textwidth}
         \centering
-        \includegraphics[width=\linewidth]{images/figure17c_filter_tests_TRIAVA.jpg}
+        \includegraphics[width=\linewidth]{images/filter_tests_TRIAVA.jpg}
         % \subcaption{TRIAVA}
     \end{minipage}
 
@@ -855,23 +853,35 @@ Figure~\ref{fig:filter_tests} shows the results for the tests with the found thr
 
 As to be expected objects of the same color, shape and size cannot be filtered out. This concerns mainly parts of the insects as well as malformed or very untypical instances, as well as insects occluding each other. Table~\ref{tab:absolute_rectangle_stats} gives the absolute numbers of rectangles returned which each filter set for the labeled and unlabeled training set. As expected they turn out to be very similar with exception of the total numbers of whiteflies, which is doubled in the unlabeled training set. As the number of filtered out rectangles is also proportionally larger, this is possibly only a effect of more crowded whitely images in the unlabeled set.
 
+{\color{red}Why are the whitefly counts in the labeled training set not balanced?}
+
+{\color{red} Explain the idea about filter set 2 / mask 9d: Find thresholds in the statistics on the more stricter mask 9f, apply it to the more lenient mask 9d to get more TP (see confusion matrices below) and only a slight increase in FP. Should I also count the number of rectangles on unlabeled set/filter set 2/ mask 9d?}
+
 \begin{table}[H]
     \centering
-    \begin{tabular}{l c c c c}  % l = left-aligned, c = center-aligned
+    \begin{tabular}{l c c c c c}  % six columns total
         \hline
-        Class & \multicolumn{2}{c}{Labeled training set} & \multicolumn{2}{c}{Unlabeled training set} \\  % major columns
-        \cline{2-5}  % horizontal line under sub-columns
-        & Filter set 1 & Filter set 2 & Filter set 1 & Filter set 2 \\  % sub-columns
+        Class & \multicolumn{3}{c}{Labeled training set} & \multicolumn{2}{c}{Unlabeled training set} \\  % grouped headers
+        \cline{2-6}
+        & Filter set 1 & Filter set 2 & Filter set 2 / Mask 9d & Filter set 1 & Filter set 2 \\  % sub-headers
         \hline
-        Fungus gnats & 3647 & 2800 & 3477 & 2691 \\
-        Leaf miner flies & 3587 & 3297 & 3112 & 2714 \\
-        Whiteflies & 2200 & 2141 & 5010 & 4916 \\
-        Total & 9434 & 8238 & 11599 & 10321 \\
+        Fungus gnats & 3110 & 2380 & 2544 & 3477 & 2699 \\
+        Leaf miner flies & 2934 & 2559 & 2684 & 3116 & 2628 \\
+        Whiteflies & 1802 & 1575 & 1680 & 5015 & 4308 \\
         \hline
     \end{tabular}
-    \caption{Absolute number of rectangles created {\color{red} Why are the whitefly counts in the labeled training set not balanced?}}
+    \caption{Absolute number of rectangles created. }
     \label{tab:absolute_rectangle_stats}
 \end{table}
+
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{images/confusion_matrix_mask06_f2.png} % first image
+    \includegraphics[width=\textwidth]{images/confusion_matrix_mask04_f2.png} % second image
+    \caption{Top/down: Confusion matrices for strictest mask Fig. 9f and mask Fig. 9d. Applying filters derived by the masking with 9f on results of masking with 9d leads to higher recall while retaining precision.}
+    \label{fig:image_proc_confusion matrices}
+\end{figure}
 
 \begin{figure}[H]  % 
     \centering
