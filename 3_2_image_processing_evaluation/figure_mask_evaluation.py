@@ -3,26 +3,24 @@ import matplotlib.pyplot as plt
 
 import matplotlib.patches as mpatches
 
-df = pd.read_csv("/user/christoph.wald/u15287/insect_pest_detection/3_2_image_processing_evaluation/data_labeled_training_set/mask_testing_collected_results.csv")
+df = pd.read_csv("/user/christoph.wald/u15287/insect_pest_detection/3_2_image_processing_evaluation/mask_tests/revised_mask_testing_collected_results.csv")
 
 
 # To avoid confusion with repeated mask labels, add index numbers
 df["label"] = df.index + 1 # numerical x-axis for plotting
-#mask_labels = df["mask"] # store mask names separately for tick labels
-mask_labels = ["Fig. 8b", "Fig. 8c", "Fig. 8c", "Fig. 8d", "Fig. 8e", "Fig. 8f", "Fig. 8f" ]
+mask_labels = df["mask"] # store mask names separately for tick labels
+mask_labels = ["Fig. 9b", "Fig. 9b", "Fig. 9c", "Fig. 9d", "Fig. 9e", "Fig. 9f" ]
 
 # Plot all in one graph
 plt.figure(figsize=(12, 8))
 
 
 # Add background colors
-plt.axvspan(0.5, 2.5, facecolor='lightyellow', alpha=0.5)
-plt.axvspan(2.5, 6.5, facecolor='moccasin', alpha=0.5)
-plt.axvspan(6.5, 7.5, facecolor='lightcoral', alpha=0.5)
+plt.axvspan(0.5, 1.5, facecolor='lightyellow', alpha=0.5)
+plt.axvspan(1.5, 6.5, facecolor='moccasin', alpha=0.5)
 
-yellow_patch = mpatches.Patch(color='lightyellow', alpha=0.5, label='without mask transformation')
-orange_patch = mpatches.Patch(color='moccasin', alpha=0.5, label='mask transformation')
-red_patch = mpatches.Patch(color='lightcoral', alpha=0.5, label='+ extra shift')
+yellow_patch = mpatches.Patch(color='lightyellow', alpha=0.5, label='mask transformation')
+orange_patch = mpatches.Patch(color='moccasin', alpha=0.5, label='+ extra shift')
 
 
 # BRAIIM
@@ -50,7 +48,7 @@ plt.grid(visible = True)
 plt.title("Evaluating different masks")
 plt.legend()
 plt.legend(handles=[
-    yellow_patch, orange_patch, red_patch,
+    yellow_patch, orange_patch, 
     *plt.gca().get_legend_handles_labels()[0]  # keep existing FP/TP lines
 ], loc='best')
 plt.tight_layout()

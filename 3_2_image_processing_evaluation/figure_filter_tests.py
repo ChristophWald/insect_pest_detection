@@ -1,9 +1,9 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 
-df = pd.read_csv("/user/christoph.wald/u15287/insect_pest_detection/3_2_image_processing_evaluation/data_labeled_training_set/filtering_tests_collected_results.csv")
+df = pd.read_csv("//user/christoph.wald/u15287/insect_pest_detection/3_2_image_processing_evaluation/revised_filtering_tests_collected_results.csv")
 species = ['BRAIIM', 'LIRIBO', 'TRIAVA']
-new_labels = ['set1 ...', '+ contour size', '+ box size', '+ box ratio', '+ overlaps', '+ value', 'set2']  
+new_labels = ['set1 ...', '+ contour size','+ overlaps', '+ box size', '+ box ratio', 'set2']  
 df['Unnamed: 0'] = new_labels
 # Colors correspond to curve type
 curve_colors = {'p': 'blue', 'TP': 'green', 'FP': 'red'}

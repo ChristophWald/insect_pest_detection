@@ -44,17 +44,20 @@ def compute_mask_coverage(mask, rectangles, threshold=0.2):
 #some flags
 inspection = False #if True, saves images of single steps in a test folder
 save_images = True #if False, no saving of cropped images, labels and masked images
-process_labels = True #if True, also crops given labels
+process_labels = False #if True, also crops given labels
 remove_covered_labels = False #if True (and also process_labels is True), which are covered 20% or more by the mask are deleted
 remove_and_save_yolo = False #same as process labels & remove covered labels but in yolo format
 
 ###Setup
-image_folder = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/SSL/02_images_rotated"
-label_folder = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/SSL/02_labels_rotated"
+#image_folder = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/SSL/02_images_rotated"
+image_folder = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_unlabeled/02_images_rotated"
+#label_folder = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/SSL/02_labels_rotated"
 
-output_folder_images_masked = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/SSL/03_images_masked"
-output_folder_images_cropped = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/SSL/04_images_cropped"
-output_folder_labels = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/SSL/04_labels_cropped"
+#output_folder_images_masked = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/SSL/03_images_masked_test6"
+output_folder_images_masked = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_unlabeled/03_images_masked_test4"
+#output_folder_images_cropped = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/SSL/04_images_cropped"
+output_folder_images_cropped = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_unlabeled/04_images_cropped"
+#output_folder_labels = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/SSL/04_labels_cropped"
 os.makedirs(output_folder_images_masked, exist_ok=True)
 os.makedirs(output_folder_images_cropped, exist_ok=True)
 if process_labels or remove_and_save_yolo: os.makedirs(output_folder_labels, exist_ok=True)
@@ -65,7 +68,11 @@ if inspection: os.makedirs(test_folder, exist_ok=True)
 #load mask and corners of the mask YST for alignment
 
 processed_mask = cv2.imread(
-    "/user/christoph.wald/u15287/insect_pest_detection/2_4_image_processing/masks/01_generated_mask_slim.jpg", 
+    #"/user/christoph.wald/u15287/insect_pest_detection/2_4_image_processing/masks/01_generated_mask_slim.jpg", 
+    #"/user/christoph.wald/u15287/insect_pest_detection/2_4_image_processing/masks/02_03_handcrafted_mask_fat.jpg",
+    "/user/christoph.wald/u15287/insect_pest_detection/2_4_image_processing/masks/04_generated_mask_fat.jpg",
+    #"/user/christoph.wald/u15287/insect_pest_detection/2_4_image_processing/masks/05_generated_mask_fat_thick_line_right.jpg",
+    #"/user/christoph.wald/u15287/insect_pest_detection/2_4_image_processing/masks/06_generated_mask_fat_plus.jpg",
     cv2.IMREAD_GRAYSCALE
 )
 
@@ -96,7 +103,7 @@ for i, image_file in enumerate(image_files):
     #save cropped image
     x, y, w, h = cv2.boundingRect(imageYST)
     cropped_image = image[y:y+h, x:x+w]
-    if save_images: cv2.imwrite(os.path.join(output_folder_images_cropped, image_file), cropped_image)
+    #if save_images: cv2.imwrite(os.path.join(output_folder_images_cropped, image_file), cropped_image)
 
     
     #find corners if possible, if not skip the image
@@ -106,13 +113,14 @@ for i, image_file in enumerate(image_files):
         problems_corners.append(image_file)
         continue
 
-    ''''
+    
     #find transformation
     H, _ = cv2.findHomography(gridcorners, imagecorners, cv2.RANSAC)
 
     #first transformation: 
     mask = cv2.warpPerspective(processed_mask, H, (image.shape[1], image.shape[0]))
     if inspection: cv2.imwrite(os.path.join(test_folder, filename + "_02a_aligned_mask.jpg"), mask) 
+    
     
     #transform midline of mask as above
     h_line_pts = mask_h_line.reshape(-1,1,2)
@@ -123,11 +131,12 @@ for i, image_file in enumerate(image_files):
     #second transformation: correct vertical misalignment
 
     dy = get_distance_h_mid(create_binary_mask(image), mask_h)
+    print(dy)
     H, W = mask.shape[:2]
     M = np.float32([[1, 0, 0], [0, 1, dy]])  # translation matrix
     mask= cv2.warpAffine(mask, M, (W, H), borderValue=255)  # white background
     if inspection: cv2.imwrite(os.path.join(test_folder, filename + "_02b_shifted_mask.jpg"), mask) 
-    '''
+    
 
     '''
     old shifting
@@ -148,7 +157,7 @@ for i, image_file in enumerate(image_files):
         mask= cv2.warpAffine(mask, M, (W, H), borderValue=255)  # white background
         if inspection: cv2.imwrite(os.path.join(test_folder, filename + "_02b_shifted_mask.jpg"), mask) 
     '''
-    mask = processed_mask
+
 
     #replace black background in image with yellow (background color) by using the mask
     yellow_mask = mask == 0 
