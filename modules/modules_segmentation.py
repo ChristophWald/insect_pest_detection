@@ -227,7 +227,7 @@ def get_distance_h_mid(image, mask_h):
 
     image_h = max(h_lines_mid, key = line_length)
     dy = get_midpoint(image_h)- get_midpoint(mask_h)
-    print(dy)
+    #print(dy)
     if dy > 500:
         upper_bound = H * 0.25
         lower_bound = H * 0.5

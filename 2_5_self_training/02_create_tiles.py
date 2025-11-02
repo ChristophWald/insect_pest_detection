@@ -113,48 +113,131 @@ def tile_and_save(image_path, label_path, dest_path,
 
     print(f"Tiling complete. {tile_id} tiles saved to {dest_path}")
 
+def tile_and_save_improved(
+    image_path, label_path, dest_path,
+    tile_size=640, stride=440, min_inside_ratio=0.4,
+    yolo=True, keep_empty_prob=1.0
+):
+ 
+    import random 
+    image = cv2.imread(image_path)
+    if image is None:
+        print(f"[WARN] Could not read image: {image_path}")
+        return
+
+    # --- Load labels ---
+    abs_boxes = []
+    if os.path.exists(label_path):
+        if yolo:
+            boxes, classes = load_yolo_labels(label_path, image.shape[1], image.shape[0])
+            abs_boxes = [[classes[i], *box] for i, box in enumerate(boxes)]
+        else:
+            with open(label_path, 'r') as f:
+                for line in f:
+                    if line.strip():
+                        # Old format: [x, y, w, h] → absolute coords
+                        vals = ast.literal_eval(line)
+                        if len(vals) == 4:
+                            x, y, w, h = map(float, vals)
+                            cls = 0  # default class
+                            x1, y1, x2, y2 = x, y, x + w, y + h
+                            abs_boxes.append([cls, x1, y1, x2, y2])
+                        elif len(vals) == 5:
+                            cls, x1, y1, x2, y2 = map(float, vals)
+                            abs_boxes.append([int(cls), x1, y1, x2, y2])
+    else:
+        print(f"[INFO] No label file found for {os.path.basename(image_path)}. Empty labels will be used.")
+
+    # --- Pad image ---
+    padded_img, orig_w, orig_h = pad_to_multiple(image, tile_size=tile_size)
+    p_h, p_w = padded_img.shape[:2]
+
+    # --- Create output dirs ---
+    images_out = os.path.join(dest_path, "images")
+    labels_out = os.path.join(dest_path, "labels")
+    os.makedirs(images_out, exist_ok=True)
+    os.makedirs(labels_out, exist_ok=True)
+
+    # --- Generate tile positions ---
+    tiles = [(x, y, x + tile_size, y + tile_size)
+             for y in range(0, p_h - tile_size + 1, stride)
+             for x in range(0, p_w - tile_size + 1, stride)]
+
+    # --- Assign boxes to best tile ---
+    tile_assignments = [[] for _ in range(len(tiles))]
+    for (cls, bx1, by1, bx2, by2) in abs_boxes:
+        best_ratio = 0
+        best_tile = None
+        for i, (tx1, ty1, tx2, ty2) in enumerate(tiles):
+            inter_area = compute_intersection_area((tx1, ty1, tx2, ty2), (bx1, by1, bx2, by2))
+            box_area = (bx2 - bx1) * (by2 - by1)
+            if box_area == 0:
+                continue
+            inside_ratio = inter_area / box_area
+            if inside_ratio > best_ratio:
+                best_ratio = inside_ratio
+                best_tile = i
+        if best_ratio >= min_inside_ratio and best_tile is not None:
+            tile_assignments[best_tile].append((cls, bx1, by1, bx2, by2))
+
+    # --- Write tiles ---
+    tile_id = 0
+    for i, (tx1, ty1, tx2, ty2) in enumerate(tiles):
+        tile_box = (tx1, ty1, tx2, ty2)
+        tile_img = padded_img[ty1:ty2, tx1:tx2]
+        assigned_boxes = tile_assignments[i]
+
+        # Skip tiles with partial unlabeled overlap
+        partial_overlap = False
+        for (cls, bx1, by1, bx2, by2) in abs_boxes:
+            inter_area = compute_intersection_area(tile_box, (bx1, by1, bx2, by2))
+            if inter_area > 0 and (cls, bx1, by1, bx2, by2) not in assigned_boxes:
+                partial_overlap = True
+                break
+        if partial_overlap:
+            continue
+
+        # Convert boxes to YOLO format
+        tile_labels = []
+        for (cls, bx1, by1, bx2, by2) in assigned_boxes:
+            cx1 = max(bx1, tx1)
+            cy1 = max(by1, ty1)
+            cx2 = min(bx2, tx2)
+            cy2 = min(by2, ty2)
+            box_w = cx2 - cx1
+            box_h = cy2 - cy1
+            box_xc = cx1 + box_w / 2
+            box_yc = cy1 + box_h / 2
+
+            nx_c = (box_xc - tx1) / tile_size
+            ny_c = (box_yc - ty1) / tile_size
+            nw = box_w / tile_size
+            nh = box_h / tile_size
+            tile_labels.append([cls, nx_c, ny_c, nw, nh])
+
+        # Save tile if labeled or randomly keep empty
+        if tile_labels or random.random() < keep_empty_prob:
+            base_name = os.path.splitext(os.path.basename(image_path))[0]
+            tile_filename = f"{base_name}_tile_{tile_id}.jpg"
+            label_filename = f"{base_name}_tile_{tile_id}.txt"
+
+            cv2.imwrite(os.path.join(images_out, tile_filename), tile_img)
+            with open(os.path.join(labels_out, label_filename), "w") as f:
+                for lbl in tile_labels:
+                    f.write(f"{lbl[0]} {lbl[1]:.6f} {lbl[2]:.6f} {lbl[3]:.6f} {lbl[4]:.6f}\n")
+
+            tile_id += 1
+
+    print(f"[DONE] {tile_id} tiles saved for {os.path.basename(image_path)} → {dest_path}")
 
 
 '''
-base_path =  "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/SSL"
-
-
-
-#for train_labeled
-# Set up source image paths
-img_paths = {
-    "train": os.path.join(base_path, "split/images/train"),
-    "val": os.path.join(base_path, "split/images/val")
-}
-
-for split, img_path in img_paths.items():
-    print(f"Processing split: {split}, path: {img_path}")
-    
-    # Destination path for this split
-    dest_path = os.path.join(base_path, "tiles", split)
-    os.makedirs(dest_path, exist_ok=True)
-
-    # Loop over image files
-    files = os.listdir(img_path)
-    for file in files:
-        img = os.path.join(img_path, file)
-
-        # Infer label path
-        label_path = img.replace("images", "labels")
-        label = os.path.splitext(label_path)[0] + '.txt'
-
-        # Automatically set YOLO=True for validation split
-        yolo = True if "val" in split.lower() else False
-
-        # Call tile_and_save with correct YOLO setting
-        tile_and_save(img, label, dest_path, yolo=yolo)
 
 #for unlabeled images
 
-base_path =  "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_unlabeled/"
 img_path = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_unlabeled/04_images_cropped"
-label_path = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_unlabeled/05_created_labelsv2_pure"
-dest_path = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_unlabeled/tilesv2_pure"
+label_path = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_unlabeled/05_created_labels"
+dest_path = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_unlabeled/tiles_mininside08"
 os.makedirs(dest_path, exist_ok=True)
 files = os.listdir("/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_unlabeled/03_images_masked")
 for file in files:
@@ -165,19 +248,44 @@ for file in files:
     print(label)
     # Call tile_and_save with correct YOLO setting
     tile_and_save(img, label, dest_path, yolo=False)
-'''
 
 #only train for labeled images
 
-#base_path =  "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_unlabeled/"
 img_path = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/SSL/04_images_cropped"
-label_path = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/SSL/05_created_labelsv2_pure"
-dest_path = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/SSL/tilesv2_pure"
+label_path = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/SSL/05_created_labels"
+dest_path = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/SSL/tiles_mininside08"
 os.makedirs(dest_path, exist_ok=True)
-#files = os.listdir("/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/SSL/03_images_masked")
 #to make sure only images from the train set are tiled
-files = os.listdir("/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/SSL/split/images/train")
+files = os.listdir("/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/split/images/train")
+
+with open("/user/christoph.wald/u15287/insect_pest_detection/2_4_image_processing/logs/images_not_processed_train_labeled.txt", "r") as f:
+    not_processed = f.read().splitlines()
+
+
 for file in files:
+    if file.startswith("FRANOC"):
+        continue
+    if file in not_processed:
+        print(f"Skipping unprocessed file {file}")
+        continue
+    img = os.path.join(img_path, file)
+
+    # Infer label path
+    label = os.path.join(label_path, os.path.splitext(file)[0] + ".txt") 
+    print(label)
+    # Call tile_and_save with correct YOLO setting
+    tile_and_save(img, label, dest_path, yolo=False)
+'''
+#for augmented
+
+img_path = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/augmented_data/images"
+label_path = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/augmented_data/labels"
+dest_path = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/augmented_data/tiles"
+os.makedirs(dest_path, exist_ok=True)
+files = os.listdir(img_path)
+
+for file in files:
+
     img = os.path.join(img_path, file)
 
     # Infer label path

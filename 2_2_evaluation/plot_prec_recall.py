@@ -6,8 +6,8 @@ simple plots for visualizing losses
 '''
 for i in range(1,11):
     # Load the CSV file
-    file_path = f'/user/christoph.wald/u15287/insect_pest_detection/3_1_supervised_training_evaluation/runs/detect/train{i}/results.csv'
-    #file_path = f"/user/christoph.wald/u15287/insect_pest_detection/2_2_supervised _training/runs/detect/train{i}/results.csv"
+    file_path = f'/user/christoph.wald/u15287/insect_pest_detection/2_3_supervised_training/runs/detect/train{i}/results.csv'
+    
     df = pd.read_csv(file_path)
 
     fig, axs = plt.subplots(1, 2, figsize=(14, 5))
@@ -43,7 +43,7 @@ for i in range(1,11):
 
     # Adjust layout and save the figure
     plt.tight_layout()
-    save_path = f'/user/christoph.wald/u15287/insect_pest_detection/3_1_supervised_training_evaluation/runs/detect/prec_recall_train{i}.png'
-    #save_path = f"/user/christoph.wald/u15287/insect_pest_detection/2_2_supervised _training/runs/detect/prec_recall_train{i}"
+    #save_path = f'/user/christoph.wald/u15287/insect_pest_detection/3_1_supervised_training_evaluation/runs/detect/prec_recall_train{i}.png'
+    save_path = f"/user/christoph.wald/u15287/insect_pest_detection/2_3_supervised_training/runs/detect/prec_recall_train{i}.png"
     plt.savefig(save_path)
     plt.close()

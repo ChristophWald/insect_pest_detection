@@ -72,16 +72,39 @@ if train_model:
 
 if eval_run:
     
-    #train4
+    #train4 supervised
     class_conf_thresholds = {0: 0.6434290409088135, 
                              1: 0.4253721833229065, 
                              2: 0.5093783140182495, 
                              3: 0.5793536305427551}
+    #train2 
+    class_conf_thresholds = {0: 0.4440160095691681, 
+                             1: 0.4469864070415497, 
+                             2: 0.0, 
+                             3: 0.2506190240383148}
+
+    #train5 
+    class_conf_thresholds = {0: 0.258309543132782, 
+                             1: 0.4382556676864624, 
+                             2: 0.0, 
+                             3: 0.2503660321235657}
     
+    #train7 
+    class_conf_thresholds = {0: 0.29972055554389954, 
+                             1: 0.5328308939933777, 
+                             2: 0.0, 
+                             3: 0.2504380941390991}
+
+    #train8
+    class_conf_thresholds = {0:  0.38608258962631226, 
+                             1: 0.5089796781539917, 
+                             2: 0.0, 
+                             3: 0.2502722442150116}
+
+    evaluate(0.2, "8",  save_images = False, per_class_confs = class_conf_thresholds)
 
 
-    evaluate(0.4, "4",  save_images = False, per_class_confs = class_conf_thresholds)
-
+    
 #tests the model on the image processed labels to compare to the other test
 #evaluate_on_test_set_image_proc(conf_thresholds[0], "9")
 

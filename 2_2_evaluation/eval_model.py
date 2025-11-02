@@ -14,15 +14,24 @@ from modules import load_yolo_labels
 from modules_evaluation import *
 
 
-def raw_predictions_on_val(model_number = "", skip_FRANOC = False, predict_on_tiles = False):
+def raw_predictions_on_val(model_number, base_output_path, skip_FRANOC = False, predict_on_tiles = False):
     start = time.time()
 
     all_results = []
 
     print(f"Testing model {model_number}.")
-    model = YOLO(f"/user/christoph.wald/u15287/insect_pest_detection/3_1_supervised_training_evaluation/runs/detect/train{model_number}/weights/best.pt")
-    base_output_path = f"/user/christoph.wald/u15287/insect_pest_detection/3_1_supervised_training_evaluation/metrics/train{model_number}"
-    os.makedirs(base_output_path, exist_ok=True)
+    model_path = f"/user/christoph.wald/u15287/insect_pest_detection/2_3_supervised_training/runs/detect/train{model_number}/weights/best.pt"
+
+
+    if os.path.exists(model_path):
+        print(f"File exists: {model_path}")
+        # You can load the model safely
+        model = YOLO(model_path)
+    else:
+        print(f"File does not exist: {model_path}")
+        # Handle the missing file case
+
+    model = YOLO(model_path)
 
     base_input_path = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/split"
     base_image_path = os.path.join(base_input_path, "images/val")  
@@ -34,7 +43,7 @@ def raw_predictions_on_val(model_number = "", skip_FRANOC = False, predict_on_ti
     for filename in filenames:
         print(f"Predicting on {filename}.")
         if skip_FRANOC and filename.startswith("FRANOC"):
-            #print("skipping " + filename)
+            print("skipping " + filename)
             continue
 
         #print(f"Processing {filename}...")
@@ -562,13 +571,16 @@ def plot_pr_curves(pr_results, best_points=None, second_points=None, base_output
 
 
 model_number = "9"
-base_output_path = f"/user/christoph.wald/u15287/insect_pest_detection/3_1_supervised_training_evaluation/metrics/train{model_number}"
+base_output_path = f"/user/christoph.wald/u15287/insect_pest_detection/2_5_self_training/metrics/train{model_number}"
+os.makedirs(base_output_path, exist_ok=True)
+
 class_names = ["fungus gnats", "leaf miner flies", "thrips", "whiteflies"]  # replace with your classes
 
 
 #makes prediction with conf=0 and saves them
 raw_predictions_on_val(model_number = model_number,
-                       skip_FRANOC = False, 
+                       base_output_path=base_output_path,
+                       skip_FRANOC = True, 
                        predict_on_tiles = True)
 
 #reload the raw predictions and creates precision recall curves

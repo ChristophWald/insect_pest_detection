@@ -54,7 +54,7 @@ image_folder = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_u
 #label_folder = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/SSL/02_labels_rotated"
 
 #output_folder_images_masked = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/SSL/03_images_masked_test6"
-output_folder_images_masked = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_unlabeled/03_images_masked_test4"
+output_folder_images_masked = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_unlabeled/03_images_masked"
 #output_folder_images_cropped = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/SSL/04_images_cropped"
 output_folder_images_cropped = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_unlabeled/04_images_cropped"
 #output_folder_labels = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/SSL/04_labels_cropped"
@@ -70,9 +70,9 @@ if inspection: os.makedirs(test_folder, exist_ok=True)
 processed_mask = cv2.imread(
     #"/user/christoph.wald/u15287/insect_pest_detection/2_4_image_processing/masks/01_generated_mask_slim.jpg", 
     #"/user/christoph.wald/u15287/insect_pest_detection/2_4_image_processing/masks/02_03_handcrafted_mask_fat.jpg",
-    "/user/christoph.wald/u15287/insect_pest_detection/2_4_image_processing/masks/04_generated_mask_fat.jpg",
+    #"/user/christoph.wald/u15287/insect_pest_detection/2_4_image_processing/masks/04_generated_mask_fat.jpg",
     #"/user/christoph.wald/u15287/insect_pest_detection/2_4_image_processing/masks/05_generated_mask_fat_thick_line_right.jpg",
-    #"/user/christoph.wald/u15287/insect_pest_detection/2_4_image_processing/masks/06_generated_mask_fat_plus.jpg",
+    "/user/christoph.wald/u15287/insect_pest_detection/2_4_image_processing/masks/06_generated_mask_fat_plus.jpg",
     cv2.IMREAD_GRAYSCALE
 )
 
@@ -103,7 +103,7 @@ for i, image_file in enumerate(image_files):
     #save cropped image
     x, y, w, h = cv2.boundingRect(imageYST)
     cropped_image = image[y:y+h, x:x+w]
-    #if save_images: cv2.imwrite(os.path.join(output_folder_images_cropped, image_file), cropped_image)
+    if save_images: cv2.imwrite(os.path.join(output_folder_images_cropped, image_file), cropped_image)
 
     
     #find corners if possible, if not skip the image

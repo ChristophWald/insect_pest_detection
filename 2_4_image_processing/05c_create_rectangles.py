@@ -16,8 +16,8 @@ use save_labels flag to turn of the saving of labels
 
 #flags
 inspection = False
-evaluate_labels = True
-save_labels = False
+evaluate_labels = False
+save_labels = True
 
 predicted_rectangles = []
 results = []
@@ -26,25 +26,27 @@ overlaps = 0
 value_problems = 0
 
 #set paths
-image_folder = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/SSL/03_images_masked_test4"
-labels_folder = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/SSL/04_labels_cropped"
-output_labels_folder= "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/SSL/05_created_labels_from_test4"
-os.makedirs(output_labels_folder, exist_ok= True)
-image_files = sorted(os.listdir(image_folder))
-cropped_images_folder = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/SSL/04_images_cropped"
+#image_folder = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/SSL/03_images_masked_test4"
+#labels_folder = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/SSL/04_labels_cropped"
+#output_labels_folder= "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/SSL/05_created_labels_from_test4"
+
+#cropped_images_folder = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/SSL/04_images_cropped"
 
 
 
 #for unlabeled set
-#image_folder = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_unlabeled/03_images_masked"
-#cropped_images_folder = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_unlabeled/04_images_cropped"
-
+image_folder = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_unlabeled/03_images_masked"
+cropped_images_folder = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_unlabeled/04_images_cropped"
+output_labels_folder= "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_unlabeled/05_created_labels"
 
 test_folder = "/user/christoph.wald/u15287/insect_pest_detection/2_4_image_processing/test"
 if inspection: os.makedirs(test_folder, exist_ok= True)
 
+os.makedirs(output_labels_folder, exist_ok= True)
+image_files = sorted(os.listdir(image_folder))
+
 #change to run only on one insect pest class
-image_files = [f for f in image_files if "TRIAVA" in f]
+#image_files = [f for f in image_files if "TRIAVA" in f]
 
 for i, image_file in enumerate(image_files):
 
@@ -63,20 +65,20 @@ for i, image_file in enumerate(image_files):
         min_area_contour = 100  
         max_area_contour = 1000
         scale = 1.5
-        max_ratio = 1.88 #unlabeled 1.84 #
-        upper_limit_rectangles =  3275 # unlabeled 3477 #
+        max_ratio = 1.84 #1.88 #unlabeled 1.84 #
+        upper_limit_rectangles =  3477 #3275 # unlabeled 3477 #
     elif "LIRIBO" in image_file: 
         min_area_contour = 1000 
         max_area_contour = 10000 
         scale = 1.5
-        max_ratio =  1.77 # unlabeled 1.76 # #95th percentile
-        upper_limit_rectangles =  23544 # unlabeled 24840 #95th percentile
+        max_ratio =  1.76 #1.77 # unlabeled 1.76 # #95th percentile
+        upper_limit_rectangles =  24840 #23544 # unlabeled 24840 #95th percentile
     elif "BRAIIM" in image_file:
         min_area_contour = 2000 
         max_area_contour = 10000
         scale = 1.5
-        max_ratio = 1.74 #unlabeled 1.73 # #95the percentile
-        upper_limit_rectangles = 42260 #unlabeled 43456 # #None  #95th percentil
+        max_ratio = 1.73 #1.74 #unlabeled 1.73 # #95the percentile
+        upper_limit_rectangles = 43456 #42260 #unlabeled 43456 # #None  #95th percentil
 
     #find bounding boxes, filtered by handcrafted features and ratio of w/h, scale them    
     rectangles, v = get_list_of_rectangles(image, min_area_contour, max_area_contour, scale, max_ratio, upper_limit_rectangles)
@@ -127,7 +129,7 @@ for i, image_file in enumerate(image_files):
 
 with open("rectangles_full_filter", "w") as f:
     for item in predicted_rectangles:
-        f.write(str(item) + "\n")
+        f.write(str(item) + "\n")#
 
 
 print(f"Deleted {overlaps} overlaps.")

@@ -256,22 +256,22 @@ def add_labels(pred_file,
     start = end
 
 
-def evaluate(conf_threshold, model_number = "", save_images = False, save_results = True,  skip_FRANOC = False, per_class_confs = None):
+def evaluate(conf_threshold, model_number = "", save_images = False, save_results = True,  skip_FRANOC = True, per_class_confs = None):
     start = time.time()
 
     results = []
 
     print(f"Testing model {model_number}.")
-    model = YOLO(f"/user/christoph.wald/u15287/insect_pest_detection/3_1_supervised_training_evaluation/runs/detect/train{model_number}/weights/best.pt")
-    base_output_path = f"/user/christoph.wald/u15287/insect_pest_detection/3_1_supervised_training_evaluation/metrics/train{model_number}_test_set"
+    model = YOLO(f"//user/christoph.wald/u15287/insect_pest_detection/2_3_supervised_training/runs/detect/train{model_number}/weights/best.pt")
+    base_output_path = f"/user/christoph.wald/u15287/insect_pest_detection/2_5_self_training/metrics/train{model_number}_val_set"
     #model = YOLO(f"/user/christoph.wald/u15287/insect_pest_detection/2_5_self_training/runs/detect/train{model_number}/weights/best.pt")
     #base_output_path = f"/user/christoph.wald/u15287/insect_pest_detection/2_5_self_training/metrics/train{model_number}"
     os.makedirs(base_output_path, exist_ok=True)
 
-    base_input_path = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/test_set/test_set_w_new_labels"
-    #base_input_path = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/split"
-    base_image_path = os.path.join(base_input_path, "images") #add /val
-    base_label_path = os.path.join(base_input_path, "labels") #add /val 
+    #base_input_path = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/test_set/test_set_w_new_labels"
+    base_input_path = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/split"
+    base_image_path = os.path.join(base_input_path, "images/val") #add /val
+    base_label_path = os.path.join(base_input_path, "labels/val") #add /val 
 
     #added for testing on masked test set
     #base_image_path = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/test_set/SSL/03_images_masked"

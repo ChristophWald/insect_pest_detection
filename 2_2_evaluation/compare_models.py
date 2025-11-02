@@ -237,19 +237,19 @@ def compare_best_point_sets(best_points_a, best_points_b, prec_thresh=0.9, rec_t
 
 
 
-model_number = "8"
-base_output_path = f"/user/christoph.wald/u15287/insect_pest_detection/3_1_supervised_training_evaluation/metrics/train{model_number}"
+model_number = "7"
+base_output_path = f"/user/christoph.wald/u15287/insect_pest_detection/2_5_self_training/metrics/train{model_number}"
 with open(os.path.join(base_output_path, "operating_points.json"), "r") as f:
     best_points = json.load(f)
 with open(os.path.join(base_output_path, "pr_results.json"), 'r') as f:
         pr_results = json.load(f)
 
 model_number = "9"
-base_output_path = f"/user/christoph.wald/u15287/insect_pest_detection/3_1_supervised_training_evaluation/metrics/train{model_number}"
+base_output_path = f"/user/christoph.wald/u15287/insect_pest_detection/2_5_self_training/metrics/train{model_number}"
 with open(os.path.join(base_output_path, "operating_points.json"), "r") as f:
     second_points = json.load(f)
 
-plot_pr_curves(pr_results, best_points=best_points, second_points=second_points, base_output_path="/user/christoph.wald/u15287/insect_pest_detection/evaluate")
+#plot_pr_curves(pr_results, best_points=best_points, second_points=second_points, base_output_path="/user/christoph.wald/u15287/insect_pest_detection/evaluate")
 
 #print(compare_best_point_sets(best_points, second_points))
 compare_best_point_sets_per_class(best_points, second_points)
