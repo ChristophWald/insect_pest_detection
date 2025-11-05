@@ -6,10 +6,10 @@ import yaml
 #: Creating a YOLO training set
 
 # Setup base folder
-#tiles_folder = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/SSL/tiles_mininside08"
-tiles_folder = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_unlabeled/tiles_mininside08"
+tiles_folder = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/SSL/tiles_mininside08"
+#tiles_folder = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_unlabeled/tiles_mininside08_masked"
 val_tiles_folder = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/tiles"
-training_folder = "/user/christoph.wald/u15287/big-scratch/04_SSL_training_data/training_data_mininside08_unlabeled_set"
+training_folder = "/user/christoph.wald/u15287/big-scratch/04_SSL_training_data/training_data_mininside08"
 
 # Setup file structure for destination
 file_types = ["images", "labels"]
@@ -113,4 +113,15 @@ for u in use_types:
         total_files = len(label_files)
         
         print(f"Copied {total_files} label files.")
-            
+
+#copies empty background files
+src_paths = ["/user/christoph.wald/u15287/big-scratch/02_splitted_data/empty_tiles/images", 
+              "/user/christoph.wald/u15287/big-scratch/02_splitted_data/empty_tiles/images"]
+dest_paths = ["images/train", "labels/train"]
+
+for src, dest in zip(src_paths, dest_paths):
+    files = os.listdir(src)
+    for f in files:
+        src_path = os.path.join(src, f)
+        dest_path = os.path.join(training_folder, dest, f)
+        shutil.copy2(src_path, dest_path)

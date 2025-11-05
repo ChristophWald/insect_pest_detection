@@ -7,7 +7,7 @@ import glob
 import numpy as np
 
 # Directories
-train_dir = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/SSL/tiles/train/images"
+train_dir = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/SSL/tiles_mininside08/images"
 val_dir   = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/SSL/tiles/val/images"
 metrics_dir = "/user/christoph.wald/u15287/insect_pest_detection/2_5_self_training/metrics"
 

@@ -183,7 +183,7 @@ def remove_border_connected(mask_binary):
             output[component] = 1
     return output
 
-def place_insects_by_region(base_image, mask_binary, insects, n_per_region=1, overlap_threshold=0.0):
+def place_insects_by_region(base_image, mask_binary, insects, n_per_region=1, overlap_threshold=0.0, place_in_nonmask = False):
     """
     Place insects into 4 regions (2 rows × 2 uneven columns: 1/4 + 1/2 width),
     draw separation lines, and prevent overlapping.
@@ -220,6 +220,7 @@ def place_insects_by_region(base_image, mask_binary, insects, n_per_region=1, ov
 
             for _ in range(n_to_place):
                 insect = insects.pop(0)
+                #insect, _ = rotate_insect(insect)
                 for _ in range(1000):  # try multiple random positions
                     
 
@@ -234,12 +235,109 @@ def place_insects_by_region(base_image, mask_binary, insects, n_per_region=1, ov
                         placed_boxes.append(candidate_box)
                         placed_count += 1
                         break  # next insect
-    #placed_boxes = [enlarge_box(box, base_image.shape, -0.5) for box in placed_boxes]
+    if place_in_nonmask:
+        # Use a separate list of insects for non-masked areas
+        h_img, w_img, _ = base_image.shape
+
+        for _ in range(placed_count):  # same number as placed in first pass
+            insect = insects.pop(0)
+            insect, _ = rotate_insect(insect)
+            h_i, w_i, _ = insect.shape
+
+            for _ in range(1000):
+                # Pick a random position anywhere in the image
+                y1 = random.randint(0, h_img - h_i)
+                x1 = random.randint(0, w_img - w_i)
+                candidate_box = (x1, y1, x1 + w_i, y1 + h_i)
+
+                # Only accept if it does NOT overlap masked regions
+                mask_patch = mask_binary[y1:y1 + h_i, x1:x1 + w_i]
+                if np.any(mask_patch != 0):
+                    continue  # skip positions that overlap the mask
+
+                # Check overlap with previously placed insects
+                if all(iou(candidate_box, b) <= overlap_threshold for b in placed_boxes):
+                    place_insect_at(base_image, insect, candidate_box)
+                    placed_boxes.append(candidate_box)
+                    break
     #for box in placed_boxes:
     #        x1, y1, x2, y2 = box
     #        cv2.rectangle(base_image, (x1, y1), (x2, y2), color=(0, 0, 255), thickness=2)  # red boxes
 
     return placed_count, placed_boxes
+
+
+def augment_whitefly(img, s_shift=41, v_shift=-6, s_jitter=7.6, v_jitter=2.5, h_jitter=1):
+    """
+    Adjust TP patch to mimic FN statistics:
+    - Increase saturation (S)
+    - Decrease brightness/value (V)
+    - Optional tiny hue jitter
+    """
+    hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV).astype(np.float32)
+    
+    # Hue jitter
+    hsv[:, :, 0] = np.clip(hsv[:, :, 0] + random.uniform(-h_jitter, h_jitter), 0, 179)
+    
+    # Saturation
+    hsv[:, :, 1] = np.clip(hsv[:, :, 1] + s_shift + random.uniform(-s_jitter, s_jitter), 0, 255)
+    
+    # Value / brightness
+    hsv[:, :, 2] = np.clip(hsv[:, :, 2] + v_shift + random.uniform(-v_jitter, v_jitter), 0, 255)
+    
+    return cv2.cvtColor(hsv.astype(np.uint8), cv2.COLOR_HSV2BGR)
+
+
+def rotate_insect(insect, angle_range=(-180, 180)):
+    """
+    Rotate an insect patch by a random angle within `angle_range` and return the rotated patch
+    along with its tight bounding box (non-white region).
+    
+    Args:
+        insect: np.array of shape (H, W, 3), the insect patch.
+        angle_range: tuple, min and max rotation angles in degrees.
+    
+    Returns:
+        rotated_cropped: rotated insect patch, tightly cropped to non-white area
+        new_box_coords: coordinates relative to the rotated patch (x1, y1, x2, y2)
+    """
+    # Pick a random angle
+    angle = np.random.uniform(*angle_range)
+    
+    h, w = insect.shape[:2]
+    center = (w // 2, h // 2)
+    
+    # Compute rotation matrix
+    M = cv2.getRotationMatrix2D(center, angle, 1.0)
+    
+    # Compute size of new rotated image to fit everything
+    cos = np.abs(M[0, 0])
+    sin = np.abs(M[0, 1])
+    new_w = int((h * sin) + (w * cos))
+    new_h = int((h * cos) + (w * sin))
+    
+    # Adjust the rotation matrix to take into account translation
+    M[0, 2] += (new_w / 2) - center[0]
+    M[1, 2] += (new_h / 2) - center[1]
+    
+    # Rotate the image
+    rotated = cv2.warpAffine(insect, M, (new_w, new_h), borderValue=(255, 255, 255))
+    
+    # Compute tight bounding box around non-white pixels
+    non_white = np.any(rotated < 250, axis=2)
+    coords = np.argwhere(non_white)
+    if coords.size == 0:
+        # fallback if everything is white
+        return rotated, (0, 0, new_w, new_h)
+    
+    y_min, x_min = coords.min(axis=0)
+    y_max, x_max = coords.max(axis=0) + 1  # slicing exclusive
+    
+    rotated_cropped = rotated[y_min:y_max, x_min:x_max]
+    new_box_coords = (x_min, y_min, x_max, y_max)
+    
+    return rotated_cropped, new_box_coords
+
 
 def place_insect_at(base_image, insect, box):
     """
@@ -335,7 +433,7 @@ def random_light_variation(image):
 
     return result
 
-def random_local_blur(image, area_ratio=0.1):
+def random_local_blur(image, area_ratio=0.2):
     """
     Apply blur to a random small region of the image (simulating out-of-focus spot).
 
@@ -362,7 +460,7 @@ def random_local_blur(image, area_ratio=0.1):
 
     # --- Extract patch and blur it ---
     patch = output[y1:y2, x1:x2]
-    ksize = random.choice([51, 71, 61, 91]) # random blur kernel
+    ksize = random.choice([51, 71, 61, 31]) # random blur kernel
     patch_blurred = cv2.GaussianBlur(patch, (ksize, ksize), 0)
 
     # --- Optional: blend smoothly with surroundings (soft edges) ---

@@ -15,6 +15,7 @@ output_folder = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/augmen
 get_images = False
 get_cutout_boxes = False
 
+##################
 if get_images:
     #Loading empty YSTs
     empty_image_folder = "/user/christoph.wald/u15287/big-scratch/00_uncropped_dataset/emptyYST"
@@ -46,8 +47,9 @@ else:
     for filename in filenames:
         sheared_YSTs.append(cv2.imread(os.path.join(empty_image_folder, filename)))
     print(f"Loaded {len(sheared_YSTs)} empty, augmented images.")
+############
 
-'''
+##############
 #masking to create areas of interest (were to put the insects in)
 processed_mask = cv2.imread(
     #"/user/christoph.wald/u15287/insect_pest_detection/2_4_image_processing/masks/06_generated_mask_fat_plus.jpg", 
@@ -56,15 +58,9 @@ processed_mask = cv2.imread(
 )
 gridcorners = np.load("/user/christoph.wald/u15287/insect_pest_detection/2_4_image_processing/masks/gridcorners.npy")
 mask_h_line = np.load("/user/christoph.wald/u15287/insect_pest_detection/2_4_image_processing/masks/mask_h_line.npy")
+###############
 
-masks = []
-
-for YST in sheared_YSTs:
-    masks.append(get_mask(YST, processed_mask, gridcorners, mask_h_line))
-
-print(f"Created areas of interest for the empty images.")
-'''
-
+###############
 if get_cutout_boxes:
 #Get the cut out insects
     label_path = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/SSL/05_created_labels"
@@ -150,12 +146,28 @@ if get_cutout_boxes:
             else:
 
                 value = region_hsv[:, :, 2]
-                otsu_thresh, binary_mask = cv2.threshold(value, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+                otsu_thresh_value, binary_mask = cv2.threshold(value, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+                
+                #v1 result
                 binary_mask_inv = cv2.bitwise_not(binary_mask)  # foreground=255, background=0
                 foreground = cv2.bitwise_and(region_bgr, region_bgr, mask=binary_mask_inv)
                 background = np.full_like(region_bgr, 255)  # white background
                 result = np.where(binary_mask_inv[:, :, np.newaxis] == 0, background, foreground)
-
+                
+                '''
+                #v2 result
+                #not need, because i hardcoded hue threshold
+                #hue = region_hsv[:, :, 0]
+                #otsu_thresh_hue, hue_mask = cv2.threshold(hue, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+                lower_yellow = np.array([18, 100, int(otsu_thresh_value)])
+                upper_yellow = np.array([30, 255, 255])
+                binary_mask = cv2.inRange(region_hsv, lower_yellow, upper_yellow)
+                binary_mask_inv = cv2.bitwise_not(binary_mask)
+                
+                foreground = cv2.bitwise_and(region_bgr, region_bgr, mask=binary_mask_inv)
+                background = np.full_like(region_bgr, 255)
+                result = np.where(binary_mask_inv[:, :, np.newaxis] == 0, background, foreground)
+                '''
 
             result = keep_central_contour(result)
             # --- Compute ratio of non-white area ---
@@ -179,9 +191,29 @@ if get_cutout_boxes:
             new_box = (x1 + x_min, y1 + y_min, x1 + x_max, y1 + y_max)
 
             insects.append(cropped)
+
+            if filename.startswith("TRIAVA"):
+                non_white_mask = np.any(cropped < 250, axis=2)  # shape: (h, w)
+                # Convert cropped to float32 HSV
+                hsv = cv2.cvtColor(cropped, cv2.COLOR_BGR2HSV).astype(np.float32)
+                
+                # Apply random shifts only to insect pixels
+                for c in range(3):
+                    channel = hsv[:, :, c]
+                    if c == 0:  # Hue
+                        channel[non_white_mask] += random.uniform(-1, 1)
+                    elif c == 1:  # Saturation
+                        channel[non_white_mask] += 41 + random.uniform(-7.6, 7.6)
+                    elif c == 2:  # Value
+                        channel[non_white_mask] += -6 + random.uniform(-2.5, 2.5)
+                    hsv[:, :, c] = np.clip(channel, 0, 255 if c != 0 else 179)
+    
+                augmented = cv2.cvtColor(hsv.astype(np.uint8), cv2.COLOR_HSV2BGR)
+                insects.append(augmented)
+
         all_insects[cls].extend(insects)
     print(f"Skipped {skipped}")
-    print(f"Loaded {len(all_insects[0])} fungus gnats and {len(all_insects[1])} leaf miner flies.")
+    print(f"Loaded {len(all_insects[0])} fungus gnats, {len(all_insects[1])} leaf miner flies and {len(all_insects[2])} whiteflies.")
 
     np.save(
         "/user/christoph.wald/u15287/big-scratch/02_splitted_data/augmented_data/all_insects.npy",
@@ -193,34 +225,103 @@ else:
         "/user/christoph.wald/u15287/big-scratch/02_splitted_data/augmented_data/all_insects.npy",
         allow_pickle=True
     )
-    print(f"Loaded {len(all_insects[0])} fungus gnats and {len(all_insects[1])} leaf miner flies.")
+    print(f"Loaded {len(all_insects[0])} fungus gnats, {len(all_insects[1])} leaf miner flies and {len(all_insects[2])} whiteflies.")
+##########
 
-n_per_region = 4 #per region
+
+#############
+n_per_region = 8 #per region
 n_per_image = int(5.5 * n_per_region)
 images_per_insect = 6
-augmentations = 4
-n_total = images_per_insect * augmentations * n_per_image
+augmentations = 4 #4
+placements = 2 #how many times is place-insects by region called 
+n_total = images_per_insect * augmentations * n_per_image * placements
 print(n_total)
 
-#create a random selection to take from 
 
 label_path = os.path.join(output_folder, "labels")
 image_path = os.path.join(output_folder, "images")
 os.makedirs(label_path, exist_ok=True)
 os.makedirs(image_path, exist_ok=True)
 
+#create a random selection to take from 
 selected_insects = [[], [], []]
-for i in range(len(all_insects)):
-    selected_insects[i] = random.sample(all_insects[i], k = n_total)
+
+selected_insects[2] = random.sample(all_insects[2], k=len(all_insects[2]))
+
+
 
 counter = 0
 for i, emptyYST in enumerate(sheared_YSTs):
+
+    #mask with fat lines
+    mask_fat = get_mask(emptyYST, processed_mask, gridcorners, mask_h_line)
+    mask_binary_fat = (mask_fat < 128).astype(np.uint8) #convert to 0/1 mask
+
+    #crop image
     imageYST = find_contour(emptyYST)
     x, y, w, h = cv2.boundingRect(imageYST)
-    empty_YST_cropped = emptyYST[y:y+h, x:x+w] 
+    empty_YST_cropped = emptyYST[y:y+h, x:x+w]
+
+    #mask with thin lines
     mask = create_binary_mask(empty_YST_cropped) 
     mask_binary = (mask < 128).astype(np.uint8) #convert to 0/1 mask
     mask_binary = remove_border_connected(mask_binary) #remove borders to place insects only on the YS
+        
+
+    for aug_idx in range(4):
+        idx_insects = 2  # always use species 2
+        idx_augmentation = aug_idx
+
+        print(f"Class {pest_types[idx_insects]}, augmentation {idx_augmentation}.")
+
+        img = empty_YST_cropped.copy()
+        _, placed_boxes = place_insects_by_region(img, mask_binary, selected_insects[idx_insects], n_per_region)
+        _, placed_boxes = place_insects_by_region(img, mask_binary_fat, selected_insects[idx_insects], n_per_region)
+
+        if idx_augmentation == 1:
+            img = cv2.rotate(img, cv2.ROTATE_180)
+        elif idx_augmentation == 2:
+            img = random_light_variation(img)
+        elif idx_augmentation == 3:
+            img = cv2.rotate(img, cv2.ROTATE_180)
+            img = random_light_variation(img)
+
+        cv2.imwrite(
+            os.path.join(image_path, f"{pest_types[idx_insects]}_{counter}_YST{i}_aug{idx_augmentation}.jpg"),
+            img
+        )
+        with open(
+            os.path.join(label_path, f"{pest_types[idx_insects]}_{counter}_YST{i}_aug{idx_augmentation}.txt"),
+            "w"
+        ) as f:
+            for (x1, y1, x2, y2) in placed_boxes:
+                x1, y1, x2, y2 = map(int, [x1, y1, x2, y2])
+                w = x2 - x1
+                h = y2 - y1
+                f.write(f"[{x1}, {y1}, {w}, {h}]\n")
+
+        counter += 1
+
+
+'''
+counter = 0
+for i, emptyYST in enumerate(sheared_YSTs):
+
+    #mask with fat lines
+    #mask_fat = get_mask(emptyYST, processed_mask, gridcorners, mask_h_line)
+    #mask_binary_fat = (mask_fat < 128).astype(np.uint8) #convert to 0/1 mask
+
+    #crop image
+    imageYST = find_contour(emptyYST)
+    x, y, w, h = cv2.boundingRect(imageYST)
+    empty_YST_cropped = emptyYST[y:y+h, x:x+w]
+
+    #mask with thin lines
+    mask = create_binary_mask(empty_YST_cropped) 
+    mask_binary = (mask < 128).astype(np.uint8) #convert to 0/1 mask
+    mask_binary = remove_border_connected(mask_binary) #remove borders to place insects only on the YS
+        
 
     for i in range(4):
         idx_insects = counter % 3
@@ -229,6 +330,7 @@ for i, emptyYST in enumerate(sheared_YSTs):
         
         img = empty_YST_cropped.copy()
         _, placed_boxes = place_insects_by_region(img, mask_binary, selected_insects[idx_insects], n_per_region)
+        _, placed_boxes = place_insects_by_region(img, mask_binary_fat, selected_insects[idx_insects], n_per_region)
 
         if idx_augmentation == 1:
             img = cv2.rotate(img, cv2.ROTATE_180)
@@ -246,3 +348,51 @@ for i, emptyYST in enumerate(sheared_YSTs):
                 f.write(f"[{x1}, {y1}, {w}, {h}]\n")
 
         counter += 1
+'''
+
+
+'''
+for idx_insects in range(len(all_insects)):
+        for j in range(20):
+            print(f"Insect{idx_insects}, Image{j}")
+
+            #randomly select an YST
+            emptyYST = sheared_YSTs[random.randint(0, 17)]
+            #crop image & get mask as above
+            mask_fat = get_mask(emptyYST, processed_mask, gridcorners, mask_h_line)
+            mask_binary_fat = (mask_fat < 128).astype(np.uint8) #convert to 0/1 mask
+
+            imageYST = find_contour(emptyYST)
+            x, y, w, h = cv2.boundingRect(imageYST)
+            empty_YST_cropped = emptyYST[y:y+h, x:x+w]
+
+            mask = create_binary_mask(empty_YST_cropped) 
+            mask_binary = (mask < 128).astype(np.uint8) #convert to 0/1 mask
+            mask_binary = remove_border_connected(mask_binary) #remove borders to place insects only on the YS
+
+            img = empty_YST_cropped.copy()
+       
+            #place some insects on the mask & also places some insects anywhere
+            _, placed_boxes = place_insects_by_region(img, mask_binary_fat, selected_insects[idx_insects], n_per_region)
+            _, placed_boxes = place_insects_by_region(img, mask_binary, selected_insects[idx_insects], n_per_region, place_in_nonmask = True)
+            
+
+            #randomly apply rotation (yes/no)
+            bit = random.randint(0, 1)
+            if bit:
+                img = cv2.rotate(img, cv2.ROTATE_180)
+            #random lighting variation (how much)
+            img = random_light_variation(img)
+            #random blurring (yes/no)
+            bit = random.randint(0, 1)
+            if bit:
+                img = random_local_blur(img)
+
+            cv2.imwrite(os.path.join(image_path, f"{pest_types[idx_insects]}_augmented{j}.jpg"), img)
+            with open(os.path.join(label_path, f"{pest_types[idx_insects]}_augmented{j}.txt"), "w") as f:
+                for (x1, y1, x2, y2) in placed_boxes:
+                    x1, y1, x2, y2 = map(int, [x1, y1, x2, y2]) # Convert np.int64 → int
+                    w = x2 - x1 # Convert (x1, y1, x2, y2) → (x, y, w, h)
+                    h = y2 - y1
+                    f.write(f"[{x1}, {y1}, {w}, {h}]\n")
+'''

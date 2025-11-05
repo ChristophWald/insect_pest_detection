@@ -237,14 +237,14 @@ def compare_best_point_sets(best_points_a, best_points_b, prec_thresh=0.9, rec_t
 
 
 
-model_number = "7"
+model_number = "14"
 base_output_path = f"/user/christoph.wald/u15287/insect_pest_detection/2_5_self_training/metrics/train{model_number}"
 with open(os.path.join(base_output_path, "operating_points.json"), "r") as f:
     best_points = json.load(f)
 with open(os.path.join(base_output_path, "pr_results.json"), 'r') as f:
         pr_results = json.load(f)
 
-model_number = "9"
+model_number = "19"
 base_output_path = f"/user/christoph.wald/u15287/insect_pest_detection/2_5_self_training/metrics/train{model_number}"
 with open(os.path.join(base_output_path, "operating_points.json"), "r") as f:
     second_points = json.load(f)

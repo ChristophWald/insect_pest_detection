@@ -21,7 +21,7 @@ if set(os.listdir("/user/christoph.wald/u15287/insect_pest_detection/2_5_self_tr
 
 
 #for metrics
-output_folder = "/user/christoph.wald/u15287/insect_pest_detection/2_5_self_training/metrics"
+output_folder = "/user/christoph.wald/u15287/insect_pest_detection/2_5_self_training/metrics_ssl"
 os.makedirs(output_folder, exist_ok=True)
 
 #folder with images and labels in tiles to write onto and to copy from
@@ -34,16 +34,16 @@ delete_cache_files(os.path.join(training_folder, "labels"))
 
 training_runs = 3
 thresholds = [
-    {"BRAIIM": 0.75, "LIRIBO": 0.75, "FRANOC": 0, "TRIAVA": 0.75}  ,
-    {"BRAIIM": 0.75, "LIRIBO": 0.75, "FRANOC": 0, "TRIAVA": 0.75}  ,
-    {"BRAIIM": 0.75, "LIRIBO": 0.75, "FRANOC": 0, "TRIAVA": 0.75} 
+    {"BRAIIM": 0.4, "LIRIBO": 0.4, "FRANOC": 0, "TRIAVA": 0.4}  ,
+     {"BRAIIM": 0.4, "LIRIBO": 0.4, "FRANOC": 0, "TRIAVA": 0.4}  , 
+     {"BRAIIM": 0.4, "LIRIBO": 0.4, "FRANOC": 0, "TRIAVA": 0.4}  
       
 ]
-empty_file_percentages = [0,5,0]
+empty_file_percentages = [0,0,0]
 epochs = [5,5,10]
 
 #Main training loop
-for i in range(1, 2):
+for i in range(1,4):
     
 
     print(f"Starting run {i}/{training_runs}")
@@ -57,8 +57,8 @@ for i in range(1, 2):
         model_path = f"/user/christoph.wald/u15287/insect_pest_detection/2_5_self_training/runs/detect/train/weights/best.pt"
     else:
         #for weighted training
-        model_path = f"/user/christoph.wald/u15287/ultralytics/runs/detect/train{i}/weights/best.pt" 
-        #model_path = f"/user/christoph.wald/u15287/insect_pest_detection/2_5_self_training/runs/detect/train{i}/weights/best.pt"
+        #model_path = f"/user/christoph.wald/u15287/ultralytics/runs/detect/train{i}/weights/best.pt" 
+        model_path = f"/user/christoph.wald/u15287/insect_pest_detection/2_5_self_training/runs/detect/train{i}/weights/best.pt"
     
     if not os.path.exists(model_path):
         print(model_path)

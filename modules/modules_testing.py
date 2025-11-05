@@ -146,9 +146,9 @@ def add_labels(pred_file,
     print(thresholds)
 
     #folder with images and labels in tiles to write onto (optional) and to copy from
-    tiles_folder = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/SSL/tiles"
+    tiles_folder = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/SSL/tiles_mininside08"
     # folder with images and labels in yolo-format
-    training_folder = "/user/christoph.wald/u15287/big-scratch/04_SSL_training_data/training_data"
+    training_folder = "/user/christoph.wald/u15287/big-scratch/04_SSL_training_data/training_data_mininside08_added025_train15"
 
 
     # Only FP predictions from the JSON
@@ -194,7 +194,7 @@ def add_labels(pred_file,
                     # Path to the existing tile label file
                     base_filename = os.path.splitext(base_name)[0]  # e.g., "LIRIBO_0629"
                     full_filename = f"{base_filename}_tile_{tile_id}.txt"
-                    tile_file = os.path.join(tiles_folder,file_usage,"labels_training_run",full_filename) 
+                    tile_file = os.path.join(tiles_folder, "images",full_filename) 
                     label_file = os.path.join(training_folder, "labels", file_usage,full_filename)
 
                     # Append the FP prediction directly
@@ -230,7 +230,7 @@ def add_labels(pred_file,
                                             
 
                         if is_empty:
-                            src_image = os.path.join(tiles_folder,file_usage, "images", os.path.splitext(full_filename)[0]+".jpg")
+                            src_image = os.path.join(tiles_folder, "images", os.path.splitext(full_filename)[0]+".jpg")
                             dest_image = os.path.join(training_folder, "images", file_usage, os.path.splitext(full_filename)[0]+".jpg")
                             shutil.copy(src_image, dest_image)
 
@@ -419,21 +419,22 @@ def evaluate_on_test_set_image_proc(conf_threshold, model_number = "", save_imag
     print(f"Predicting took {end-start:.2f} seconds.")
     start = end
 
+
 def predict_on_tiles(model_number = "", output_number = "x"):
     start = time.time()
 
     print("Predicting on the tiles.")
-    model = YOLO(f"/user/christoph.wald/u15287/insect_pest_detection/2_5_self_training/runs/detect/train{model_number}/weights/best.pt")
+    model = YOLO(f"/user/christoph.wald/u15287/insect_pest_detection/2_3_supervised_training/runs/detect/train{model_number}/weights/best.pt")
     
-    # full images folder (predicting on cropped image contained in train/val)
+    # full images folder (predicting on cropped image, because these are all rotated
     image_dirs = [
-        "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/SSL/split/images/train",
+        "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/SSL/04_images_cropped",
         #"/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/SSL/split/images/val"
     ]
 
     # tile labels folder
     label_dirs = [
-        "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/SSL/tiles/train/labels",
+        "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/SSL/tiles_mininside08/labels",
         #"/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/SSL/tiles/val/labels"
     ]
     
@@ -449,6 +450,10 @@ def predict_on_tiles(model_number = "", output_number = "x"):
 
         # cycles through all images in a directory
         for filename in os.listdir(image_dir):
+            if filename not in os.listdir("/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/split/images/train"):
+                continue
+            if filename.startswith("FRANOC"):
+                continue
             print(f"Predicting on {filename}.")
             image_path = os.path.join(image_dir, filename)
             image = cv2.imread(image_path)
@@ -465,15 +470,19 @@ def predict_on_tiles(model_number = "", output_number = "x"):
                 #print(f"Predicted: {boxes.size(0)}")
             
             pred_tiles_data = get_labels_per_tile_tensor(image, boxes, class_ids, confs)
-            label_tiles_data = load_label_tiles(label_dir, filename)
 
+
+            label_tiles_data = load_label_tiles(label_dir, filename)
             results = []
+
+            
 
             # This is the per-tile loop:
             for tile_id, (pred, label) in enumerate(zip(pred_tiles_data, label_tiles_data)):
                 # pred = predictions for tile i
                 # label = labels for tile i
 
+                
                 if pred.numel() == 0:
                     pred_boxes = torch.empty((0, 4), device='cuda')
                     pred_classes = torch.empty((0,), dtype=torch.long, device='cuda')
@@ -494,6 +503,8 @@ def predict_on_tiles(model_number = "", output_number = "x"):
                     pred_boxes, pred_classes, pred_scores, gt_boxes, gt_classes
                 )
                 species = filename.split("_")[0]  # extract species from filename
+
+                
 
                 # --- Add entries to JSON with tile_id ---
                 for category, items in zip(["TP", "FP", "FN"], [tp, fp, fn]):

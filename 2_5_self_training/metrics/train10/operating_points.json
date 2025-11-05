@@ -1,0 +1,30 @@
+{
+    "fungus gnats": {
+        "precision": 0.743859649122807,
+        "recall": 0.6379137412236711,
+        "score": 0.6250501275062561,
+        "f1": 0.6868250539956803,
+        "method": "closest_below"
+    },
+    "leaf miner flies": {
+        "precision": 0.8288590604026845,
+        "recall": 0.7030360531309298,
+        "score": 0.6758965253829956,
+        "f1": 0.7607802874743326,
+        "method": "closest_below"
+    },
+    "whiteflies": {
+        "precision": 0.7341356673960613,
+        "recall": 0.45429925524712256,
+        "score": 0.25118184089660645,
+        "f1": 0.561271434546215,
+        "method": "closest_below"
+    },
+    "all_classes": {
+        "precision": 0.8231904086782279,
+        "recall": 0.45,
+        "score": 0.6125957344969114,
+        "f1": 0.5819014679662456,
+        "method": "closest_below"
+    }
+}

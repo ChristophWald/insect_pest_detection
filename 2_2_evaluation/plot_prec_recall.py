@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 '''
 simple plots for visualizing losses
 '''
-for i in range(1,11):
+for i in range(1,17):
     # Load the CSV file
     file_path = f'/user/christoph.wald/u15287/insect_pest_detection/2_3_supervised_training/runs/detect/train{i}/results.csv'
     

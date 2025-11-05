@@ -20,6 +20,10 @@ import time
 
 print("Initializing.")
 
+output_path  = "/user/christoph.wald/u15287/insect_pest_detection/2_5_self_training/metrics"
+os.makedirs(output_path, exist_ok=True)
+
+'''
 save_images = False
 save_results = True
 skip_FRANOC = True
@@ -31,8 +35,7 @@ test_runs = len(conf_threshold)
 base_input_path = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/test_set"
 base_image_path = os.path.join(base_input_path, "images")
 base_label_path = os.path.join(base_input_path, "labels")
-output_path  = "/user/christoph.wald/u15287/insect_pest_detection/2_5_self_training/metrics_second_iteration"
-os.makedirs(output_path, exist_ok=True)
+
 
 #collecting test files
 filenames = os.listdir(base_image_path)
@@ -42,6 +45,8 @@ filenames.sort()
 #print("Plotting training curves.")
 #plot_prec_recall(output_path)
 print("Plot histograms of predictions on tiles.")
+
+'''
 '''
 
 #test runs
@@ -107,7 +112,7 @@ class_name_map = {
     '1': 'LIRIBO',
     '3': 'TRIVA'
 }
-
+'''
 import os, re
 
 def natural_sort_key(path):
@@ -128,6 +133,23 @@ print
 
 if not metric_files:
     raise FileNotFoundError(f"No metrics files found under {output_path}")
+'''
+
+
+# You can do this:
+metric_files = [
+    #"/user/christoph.wald/u15287/insect_pest_detection/2_5_self_training/metrics/train2_val_set/metrics.json",
+    "/user/christoph.wald/u15287/insect_pest_detection/2_5_self_training/metrics/train3_val_set/metrics.json",
+    "/user/christoph.wald/u15287/insect_pest_detection/2_5_self_training/metrics/train4_val_set/metrics.json",
+    #"/user/christoph.wald/u15287/insect_pest_detection/2_5_self_training/metrics/train6_val_set/metrics.json",
+    #"/user/christoph.wald/u15287/insect_pest_detection/2_5_self_training/metrics/train7_val_set/metrics.json",
+    "/user/christoph.wald/u15287/insect_pest_detection/2_5_self_training/metrics/train8_val_set/metrics.json",
+    #"/user/christoph.wald/u15287/insect_pest_detection/2_5_self_training/metrics/train9_val_set/metrics.json",
+    #"/user/christoph.wald/u15287/insect_pest_detection/2_5_self_training/metrics/train11_val_set/metrics.json",
+    #"/user/christoph.wald/u15287/insect_pest_detection/2_5_self_training/metrics/train12_val_set/metrics.json",
+    "/user/christoph.wald/u15287/insect_pest_detection/2_5_self_training/metrics/train13_val_set/metrics.json"
+]
+
 
 # Read all JSON metrics
 results = {}

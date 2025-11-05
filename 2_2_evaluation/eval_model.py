@@ -570,7 +570,7 @@ def plot_pr_curves(pr_results, best_points=None, second_points=None, base_output
 #unify path settings and saving/loading
 
 
-model_number = "9"
+model_number = "19"
 base_output_path = f"/user/christoph.wald/u15287/insect_pest_detection/2_5_self_training/metrics/train{model_number}"
 os.makedirs(base_output_path, exist_ok=True)
 

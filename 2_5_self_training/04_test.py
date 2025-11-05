@@ -2,13 +2,13 @@ import sys
 sys.path.append("/user/christoph.wald/u15287/insect_pest_detection/modules")
 from modules_testing import *
 
-predict = False
-model_number = "4"
+predict = True
+model_number = "15"
 predict_on_new = False
 update_labels = False
 #add_empty_tiles()
 train_model = False
-eval_run = True
+eval_run = False
 
 
 ###############
@@ -38,13 +38,13 @@ if predict or predict_on_new:
 if update_labels:
     add_labels(
         pred_file = "predictions_on_all_images.json", #change if needed!
-        thresholds = {"BRAIIM": 0.71, "LIRIBO": 0.8, "FRANOC": 0, "TRIAVA": 0.41},
-        run_number = "unlabeled_add",
-        correct_labels = True,
+        thresholds = {"BRAIIM": 0.7, "LIRIBO": 0.7, "FRANOC": 0, "TRIAVA": 0.6},
+        run_number = "15",
+        correct_labels = False,
         threshold_steps = False,
         write = True,
         write_into_tiles = False,
-        add_weights=True
+        add_weights=False
     )
 
 ####################
@@ -77,31 +77,12 @@ if eval_run:
                              1: 0.4253721833229065, 
                              2: 0.5093783140182495, 
                              3: 0.5793536305427551}
-    #train2 
-    class_conf_thresholds = {0: 0.4440160095691681, 
-                             1: 0.4469864070415497, 
+    class_conf_thresholds = {0: 0.48232144117355347, 
+                             1: 0.6685810089111328, 
                              2: 0.0, 
-                             3: 0.2506190240383148}
-
-    #train5 
-    class_conf_thresholds = {0: 0.258309543132782, 
-                             1: 0.4382556676864624, 
-                             2: 0.0, 
-                             3: 0.2503660321235657}
+                             3: 0.2537632882595062}
     
-    #train7 
-    class_conf_thresholds = {0: 0.29972055554389954, 
-                             1: 0.5328308939933777, 
-                             2: 0.0, 
-                             3: 0.2504380941390991}
-
-    #train8
-    class_conf_thresholds = {0:  0.38608258962631226, 
-                             1: 0.5089796781539917, 
-                             2: 0.0, 
-                             3: 0.2502722442150116}
-
-    evaluate(0.2, "8",  save_images = False, per_class_confs = class_conf_thresholds)
+    evaluate(0.2, "19",  save_images = False, per_class_confs = class_conf_thresholds)
 
 
     
