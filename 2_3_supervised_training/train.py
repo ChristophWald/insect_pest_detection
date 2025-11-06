@@ -10,11 +10,11 @@ just the model.train with parameters
 #p1
 #model = YOLO('yolov8s.pt')
 
-
+'''
 #
 #model = YOLO('yolov8s.pt')
 model = YOLO("/user/christoph.wald/u15287/insect_pest_detection/2_3_supervised_training/runs/detect/train15/weights/best.pt")
-model.train(data = "/user/christoph.wald/u15287/big-scratch/04_SSL_training_data/training_data_mininside08_added025_train15/data.yaml", 
+model.train(data = "/user/christoph.wald/u15287/big-scratch/04_SSL_training_data/training_data_mininside08_added025_train15_added07/data.yaml", 
             epochs=20, 
             #patience = 10, 
             imgsz=640,
@@ -35,10 +35,10 @@ model.train(data = "/user/christoph.wald/u15287/big-scratch/04_SSL_training_data
 
 
 #for resuming training
-model = YOLO('/user/christoph.wald/u15287/insect_pest_detection/2_3_supervised_training/runs/detect/train17/weights/last.pt')
+model = YOLO('/user/christoph.wald/u15287/insect_pest_detection/2_3_supervised_training/runs/detect/train18/weights/last.pt')
 model.train(resume=True)  
 
-'''
+
 '''
 
 model = YOLO("/user/christoph.wald/u15287/insect_pest_detection/3_1_supervised_training_evaluation/runs/detect/train6/weights/best.pt")

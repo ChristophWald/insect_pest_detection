@@ -275,6 +275,12 @@ def compare_labels_vectorized(
     """
     device = pred_boxes.device
 
+    #sorting by confidence
+    sort_idx = torch.argsort(pred_scores, descending=True)
+    pred_boxes = pred_boxes[sort_idx]
+    pred_classes = pred_classes[sort_idx]
+    pred_scores = pred_scores[sort_idx]
+
     if convert_to_xyxy:
         pred_boxes_xyxy = yolo_to_xyxy_tensor(pred_boxes)
         gt_boxes_xyxy   = yolo_to_xyxy_tensor(gt_boxes)
@@ -332,7 +338,7 @@ def compare_labels_vectorized(
     for i in range(pred_boxes.size(0)):
         possible = torch.where(match_matrix[i] & ~matched_gt)[0]
         if possible.numel() > 0:
-            j = possible[0].item()
+            j = possible[torch.argmax(iou[i, possible])].item() #picks box with highest iou
             tp_boxes.append(pred_boxes_xyxy[i].cpu().tolist())
             tp_classes.append(int(pred_classes[i].cpu()))
             tp_scores.append(float(pred_scores[i].cpu()))

@@ -3,13 +3,16 @@ import matplotlib.pyplot as plt
 
 import matplotlib.patches as mpatches
 
-df = pd.read_csv("/user/christoph.wald/u15287/insect_pest_detection/3_2_image_processing_evaluation/mask_tests/revised_mask_testing_collected_results.csv")
+df = pd.read_csv("/user/christoph.wald/u15287/insect_pest_detection/3_2_image_processing_evaluation/mask_tests_on_labeled_data/revised_mask_testing_collected_results.csv")
 
 
 # To avoid confusion with repeated mask labels, add index numbers
 df["label"] = df.index + 1 # numerical x-axis for plotting
 mask_labels = df["mask"] # store mask names separately for tick labels
-mask_labels = ["Fig. 9b", "Fig. 9b", "Fig. 9c", "Fig. 9d", "Fig. 9e", "Fig. 9f" ]
+mask_labels = ["Fig. 9b", "Fig. 9b", "Fig. 9c",  "Fig. 9f" ]
+#"Fig. 9d", "Fig. 9e",
+df = df[~df["label"].isin([4, 5])]
+df["label"] = range(1, len(df) + 1)
 
 # Plot all in one graph
 plt.figure(figsize=(12, 8))
@@ -17,7 +20,7 @@ plt.figure(figsize=(12, 8))
 
 # Add background colors
 plt.axvspan(0.5, 1.5, facecolor='lightyellow', alpha=0.5)
-plt.axvspan(1.5, 6.5, facecolor='moccasin', alpha=0.5)
+plt.axvspan(1.5, 4.5, facecolor='moccasin', alpha=0.5)
 
 yellow_patch = mpatches.Patch(color='lightyellow', alpha=0.5, label='mask transformation')
 orange_patch = mpatches.Patch(color='moccasin', alpha=0.5, label='+ extra shift')

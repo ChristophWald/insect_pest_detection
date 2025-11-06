@@ -20,7 +20,7 @@ def raw_predictions_on_val(model_number, base_output_path, skip_FRANOC = False, 
     all_results = []
 
     print(f"Testing model {model_number}.")
-    model_path = f"/user/christoph.wald/u15287/insect_pest_detection/2_3_supervised_training/runs/detect/train{model_number}/weights/best.pt"
+    model_path = f"/user/christoph.wald/u15287/insect_pest_detection/3_1_supervised_training_evaluation/runs/detect/train{model_number}/weights/best.pt"
 
 
     if os.path.exists(model_path):
@@ -98,7 +98,7 @@ def compare_labels_single(pred_box, pred_class, pred_score, gt_boxes, gt_classes
 
     if gt_boxes.numel() == 0:
         # No GT, automatically FP
-        return True, False  # TP=False, FP=True
+        return False, True  # TP=False, FP=True
 
     if convert_to_xyxy:
         pred_xyxy = yolo_to_xyxy_tensor(pred_box)
@@ -266,7 +266,6 @@ def compute_pr_curves_fixed(pred_json_path, class_names, iou_threshold=0.5, cont
     print(f"Total GT boxes: {total_gt_boxes}, total GT matched: {total_gt_matches}")
 
     return pr_results
-
 def compute_pr_curves_with_all_fixed(pred_json_path, class_names, iou_threshold=0.5, containment_threshold=0.9):
     """
     Compute per-class PR curves and a macro-averaged PR curve including interpolated scores.
@@ -308,128 +307,6 @@ def compute_pr_curves_with_all_fixed(pred_json_path, class_names, iou_threshold=
     if valid_class_count > 0:
         avg_precision /= valid_class_count
         avg_scores /= valid_class_count
-
-    # Store macro-averaged results
-    pr_results["all_classes"] = {
-        "recall": recall_points.tolist(),
-        "precision": avg_precision.tolist(),
-        "scores": avg_scores.tolist()
-    }
-
-    return pr_results
-
-
-def compute_pr_curves_old(pred_json_path, class_names, iou_threshold=0.5, containment_threshold=0.5):
-    import torch, os, cv2
-    print("Load predictions.")
-    predictions = load_predictions(pred_json_path)
-
-    pr_results = {cls: {"precision": [], "recall": []} for cls in class_names}
-
-    base_input_path = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/split"
-    base_image_path = os.path.join(base_input_path, "images/val")  
-    base_label_path = os.path.join(base_input_path, "labels/val")  
-
-    # Load ground truth
-    print("Load ground truth.")
-    gt_dict = {}
-    for filename in os.listdir(base_label_path):
-        jpg_filename = os.path.splitext(filename)[0] + ".jpg"
-        img = cv2.imread(os.path.join(base_image_path, jpg_filename))
-        img_height, img_width = img.shape[:2]
-        boxes, classes = load_yolo_labels(os.path.join(base_label_path, filename), img_width, img_height)
-        gt_dict[jpg_filename] = {"boxes": boxes, "classes": classes}
-
-    for cls_id, cls_name in enumerate(class_names):
-        print(f"Processing class '{cls_name}'...")
-
-        # Collect all predictions for this class across all images
-        class_preds = []
-        for p in predictions:
-            for box, score, c in zip(p["boxes"], p["scores"], p["classes"]):
-                if c == cls_id:
-                    class_preds.append({"filename": p["filename"], "box": box, "score": score, "class": c})
-
-        # Sort predictions by descending confidence
-        class_preds.sort(key=lambda x: x["score"], reverse=True)
-
-        tp_cum, fp_cum = [], []
-        tp_total, fp_total = 0, 0
-        total_gt = sum([gt_dict[f]["classes"].count(cls_id) for f in gt_dict])
-
-        for d in class_preds:
-            filename = d["filename"]
-            gt_data = gt_dict.get(filename, {"boxes": [], "classes": []})
-            pred_box = torch.tensor(d["box"]).unsqueeze(0).to("cuda")
-            pred_class = torch.tensor([d["class"]]).to("cuda")
-            pred_score = torch.tensor([d["score"]]).to("cuda")
-            gt_boxes = torch.tensor(gt_data["boxes"]).to("cuda")
-            gt_classes = torch.tensor(gt_data["classes"]).to("cuda")
-
-            # Use compare_labels_vectorized directly for matching
-            tp, fp, fn = compare_labels_vectorized(
-                pred_box, pred_class, pred_score,
-                gt_boxes, gt_classes,
-                iou_threshold=iou_threshold,
-                containment_threshold=containment_threshold,
-                convert_to_xyxy=False
-            )
-
-            # Update cumulative counts
-            tp_total += len(tp[0])
-            fp_total += len(fp[0])
-
-            tp_cum.append(tp_total)
-            fp_cum.append(fp_total)
-
-        # Compute precision and recall at each rank
-        precision = [tp/(tp+fp) if (tp+fp) > 0 else 1.0 for tp, fp in zip(tp_cum, fp_cum)]
-        recall = [tp/total_gt if total_gt > 0 else 0.0 for tp in tp_cum]
-
-        pr_results[cls_name] = {
-            "tp_cum": tp_cum,
-            "fp_cum": fp_cum,
-            "scores": [d["score"] for d in class_preds],
-            "total_gt": total_gt,
-            "precision": precision,
-            "recall": recall
-        }
-
-    return pr_results
-
-def compute_pr_curves_with_all(pred_json_path, class_names, iou_threshold=0.5, containment_threshold=0.5):
-    """
-    Compute per-class PR curves and a macro-averaged PR curve including interpolated scores.
-    This approach is robust to class imbalance.
-    """
-    # Compute per-class PR curves
-    pr_results = compute_pr_curves(pred_json_path, class_names, iou_threshold, containment_threshold)
-
-    # Standard recall points for interpolation
-    recall_points = np.linspace(0, 1, 101)  # 0.0, 0.01, ..., 1.0
-    avg_precision = np.zeros_like(recall_points)
-    avg_scores = np.zeros_like(recall_points)
-
-    for cname in class_names:
-        recall = np.array(pr_results[cname]['recall'])
-        precision = np.array(pr_results[cname]['precision'])
-        scores = np.array(pr_results[cname]['scores'])
-        
-        # Skip empty classes (no predictions)
-        if recall.size == 0 or precision.size == 0:
-            print(f"⚠️ Skipping class '{cname}' — no data for interpolation.")
-            continue
-        
-        # Interpolate precision and scores at fixed recall points
-        prec_interp = np.interp(recall_points, recall, precision, left=1.0, right=0.0)
-        score_interp = np.interp(recall_points, recall, scores, left=1.0, right=0.0)
-        
-        avg_precision += prec_interp
-        avg_scores += score_interp
-
-    # Macro-average across classes
-    avg_precision /= len(class_names)
-    avg_scores /= len(class_names)
 
     # Store macro-averaged results
     pr_results["all_classes"] = {
@@ -569,38 +446,38 @@ def plot_pr_curves(pr_results, best_points=None, second_points=None, base_output
 #todo
 #unify path settings and saving/loading
 
+for m in range(1,11):
+    model_number = m
+    base_output_path = f"/user/christoph.wald/u15287/insect_pest_detection/3_1_supervised_training_evaluation/metrics/train{model_number}"
+    os.makedirs(base_output_path, exist_ok=True)
 
-model_number = "19"
-base_output_path = f"/user/christoph.wald/u15287/insect_pest_detection/2_5_self_training/metrics/train{model_number}"
-os.makedirs(base_output_path, exist_ok=True)
-
-class_names = ["fungus gnats", "leaf miner flies", "thrips", "whiteflies"]  # replace with your classes
+    class_names = ["fungus gnats", "leaf miner flies", "thrips", "whiteflies"]  # replace with your classes
 
 
-#makes prediction with conf=0 and saves them
-raw_predictions_on_val(model_number = model_number,
-                       base_output_path=base_output_path,
-                       skip_FRANOC = True, 
-                       predict_on_tiles = True)
+    #makes prediction with conf=0 and saves them
+    raw_predictions_on_val(model_number = model_number,
+                        base_output_path=base_output_path,
+                        skip_FRANOC = True, 
+                        predict_on_tiles = True)
 
-#reload the raw predictions and creates precision recall curves
-pred_json_path = os.path.join(base_output_path, "predictions_for_pr.json")
-pr_results = compute_pr_curves_with_all_fixed(pred_json_path, class_names)
+    #reload the raw predictions and creates precision recall curves
+    pred_json_path = os.path.join(base_output_path, "predictions_for_pr.json")
+    pr_results = compute_pr_curves_with_all_fixed(pred_json_path, class_names, iou_threshold=0.5, containment_threshold=0.5)
 
-# saves pr results
-with open(os.path.join(base_output_path, "pr_results.json"), "w") as f:
-    json.dump(pr_results, f, indent=4)
+    # saves pr results
+    with open(os.path.join(base_output_path, "pr_results.json"), "w") as f:
+        json.dump(pr_results, f, indent=4)
 
-#reloads the pr results
-with open(os.path.join(base_output_path, "pr_results.json"), 'r') as f:
-        pr_results = json.load(f)
+    #reloads the pr results
+    with open(os.path.join(base_output_path, "pr_results.json"), 'r') as f:
+            pr_results = json.load(f)
 
-#plots the curves
-best_points = find_best_pr_points(pr_results)
+    #plots the curves
+    best_points = find_best_pr_points(pr_results)
 
-with open(os.path.join(base_output_path, "operating_points.json"), "w") as f:
-    json.dump(best_points, f, indent=4)
+    with open(os.path.join(base_output_path, "operating_points.json"), "w") as f:
+        json.dump(best_points, f, indent=4)
 
-plot_pr_curves(pr_results, best_points=best_points, base_output_path=base_output_path)
+    plot_pr_curves(pr_results, best_points=best_points, base_output_path=base_output_path)
 
 
