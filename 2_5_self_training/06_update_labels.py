@@ -5,7 +5,19 @@ import time
 import os
 import json
 import shutil
-from modules_prediction import xyxy_to_yolo
+import cv2
+
+def xyxy_to_yolo(x1, y1, x2, y2, width, height):
+    """
+    Convert bounding box from [x1, y1, x2, y2] to YOLO [x_center, y_center, w, h]
+    normalized by image width and height.
+    """
+    x_center = (x1 + x2) / 2 / width
+    y_center = (y1 + y2) / 2 / height
+    w = (x2 - x1) / width
+    h = (y2 - y1) / height
+    return [x_center, y_center, w, h]
+
 
 def add_labels(pred_file, 
                thresholds, 
@@ -30,9 +42,9 @@ def add_labels(pred_file,
 
     print(f"Adding labels from prediction file {pred_file} with thresholds {thresholds}.")
 
-    output_folder = "/user/christoph.wald/u15287/insect_pest_detection/2_5_self_training/metrics"
+    output_folder = "/user/christoph.wald/u15287/insect_pest_detection/training/metrics"
     
-    pred_file = os.path.join("/user/christoph.wald/u15287/insect_pest_detection/2_5_self_training/predictions", pred_file)
+    pred_file = os.path.join("/user/christoph.wald/u15287/insect_pest_detection/training/predictions", pred_file)
 
     # Load predictions
     with open(pred_file, "r") as f:
@@ -44,9 +56,9 @@ def add_labels(pred_file,
     print(thresholds)
 
     #folder with images and labels in tiles to write onto (optional) and to copy from
-    tiles_folder = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/SSL/tiles_mininside08"
+    tiles_folder = "dummy"
     # folder with images and labels in yolo-format
-    training_folder = "/user/christoph.wald/u15287/big-scratch/04_SSL_training_data/training_data_mininside08_added025_train15_added07"
+    training_folder = "/user/christoph.wald/u15287/big-scratch/04_SSL_training_data/training_data"
 
 
     # Only FP predictions from the JSON
@@ -91,12 +103,26 @@ def add_labels(pred_file,
 
                     # Path to the existing tile label file
                     base_filename = os.path.splitext(base_name)[0]  # e.g., "LIRIBO_0629"
-                    full_filename = f"{base_filename}_tile_{tile_id}.txt"
+                    full_filename = f"{base_filename}.txt"
+                    # full_filename = f"{base_filename}_tile_{tile_id}.txt"
                     tile_file = os.path.join(tiles_folder, "images",full_filename) 
                     label_file = os.path.join(training_folder, "labels", file_usage,full_filename)
 
                     # Append the FP prediction directly
-                    yolo_box = xyxy_to_yolo(x1, y1, x2, y2, tile_size=640)
+
+                    src_image = os.path.join("/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/split/images/train", os.path.splitext(full_filename)[0]+".jpg")
+
+                    # Load image with cv2
+                    img = cv2.imread(src_image)
+                    if img is None:
+                        raise FileNotFoundError(f"Image {src_image} not found or cannot be opened.")
+
+                    height, width = img.shape[:2]  # note: OpenCV returns (height, width, channels)
+
+                    # Convert prediction to YOLO format
+                    yolo_box = xyxy_to_yolo(x1, y1, x2, y2, width=width, height=height)
+
+                    #yolo_box = xyxy_to_yolo(x1, y1, x2, y2, tile_size=640) #shape is hardcoded
 
                     # ---- LOG HERE ----
                     fp_log.write(
@@ -154,10 +180,10 @@ def add_labels(pred_file,
     start = end
 
 add_labels(
-    pred_file = "predictions_on_all_images.json", #change if needed!
-    thresholds = {"BRAIIM": 0.7, "LIRIBO": 0.7, "FRANOC": 0, "TRIAVA": 0.6},
-    run_number = "15_06a",
-    correct_labels = False,
+    pred_file = "predictions_fullimage_2.json", #change if needed!
+    thresholds = {"BRAIIM": 0.2, "LIRIBO": 0.2, "FRANOC": 0, "TRIAVA": 0.2},
+    run_number = "1",
+    correct_labels = True,
     threshold_steps = False,
     write = True,
     write_into_tiles = False,

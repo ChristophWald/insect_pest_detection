@@ -18,7 +18,7 @@ get_cutout_boxes = False
 ##################
 if get_images:
     #Loading empty YSTs
-    empty_image_folder = "/user/christoph.wald/u15287/big-scratch/00_uncropped_dataset/emptyYST"
+    empty_image_folder = "/user/christoph.wald/u15287/big-scratch/emptyYST"
     empty_image_files = os.listdir(empty_image_folder)
     empty_YSTs = []
     for f in empty_image_files:
@@ -147,14 +147,14 @@ if get_cutout_boxes:
 
                 value = region_hsv[:, :, 2]
                 otsu_thresh_value, binary_mask = cv2.threshold(value, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
-                
+                '''
                 #v1 result
                 binary_mask_inv = cv2.bitwise_not(binary_mask)  # foreground=255, background=0
                 foreground = cv2.bitwise_and(region_bgr, region_bgr, mask=binary_mask_inv)
                 background = np.full_like(region_bgr, 255)  # white background
                 result = np.where(binary_mask_inv[:, :, np.newaxis] == 0, background, foreground)
-                
                 '''
+                
                 #v2 result
                 #not need, because i hardcoded hue threshold
                 #hue = region_hsv[:, :, 0]
@@ -167,7 +167,7 @@ if get_cutout_boxes:
                 foreground = cv2.bitwise_and(region_bgr, region_bgr, mask=binary_mask_inv)
                 background = np.full_like(region_bgr, 255)
                 result = np.where(binary_mask_inv[:, :, np.newaxis] == 0, background, foreground)
-                '''
+                
 
             result = keep_central_contour(result)
             # --- Compute ratio of non-white area ---
@@ -230,7 +230,7 @@ else:
 
 
 #############
-n_per_region = 8 #per region
+n_per_region = 6 #per region
 n_per_image = int(5.5 * n_per_region)
 images_per_insect = 6
 augmentations = 4 #4
@@ -247,8 +247,8 @@ os.makedirs(image_path, exist_ok=True)
 #create a random selection to take from 
 selected_insects = [[], [], []]
 
-selected_insects[2] = random.sample(all_insects[2], k=len(all_insects[2]))
-
+for i in range(3):
+    selected_insects[i] = random.sample(all_insects[i], k=n_total)
 
 
 counter = 0
@@ -257,60 +257,6 @@ for i, emptyYST in enumerate(sheared_YSTs):
     #mask with fat lines
     mask_fat = get_mask(emptyYST, processed_mask, gridcorners, mask_h_line)
     mask_binary_fat = (mask_fat < 128).astype(np.uint8) #convert to 0/1 mask
-
-    #crop image
-    imageYST = find_contour(emptyYST)
-    x, y, w, h = cv2.boundingRect(imageYST)
-    empty_YST_cropped = emptyYST[y:y+h, x:x+w]
-
-    #mask with thin lines
-    mask = create_binary_mask(empty_YST_cropped) 
-    mask_binary = (mask < 128).astype(np.uint8) #convert to 0/1 mask
-    mask_binary = remove_border_connected(mask_binary) #remove borders to place insects only on the YS
-        
-
-    for aug_idx in range(4):
-        idx_insects = 2  # always use species 2
-        idx_augmentation = aug_idx
-
-        print(f"Class {pest_types[idx_insects]}, augmentation {idx_augmentation}.")
-
-        img = empty_YST_cropped.copy()
-        _, placed_boxes = place_insects_by_region(img, mask_binary, selected_insects[idx_insects], n_per_region)
-        _, placed_boxes = place_insects_by_region(img, mask_binary_fat, selected_insects[idx_insects], n_per_region)
-
-        if idx_augmentation == 1:
-            img = cv2.rotate(img, cv2.ROTATE_180)
-        elif idx_augmentation == 2:
-            img = random_light_variation(img)
-        elif idx_augmentation == 3:
-            img = cv2.rotate(img, cv2.ROTATE_180)
-            img = random_light_variation(img)
-
-        cv2.imwrite(
-            os.path.join(image_path, f"{pest_types[idx_insects]}_{counter}_YST{i}_aug{idx_augmentation}.jpg"),
-            img
-        )
-        with open(
-            os.path.join(label_path, f"{pest_types[idx_insects]}_{counter}_YST{i}_aug{idx_augmentation}.txt"),
-            "w"
-        ) as f:
-            for (x1, y1, x2, y2) in placed_boxes:
-                x1, y1, x2, y2 = map(int, [x1, y1, x2, y2])
-                w = x2 - x1
-                h = y2 - y1
-                f.write(f"[{x1}, {y1}, {w}, {h}]\n")
-
-        counter += 1
-
-
-'''
-counter = 0
-for i, emptyYST in enumerate(sheared_YSTs):
-
-    #mask with fat lines
-    #mask_fat = get_mask(emptyYST, processed_mask, gridcorners, mask_h_line)
-    #mask_binary_fat = (mask_fat < 128).astype(np.uint8) #convert to 0/1 mask
 
     #crop image
     imageYST = find_contour(emptyYST)
@@ -348,7 +294,7 @@ for i, emptyYST in enumerate(sheared_YSTs):
                 f.write(f"[{x1}, {y1}, {w}, {h}]\n")
 
         counter += 1
-'''
+
 
 
 '''

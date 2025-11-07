@@ -9,8 +9,8 @@ import torchvision
 
 def sliding_window_prediction(image, model, conf_threshold=0):
     height, width, _ = image.shape
-    tile_size = 640
-    stride = 420
+    tile_size = 1280 #640
+    stride = 1080 #420
 
     num_windows_y = (height - tile_size) // stride + 1
     num_windows_x = (width - tile_size) // stride + 1

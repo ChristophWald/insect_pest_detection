@@ -527,6 +527,7 @@ def plot_histograms(input_folder, output_folder):
             ax.set_title(f"{json_name} - {species}")
             ax.set_xlabel("Confidence")
             ax.set_ylabel("Frequency")
+            ax.set_ylim(0, 500)
             ax.grid(True)
 
             # --- Merge legends ---
