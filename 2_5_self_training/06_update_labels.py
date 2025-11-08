@@ -60,6 +60,19 @@ def add_labels(pred_file,
     # folder with images and labels in yolo-format
     training_folder = "/user/christoph.wald/u15287/big-scratch/04_SSL_training_data/training_data"
 
+    #add newline character at end of file if missing
+    label_path = os.path.join(training_folder, "labels/train")
+    for file in os.listdir(label_path):
+        if file.endswith(".txt"):
+            path = os.path.join(label_path, file)
+            with open(path, "rb+") as f:
+                f.seek(0, os.SEEK_END)
+                if f.tell() > 0:
+                    f.seek(-1, os.SEEK_END)
+                    if f.read(1) != b"\n":
+                        f.write(b"\n")
+
+
 
     # Only FP predictions from the JSON
     data = json_results["FP"]
@@ -178,6 +191,8 @@ def add_labels(pred_file,
     end = time.time()
     print(f"Adding the new labels took {end-start:.2f} seconds.")
     start = end
+
+
 
 add_labels(
     pred_file = "predictions_fullimage_2.json", #change if needed!
