@@ -86,7 +86,7 @@ def add_labels(pred_file,
 
         for species_name, images in data.items():
             for base_name, entries in images.items():
-
+                print(base_name)
                 #added for unsegemented images
                 file_usage = "train"
 
@@ -146,6 +146,8 @@ def add_labels(pred_file,
                     if write:
                         print(f"Writing to {label_file}")
                         is_empty = os.path.exists(label_file) == False
+                        if is_empty:
+                            print("Is empty.")
                         
                         if not is_empty and add_weights:
                             with open(label_file, "r") as f:
@@ -166,11 +168,7 @@ def add_labels(pred_file,
 
                                             
 
-                        if is_empty:
-                            src_image = os.path.join(tiles_folder, "images", os.path.splitext(full_filename)[0]+".jpg")
-                            dest_image = os.path.join(training_folder, "images", file_usage, os.path.splitext(full_filename)[0]+".jpg")
-                            shutil.copy(src_image, dest_image)
-
+                        
                     if write_into_tiles:
                         with open(tile_file, "a") as f:
                             f.write(f"{class_id} {yolo_box[0]} {yolo_box[1]} {yolo_box[2]} {yolo_box[3]}\n")
@@ -195,8 +193,8 @@ def add_labels(pred_file,
 
 
 add_labels(
-    pred_file = "predictions_fullimage_2.json", #change if needed!
-    thresholds = {"BRAIIM": 0.2, "LIRIBO": 0.2, "FRANOC": 0, "TRIAVA": 0.2},
+    pred_file = "predictions_fullimage_3.json", #change if needed!
+    thresholds = {"BRAIIM": 0.5, "LIRIBO": 1.0, "FRANOC": 0, "TRIAVA": },
     run_number = "1",
     correct_labels = True,
     threshold_steps = False,

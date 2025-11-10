@@ -14,6 +14,8 @@ from modules import load_yolo_labels
 from modules_evaluation import *
 
 
+
+
 def raw_predictions_on_val(model_number, base_output_path, skip_FRANOC = False, predict_on_tiles = False, test_set = False):
     start = time.time()
 
@@ -488,12 +490,13 @@ def plot_pr_curves(
 
 #todo
 #unify path settings and saving/loading
-test_set= False
-path = "/user/christoph.wald/u15287/insect_pest_detection/training/"
-#path = "/user/christoph.wald/u15287/insect_pest_detection/3_3_self_training_evaluation/"
+test_set= True
+#path = "/user/christoph.wald/u15287/insect_pest_detection/training/"
+path = "/user/christoph.wald/u15287/insect_pest_detection/3_3_self_training_evaluation/"
+#path = "/user/christoph.wald/u15287/insect_pest_detection/3_1_supervised_training_evaluation/"
 
 
-model_number = ""
+model_number = "16"
 
 
 if test_set:
@@ -510,8 +513,8 @@ class_names = ["fungus gnats", "leaf miner flies", "thrips", "whiteflies"]  # re
 #makes prediction with conf=0 and saves them
 raw_predictions_on_val(model_number = model_number,
                     base_output_path=base_output_path,
-                    skip_FRANOC = False, 
-                    predict_on_tiles = True,
+                    skip_FRANOC = True,
+                    predict_on_tiles = False,
                     test_set = test_set)
 
 #reload the raw predictions and creates precision recall curves

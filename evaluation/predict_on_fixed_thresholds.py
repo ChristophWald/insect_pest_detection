@@ -78,16 +78,18 @@ def evaluate(conf_threshold,
             
                
         else:
-            result = model(image,conf = conf_threshold, iou = 0.0,  verbose=False, augment=True)
+            result = model(image, conf=conf_threshold, iou=0.0, verbose=False, augment=True)
             predictions = result[0].boxes
 
             if predictions is None or len(predictions) == 0:
-                boxes, confs, class_ids = [], [], []
+                boxes = torch.empty((0, 4), dtype=torch.float32, device = "cuda")
+                confs = torch.empty((0,), dtype=torch.float32, device = "cuda")
+                class_ids = torch.empty((0,), dtype=torch.int64, device = "cuda")
             else:
-                boxes = predictions.xyxy
-                confs = predictions.conf
-                class_ids = predictions.cls
-        #boxes, confs, class_ids = sliding_window_prediction(image, model, conf_threshold)
+                boxes = predictions.xyxy.to("cuda")
+                confs = predictions.conf.to("cuda")
+                class_ids = predictions.cls.to("cuda")
+
         
 
         if per_class_confs is not None:
@@ -128,11 +130,7 @@ def evaluate(conf_threshold,
 
 
 
-#train6 supervised on full images
-class_conf_thresholds = {0: 0.5641838312149048, 
-                            1: 0.3325055241584778, 
-                            2: 0.380521297454834, 
-                            3: 0.5533483624458313}
+
 #train4 supervised on tiles
 class_conf_thresholds = {0: 0.6420546174049377, 
                             1: 0.4253721833229065, 
@@ -145,11 +143,30 @@ class_conf_thresholds = {0: 0.5729679465293884,
                             2: 0.0, 
                             3: 0.3088245987892151}
 
-model_number = "12"
+
+
+#train6 supervised on full images
+class_conf_thresholds = {0: 0.5641838312149048, 
+                            1: 0.3325055241584778, 
+                            2: 0.380521297454834, 
+                            3: 0.5533483624458313}
+
+
+#ssl train16
+class_conf_thresholds = {0:  0.612306535243988, 
+                            1:0.49190375208854675, 
+                            2: 0.0, 
+                            3: 0.49190375208854675}
+
+model_number = "16"
+#model = YOLO(f"/user/christoph.wald/u15287/insect_pest_detection/training/runs/detect/train{model_number}/weights/best.pt")
+#base_output_path = f"/user/christoph.wald/u15287/insect_pest_detection/training/metrics/train{model_number}_test_set"
 model = YOLO(f"/user/christoph.wald/u15287/insect_pest_detection/3_3_self_training_evaluation/runs/detect/train{model_number}/weights/best.pt")
-base_output_path = f"/user/christoph.wald/u15287/insect_pest_detection/3_3_self_training_evaluation/metrics/train{model_number}_old_test_set"
-#model = YOLO(f"/user/christoph.wald/u15287/insect_pest_detection/2_5_self_training/runs/detect/train{model_number}/weights/best.pt")
-#base_output_path = f"/user/christoph.wald/u15287/insect_pest_detection/2_5_self_training/metrics/train{model_number}"
+base_output_path = f"/user/christoph.wald/u15287/insect_pest_detection/3_3_self_training_evaluation/metrics/train{model_number}_test_set"
+#model = YOLO(f"/user/christoph.wald/u15287/insect_pest_detection/3_1_supervised_training_evaluation/runs/detect/train{model_number}/weights/best.pt")
+#base_output_path = f"/user/christoph.wald/u15287/insect_pest_detection/3_1_supervised_training_evaluation/metrics/train{model_number}_val_set"
+
+
 os.makedirs(base_output_path, exist_ok=True)
 
 evaluate(conf_threshold=0.2, 
@@ -158,8 +175,8 @@ evaluate(conf_threshold=0.2,
          save_images = False,
          skip_FRANOC = True,  
          per_class_confs = class_conf_thresholds, 
-         predict_on_tiles=True,
-         set = "old_test")
+         predict_on_tiles=False,
+         set = "test")
 
 
 

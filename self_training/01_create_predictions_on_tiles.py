@@ -110,10 +110,10 @@ def predict_on_images(model_number="", output_number="x"):
     model = YOLO(f"/user/christoph.wald/u15287/insect_pest_detection/training/runs/detect/train{model_number}/weights/best.pt")
 
     # Full images folder
-    image_dir = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/SSL/04_images_cropped"
+    image_dir = "/user/christoph.wald/u15287/big-scratch/04_SSL_training_data/training_data/images/train"
 
     # Ground-truth label folder (for full images)
-    label_dir = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/SSL/05b_created_labels_yolo"
+    label_dir = "/user/christoph.wald/u15287/big-scratch/04_SSL_training_data/training_data/labels/train"
 
     # Output folder for predictions
     output_dir = f"/user/christoph.wald/u15287/insect_pest_detection/training/predictions"
@@ -132,9 +132,23 @@ def predict_on_images(model_number="", output_number="x"):
 
         # Skip if no GT label file
         label_path = os.path.join(label_dir, os.path.splitext(filename)[0] + ".txt")
+        label_path = os.path.join(label_dir, os.path.splitext(filename)[0] + ".txt")
         if not os.path.exists(label_path):
-            print(f"No label file for {filename}, skipping.")
-            continue
+            print(f"No label file for {filename}, treating as empty GT.")
+            gt_boxes = torch.empty((0, 4), device='cuda')
+            gt_classes = torch.empty((0,), dtype=torch.long, device='cuda')
+        else:
+            # --- Load ground-truth labels ---
+            gt_boxes_list, gt_classes_list = load_yolo_labels(label_path, image.shape[1], image.shape[0])
+            if len(gt_boxes_list) == 0:
+                gt_boxes = torch.empty((0, 4), device='cuda')
+                gt_classes = torch.empty((0,), dtype=torch.long, device='cuda')
+            else:
+                gt_boxes = torch.tensor(gt_boxes_list, device='cuda', dtype=torch.float32)
+                gt_classes = torch.tensor(gt_classes_list, device='cuda', dtype=torch.long)
+
+
+
 
         # --- Prediction on the full image ---
         result = model(image, conf=0.0, iou=0.0, verbose=False, augment=True)
@@ -151,15 +165,6 @@ def predict_on_images(model_number="", output_number="x"):
         if len(boxes) > 0:
             boxes, confs, class_ids = nms(boxes, confs, class_ids, iou_threshold=0.4)
             boxes, confs, class_ids = filter_mostly_contained_boxes(boxes, confs, class_ids, threshold=0.5)
-
-        # --- Load ground-truth labels ---
-        gt_boxes, gt_classes = load_yolo_labels(label_path, image.shape[1], image.shape[0])
-        if len(gt_boxes) == 0:
-            gt_boxes = torch.empty((0, 4), device='cuda')
-            gt_classes = torch.empty((0,), dtype=torch.long, device='cuda')
-        else:
-            gt_boxes = torch.tensor(gt_boxes, device='cuda', dtype=torch.float32)
-            gt_classes = torch.tensor(gt_classes, device='cuda', dtype=torch.long)
 
         # --- Compare predictions vs. ground truth ---
         tp, fp, fn = compare_labels_vectorized(
@@ -199,12 +204,12 @@ def predict_on_images(model_number="", output_number="x"):
     print(f"Results saved to: {output_path}")
 
 
-model_number = "2"
+model_number = "4"
 
 
 
 #predict_on_tiles(model_number = model_number, output_number = "on_all_images")
-#predict_on_images(model_number=model_number, output_number = model_number)
+predict_on_images(model_number=model_number, output_number = model_number)
 
 #for unsegmented images
 #create_labels(image_folder = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/manual_SSL/images", model_number = model_number)
@@ -213,5 +218,5 @@ model_number = "2"
 output_path  = f"/user/christoph.wald/u15287/insect_pest_detection/training/predictions" 
     #"/user/christoph.wald/u15287/insect_pest_detection/2_5_self_training/predictions"
 #
-plot_histograms_dynamic_fn(f"/user/christoph.wald/u15287/insect_pest_detection/training/predictions", output_path)
+#plot_histograms_dynamic_fn(f"/user/christoph.wald/u15287/insect_pest_detection/training/predictions", output_path)
 plot_histograms(f"/user/christoph.wald/u15287/insect_pest_detection/training/predictions", output_path)

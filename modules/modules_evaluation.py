@@ -323,7 +323,6 @@ def plot_histograms(input_folder, output_folder):
     input_folder = Path(input_folder)
     output_folder = Path(output_folder)
     output_img = output_folder / "all_histograms.jpg"
-    output_txt = output_folder / "false_negatives.txt"
 
     class_map = {"BRAIIM": 0, "LIRIBO": 1, "TRIAVA": 2}
 
@@ -340,141 +339,41 @@ def plot_histograms(input_folder, output_folder):
 
         confidences = defaultdict(lambda: {"TP": [], "FP": []})
         corrections = defaultdict(int)
-        max_fp_per_image = {}  # Track highest FP per image for this JSON
-
-        #we already have the highest FP box per image
-        #it can be saved (see below)
-        #but coordinates are relative to the tile
-        #either tile id has to be saved or coordinates relative to the image
-        #this belongs into another function
+        max_fp_per_image = {}
 
         for label_type in ["TP", "FP", "FN"]:
             if label_type not in data:
                 continue
-
             for species, images in data[label_type].items():
                 for image_name, entries in images.items():
-
                     if label_type in ["TP", "FP"]:
                         for entry in entries:
                             pred_list = entry.get("prediction", [])
-                            if len(pred_list) > 5:  # [cls, xmin, ymin, xmax, ymax, conf]
-                                conf = pred_list[-1]   # confidence
-                                box = pred_list[1:5]
-
-                                # Append to species confidences for histogram
+                            if len(pred_list) > 5:
+                                conf = pred_list[-1]
                                 confidences[species][label_type].append(conf)
-
-                                # Track highest FP per image
-                                if label_type == "FP":
-                                    if image_name not in max_fp_per_image or conf > max_fp_per_image[image_name]["conf"]:
-                                        max_fp_per_image[image_name] = {
-                                            "species": species,
-                                            "conf": conf,
-                                            "box": box
-                                        }
-
                     else:  # FN
                         corrections[species] += len(entries)
 
         all_confidences.append((json_file.stem, confidences))
         all_corrections[json_file.stem] = dict(corrections)
         all_max_fp_per_image[json_file.stem] = max_fp_per_image
-    
-    '''
-    for json_name, image_dict in all_max_fp_per_image.items():
-        out_data = {}
 
-        for image_name, info in image_dict.items():
-            out_data[image_name] = {
-                "species": info["species"],
-                "box": info["box"],        # [xmin, ymin, xmax, ymax]
-                "confidence": info["conf"]
-            }
-
-        out_path = output_folder / f"{json_name}_max_fp.json"
-        with open(out_path, "w") as f:
-            json.dump(out_data, f, indent=4)
-
-        print(f"Saved max FP JSON for {json_name} → {out_path}")
-    '''
-
-    '''
-    # Save corrections
-    with open(output_txt, "w") as f:
-        for json_name, corr in all_corrections.items():
-            f.write(f"{json_name}:\n")
-            for species in class_map.keys():
-                f.write(f"  {species}: {corr.get(species, 0)} FN\n")
-            f.write("\n")
-
-    print(f"Saved corrections report → {output_txt}")
-    '''
-    
-
-  
-    '''
-    #old code
-    # Plot histograms
     n_files = len(all_confidences)
     n_species = len(class_map)
     fig, axes = plt.subplots(n_files, n_species, figsize=(5*n_species, 4*n_files), sharey=True)
 
-    # Make axes always a 2D list
+    # Ensure axes is always 2D list
     if n_files == 1 and n_species == 1:
         axes = [[axes]]
     elif n_files == 1:
-        axes = [list(axes)]
+        axes = [axes]
     elif n_species == 1:
         axes = [[ax] for ax in axes]
     else:
         axes = axes.tolist()
 
-    for row_idx, (json_name, confs) in enumerate(all_confidences):
-        for col_idx, species in enumerate(class_map.keys()):
-            ax = axes[row_idx][col_idx]
-            tp_vals = confs[species]["TP"]
-            fp_vals = confs[species]["FP"]
-
-            if tp_vals:
-                ax.hist(tp_vals, bins=20, alpha=0.6, label="TP", color="green", edgecolor="black")
-                mean_tp = np.mean(tp_vals)
-                ax.axvline(mean_tp, color="green", linestyle="--", linewidth=2, label=f"TP mean={mean_tp:.2f}")
-            if fp_vals:
-                ax.hist(fp_vals, bins=20, alpha=0.6, label="FP", color="orange", edgecolor="black")
-                mean_fp = np.mean(fp_vals)
-                ax.axvline(mean_fp, color="orange", linestyle="--", linewidth=2, label=f"FP mean={mean_fp:.2f}")
-            fn_count = all_corrections[json_name].get(species, 0)
-            if fn_count > 0:
-                ax.axhline(fn_count, color="red", linestyle=":", linewidth=2, label=f"FN={fn_count}")
-
-
-
-            ax.set_title(f"{json_name} - {species}")
-            ax.set_xlabel("Confidence")
-            ax.set_ylabel("Frequency")
-            ax.legend()
-            ax.grid(True)
-
-    plt.tight_layout()
-    plt.savefig(output_img, dpi=150)
-    plt.close()
-    print(f"Saved combined histogram grid → {output_img}")
-    '''
-    # Plot histograms
-    n_files = len(all_confidences)
-    n_species = len(class_map)
-    fig, axes = plt.subplots(n_files, n_species, figsize=(5*n_species, 4*n_files), sharey=True)
-
-    # Make axes always a 2D list
-    if n_files == 1 and n_species == 1:
-        axes = [[axes]]
-    elif n_files == 1:
-        axes = [list(axes)]
-    elif n_species == 1:
-        axes = [[ax] for ax in axes]
-    else:
-        axes = axes.tolist()
+    intersections = {}  # store intersection points
 
     for row_idx, (json_name, confs) in enumerate(all_confidences):
         for col_idx, species in enumerate(class_map.keys()):
@@ -485,14 +384,10 @@ def plot_histograms(input_folder, output_folder):
             # --- Plot original histograms ---
             if tp_vals.size > 0:
                 n_tp, bins_tp, _ = ax.hist(tp_vals, bins=20, alpha=0.6, label="TP", color="green", edgecolor="black")
-                mean_tp = np.mean(tp_vals)
-                ax.axvline(mean_tp, color="green", linestyle="--", linewidth=2, label=f"TP mean={mean_tp:.2f}")
             else:
                 bins_tp = np.linspace(0,1,21)
             if fp_vals.size > 0:
                 n_fp, bins_fp, _ = ax.hist(fp_vals, bins=20, alpha=0.6, label="FP", color="orange", edgecolor="black")
-                mean_fp = np.mean(fp_vals)
-                ax.axvline(mean_fp, color="orange", linestyle="--", linewidth=2, label=f"FP mean={mean_fp:.2f}")
             else:
                 bins_fp = np.linspace(0,1,21)
 
@@ -501,8 +396,8 @@ def plot_histograms(input_folder, output_folder):
             if fn_count > 0:
                 ax.axhline(fn_count, color="red", linestyle=":", linewidth=2, label=f"FN={fn_count}")
 
-            # --- Compute mean confidence & precision per bin (aligned to histogram bins) ---
-            bins = bins_tp  # use same bins for simplicity
+            # --- Compute mean confidence & precision per bin ---
+            bins = bins_tp
             bin_centers = 0.5 * (bins[:-1] + bins[1:])
             mean_conf_per_bin = []
             precision_per_bin = []
@@ -518,10 +413,39 @@ def plot_histograms(input_folder, output_folder):
                 mean_conf_per_bin.append(mean_conf)
                 precision_per_bin.append(precision)
 
+            # --- Find intersection (highest if multiple) ---
+            mean_conf_arr = np.array(mean_conf_per_bin)
+            precision_arr = np.array(precision_per_bin)
+            valid_mask = ~np.isnan(mean_conf_arr) & ~np.isnan(precision_arr)
+
+            intersection_conf = np.nan
+            intersection_prec = np.nan
+
+            if np.sum(valid_mask) > 1:
+                diff = mean_conf_arr[valid_mask] - precision_arr[valid_mask]
+                sign_change_indices = np.where(np.diff(np.sign(diff)) != 0)[0]
+                inters = []
+                for i in sign_change_indices:
+                    x1, x2 = bin_centers[valid_mask][i], bin_centers[valid_mask][i+1]
+                    y1, y2 = diff[i], diff[i+1]
+                    inter_conf = x1 - y1 * (x2 - x1) / (y2 - y1)
+                    inters.append(inter_conf)
+                if inters:
+                    intersection_conf = max(inters)  # pick highest
+                    intersection_prec = np.interp(intersection_conf, bin_centers[valid_mask], precision_arr[valid_mask])
+
+            intersections[(json_name, species)] = (intersection_conf, intersection_prec)
+
             # --- Plot mean confidence & precision lines on secondary axis ---
             ax2 = ax.twinx()
             ax2.plot(bin_centers, mean_conf_per_bin, "b--", linewidth=2, label="Mean confidence")
             ax2.plot(bin_centers, precision_per_bin, "r-", linewidth=2, label="Precision")
+
+            # --- Visualize intersection ---
+            if not np.isnan(intersection_conf):
+                ax2.scatter(intersection_conf, intersection_prec, color="magenta", s=80, zorder=5,
+                            label=f"Intersection @ {intersection_conf:.2f}")
+                ax.axvline(intersection_conf, color="magenta", linestyle="--", linewidth=2)
 
             # --- Labels, title, grid ---
             ax.set_title(f"{json_name} - {species}")
@@ -538,4 +462,6 @@ def plot_histograms(input_folder, output_folder):
     plt.tight_layout()
     plt.savefig(output_img, dpi=150)
     plt.close()
-    print(f"Saved combined histogram grid with mean conf & precision → {output_img}")
+    print(f"Saved combined histogram grid → {output_img}")
+
+    return intersections

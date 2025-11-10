@@ -117,17 +117,23 @@ def compare_best_point_sets_per_class(best_points_a, best_points_b, prec_thresh=
     return overall_winner
 
 
-model_number = "4"
-base_output_path = f"/user/christoph.wald/u15287/insect_pest_detection/3_1_supervised_training_evaluation/metrics/train{model_number}"
+model_number = "12"
+base_output_path = f"/user/christoph.wald/u15287/insect_pest_detection/3_3_self_training_evaluation/metrics/train{model_number}"
 with open(os.path.join(base_output_path, "operating_points.json"), "r") as f:
     best_points = json.load(f)
-with open(os.path.join(base_output_path, "pr_results.json"), 'r') as f:
-        pr_results = json.load(f)
+
+model_number = "4"
+base_output_path = f"/user/christoph.wald/u15287/insect_pest_detection/training/metrics/train{model_number}"
+with open(os.path.join(base_output_path, "operating_points.json"), "r") as f:
+    best_points = json.load(f)
 
 model_number = "6"
-base_output_path = f"/user/christoph.wald/u15287/insect_pest_detection/3_1_supervised_training_evaluation/metrics/train{model_number}"
+base_output_path = f"/user/christoph.wald/u15287/insect_pest_detection/training/backup/metrics/train{model_number}"
 with open(os.path.join(base_output_path, "operating_points.json"), "r") as f:
     second_points = json.load(f)
+
+
+  
 
 #print(compare_best_point_sets(best_points, second_points))
 compare_best_point_sets_per_class(best_points, second_points)

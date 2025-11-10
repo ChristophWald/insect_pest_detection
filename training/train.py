@@ -12,7 +12,7 @@ just the model.train with parameters
 
 #
 #model = YOLO('yolov8s.pt')
-model = YOLO("/user/christoph.wald/u15287/insect_pest_detection/training/runs/detect/train2/weights/best.pt")
+model = YOLO("/user/christoph.wald/u15287/insect_pest_detection/training/runs/detect/train3/weights/best.pt")
 model.train(data = "/user/christoph.wald/u15287/big-scratch/04_SSL_training_data/training_data/data.yaml", 
             epochs=20, 
             #patience = 10, 

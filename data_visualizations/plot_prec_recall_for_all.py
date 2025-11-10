@@ -2,11 +2,11 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import os
 
-base_dir = "/user/christoph.wald/u15287/insect_pest_detection/2_5_self_training/runs/detect"
-out_dir = "/user/christoph.wald/u15287/insect_pest_detection/2_5_self_training/metrics"
+base_dir = "/user/christoph.wald/u15287/insect_pest_detection/training/runs/detect"
+out_dir = "/user/christoph.wald/u15287/insect_pest_detection/training/metrics"
 
 # Count how many runs
-num_runs = len(os.listdir(base_dir))-1
+num_runs = len(os.listdir(base_dir))
 
 
 # Create a figure with rows = num_runs, cols = 2

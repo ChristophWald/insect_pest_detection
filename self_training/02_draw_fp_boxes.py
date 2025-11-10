@@ -10,30 +10,6 @@ import numpy as np
 train_dir = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/SSL/04_images_cropped"
 val_dir   = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/SSL/04_images_cropped"
 metrics_dir = "/user/christoph.wald/u15287/insect_pest_detection/training/metrics"
-import os
-import cv2
-import ast
-import csv
-
-import os
-import cv2
-import json
-
-import os
-import cv2
-import json
-
-import os
-import json
-import cv2
-import numpy as np
-from math import ceil, sqrt
-
-import os
-import json
-import cv2
-import numpy as np
-from math import ceil
 
 import os
 import json
@@ -121,11 +97,31 @@ def visualize_fp_boxes_global_grid(json_file, image_dir, output_dir, conf_range=
 
 
 # Usage example
-json_file = "/user/christoph.wald/u15287/insect_pest_detection/training/predictions/predictions_fullimage_2.json"
+json_file = "/user/christoph.wald/u15287/insect_pest_detection/training/predictions/predictions_fullimage_4.json"
 image_dir = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/SSL/04_images_cropped"
-output_dir = "/user/christoph.wald/u15287/big-scratch/test_crops_grids"
 
+
+
+output_dir = "/user/christoph.wald/u15287/big-scratch/test_crops_grids_09"
+visualize_fp_boxes_global_grid(json_file, image_dir, output_dir, conf_range=(0.9, 1.0), grid_dim=(10, 10))
+output_dir = "/user/christoph.wald/u15287/big-scratch/test_crops_grids_08"
+visualize_fp_boxes_global_grid(json_file, image_dir, output_dir, conf_range=(0.8, 0.9), grid_dim=(10, 10))
+output_dir = "/user/christoph.wald/u15287/big-scratch/test_crops_grids_07"
+visualize_fp_boxes_global_grid(json_file, image_dir, output_dir, conf_range=(0.7, 0.8), grid_dim=(10, 10))
+output_dir = "/user/christoph.wald/u15287/big-scratch/test_crops_grids_06"
+visualize_fp_boxes_global_grid(json_file, image_dir, output_dir, conf_range=(0.6, 0.7), grid_dim=(10, 10))
+output_dir = "/user/christoph.wald/u15287/big-scratch/test_crops_grids_05"
+visualize_fp_boxes_global_grid(json_file, image_dir, output_dir, conf_range=(0.5, 0.6), grid_dim=(10, 10))
+
+output_dir = "/user/christoph.wald/u15287/big-scratch/test_crops_grids_04"
+visualize_fp_boxes_global_grid(json_file, image_dir, output_dir, conf_range=(0.4, 0.5), grid_dim=(10, 10))
+
+output_dir = "/user/christoph.wald/u15287/big-scratch/test_crops_grids_03"
+visualize_fp_boxes_global_grid(json_file, image_dir, output_dir, conf_range=(0.3, 0.4), grid_dim=(10, 10))
+output_dir = "/user/christoph.wald/u15287/big-scratch/test_crops_grids_02"
 visualize_fp_boxes_global_grid(json_file, image_dir, output_dir, conf_range=(0.2, 0.3), grid_dim=(10, 10))
+output_dir = "/user/christoph.wald/u15287/big-scratch/test_crops_grids_01"
+visualize_fp_boxes_global_grid(json_file, image_dir, output_dir, conf_range=(0.1, 0.2), grid_dim=(10, 10))
 
 
 
