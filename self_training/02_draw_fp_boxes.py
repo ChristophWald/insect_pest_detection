@@ -97,8 +97,9 @@ def visualize_fp_boxes_global_grid(json_file, image_dir, output_dir, conf_range=
 
 
 # Usage example
-json_file = "/user/christoph.wald/u15287/insect_pest_detection/training/predictions/predictions_fullimage_4.json"
-image_dir = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/SSL/04_images_cropped"
+json_file = "/user/christoph.wald/u15287/insect_pest_detection/training/predictions/predictions_fullimage_.json"
+#image_dir = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/SSL/04_images_cropped"
+image_dir = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_unlabeled/04_images_cropped"
 
 
 

@@ -156,16 +156,16 @@ def tile_and_save_images_only(image_path, dest_path,
     print(f"Tiling complete. {tile_id} tiles saved to {dest_path}")
 
 
-image_folder = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/images_only"
-dest_path = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/tiles_1280/images_only"
+image_folder = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/SSL/06_masked_augmented"
+dest_path = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/SSL/06_masked_augmented_tiles"
 os.makedirs(dest_path, exist_ok=True)
 
 for file in os.listdir(image_folder):
     if file.lower().endswith((".jpg", ".png", ".jpeg")):
         img_path = os.path.join(image_folder, file)
         tile_and_save_images_only(img_path, dest_path,
-                                  tile_size=1280,
-                                  stride=1080)  # 1280-200
+                                  tile_size=640,
+                                  stride=440)  # 1280-200
 
 
 '''

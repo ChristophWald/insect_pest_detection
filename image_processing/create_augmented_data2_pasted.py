@@ -53,18 +53,18 @@ else:
 #masking to create areas of interest (were to put the insects in)
 processed_mask = cv2.imread(
     #"/user/christoph.wald/u15287/insect_pest_detection/2_4_image_processing/masks/06_generated_mask_fat_plus.jpg", 
-    "/user/christoph.wald/u15287/insect_pest_detection/2_4_image_processing/masks/04_generated_mask_fat.jpg",
+    "/user/christoph.wald/u15287/insect_pest_detection/image_processing/masks/04_generated_mask_fat.jpg",
     cv2.IMREAD_GRAYSCALE
 )
-gridcorners = np.load("/user/christoph.wald/u15287/insect_pest_detection/2_4_image_processing/masks/gridcorners.npy")
-mask_h_line = np.load("/user/christoph.wald/u15287/insect_pest_detection/2_4_image_processing/masks/mask_h_line.npy")
+gridcorners = np.load("/user/christoph.wald/u15287/insect_pest_detection/image_processing/masks/gridcorners.npy")
+mask_h_line = np.load("/user/christoph.wald/u15287/insect_pest_detection/image_processing/masks/mask_h_line.npy")
 ###############
 
 ###############
 if get_cutout_boxes:
 #Get the cut out insects
-    label_path = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/SSL/05_created_labels"
-    image_path = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/SSL/04_images_cropped"
+    label_path = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_unlabeled/05_created_labels_reduced"
+    image_path = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_unlabeled/04_images_cropped_reduced"
     label_files = os.listdir(label_path)
 
 
@@ -230,7 +230,7 @@ else:
 
 
 #############
-n_per_region = 6 #per region
+n_per_region = 5 #per region
 n_per_image = int(5.5 * n_per_region)
 images_per_insect = 6
 augmentations = 4 #4
@@ -246,6 +246,8 @@ os.makedirs(image_path, exist_ok=True)
 
 #create a random selection to take from 
 selected_insects = [[], [], []]
+
+all_insects[0].extend(all_insects[0])
 
 for i in range(3):
     selected_insects[i] = random.sample(all_insects[i], k=n_total)

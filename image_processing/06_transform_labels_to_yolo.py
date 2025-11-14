@@ -2,9 +2,9 @@ import os
 import cv2
 
 # Paths
-image_folder = "/user/christoph.wald/u15287/big-scratch/04_SSL_training_data/training_data_full_images/images/train"       # folder with images
-label_folder = "/user/christoph.wald/u15287/big-scratch/04_SSL_training_data/training_data_full_images/labels/train/absolute"       # folder with original txts
-yolo_folder = "/user/christoph.wald/u15287/big-scratch/04_SSL_training_data/training_data_full_images/labels/train"   # folder to save YOLO txts
+image_folder = "/user/christoph.wald/u15287/big-scratch/04_SSL_training_data/training_data/images/train"       # folder with images
+label_folder = "/user/christoph.wald/u15287/big-scratch/04_SSL_training_data/training_data/labels/absolute"       # folder with original txts
+yolo_folder = "/user/christoph.wald/u15287/big-scratch/04_SSL_training_data/training_data/labels/train"   # folder to save YOLO txts
 os.makedirs(yolo_folder, exist_ok=True)
 
 # Map filename prefixes to class ids

@@ -58,7 +58,7 @@ def add_labels(pred_file,
     #folder with images and labels in tiles to write onto (optional) and to copy from
     tiles_folder = "dummy"
     # folder with images and labels in yolo-format
-    training_folder = "/user/christoph.wald/u15287/big-scratch/04_SSL_training_data/training_data"
+    training_folder = "/user/christoph.wald/u15287/big-scratch/04_SSL_training_data/training_data_reduced_025"
 
     #add newline character at end of file if missing
     label_path = os.path.join(training_folder, "labels/train")
@@ -123,7 +123,7 @@ def add_labels(pred_file,
 
                     # Append the FP prediction directly
 
-                    src_image = os.path.join("/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/split/images/train", os.path.splitext(full_filename)[0]+".jpg")
+                    src_image = os.path.join("/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_unlabeled/images", os.path.splitext(full_filename)[0]+".jpg")
 
                     # Load image with cv2
                     img = cv2.imread(src_image)
@@ -193,10 +193,10 @@ def add_labels(pred_file,
 
 
 add_labels(
-    pred_file = "predictions_fullimage_3.json", #change if needed!
-    thresholds = {"BRAIIM": 0.5, "LIRIBO": 1.0, "FRANOC": 0, "TRIAVA": },
+    pred_file = "predictions_fullimage_2.json", #change if needed!
+    thresholds = {"BRAIIM": 0.25, "LIRIBO": 0.25, "FRANOC": 0, "TRIAVA": 0.25},
     run_number = "1",
-    correct_labels = True,
+    correct_labels = False,
     threshold_steps = False,
     write = True,
     write_into_tiles = False,

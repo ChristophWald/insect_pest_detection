@@ -411,80 +411,136 @@ def find_best_pr_points(pr_results, prec_thresh=0.9, rec_thresh=0.8):
 
 
 
+import matplotlib.pyplot as plt
+
 def plot_pr_curves(
     pr_results, 
     best_points=None, 
     second_points=None, 
     base_output_path=None, 
-    metrics=None
+    metrics=None,
+    title=None,
 ): 
     """
     Plot PR curves for each class and optionally highlight best points 
     and overlay metrics (per-class and summary).
-    
-    Args:
-        pr_results: dict from compute_pr_curves_with_all
-        best_points: dict of points to highlight with circles (optional)
-        second_points: dict of points to highlight with squares (optional)
-        base_output_path: folder to save the plot (optional)
-        metrics: dict containing 'per_class' and 'summary' precision/recall (optional)
     """
-    plt.figure(figsize=(8, 6)) 
-    
-    # keep color mapping for consistent plotting
+
+    label_map = {
+        "fungus gnats": "Fungus gnats",
+        "leaf miner flies": "Leaf miner flies",
+        "thrips": "Thrips",
+        "whiteflies": "Whiteflies",
+        "all_classes": "All classes"
+    }
+
+    plt.figure(figsize=(8, 6))
+
+    # ----------------------------- COLOR MAPPING -----------------------------
+    # Assign a fixed color to each class based on the label map order
+    color_cycle = plt.rcParams['axes.prop_cycle'].by_key()['color']
     class_colors = {}
-    
-    # Plot each class curve
-    for cls_name, data in pr_results.items(): 
-        line, = plt.plot(data["recall"], data["precision"], label=cls_name)
-        class_colors[cls_name] = line.get_color()
-        
-        # Highlight best_points (circles)
+    for i, cls_name in enumerate(label_map.keys()):
+        class_colors[cls_name] = color_cycle[i % len(color_cycle)]
+
+    # ----------------------------- PR CURVES -----------------------------
+    for cls_name, data in pr_results.items():
+        # Skip classes with no data
+        if len(data.get("recall", [])) == 0 or len(data.get("precision", [])) == 0:
+            continue
+
+        display_name = label_map.get(cls_name, cls_name)
+        color = class_colors[cls_name]
+
+        plt.plot(data["recall"], data["precision"], label=display_name, color=color)
+
+        # Best points (circles)
         if best_points and cls_name in best_points:
             bp = best_points[cls_name]
             plt.scatter(
-                bp["recall"], bp["precision"], 
-                marker='o', s=20, edgecolors='k', facecolors='none', zorder=5
+                bp["recall"], bp["precision"],
+                marker='o', s=20, edgecolors='k', facecolors='none', zorder=5, color=color
             )
-        
-        # Highlight second_points (squares)
+
+        # Second-best (squares)
         if second_points and cls_name in second_points:
             sp = second_points[cls_name]
             plt.scatter(
-                sp["recall"], sp["precision"], 
-                marker='s', s=20, edgecolors='k', facecolors='none', zorder=5
+                sp["recall"], sp["precision"],
+                marker='s', s=20, edgecolors='k', facecolors='none', zorder=5, color=color
             )
-    
-    # Plot metrics points (from old test)
+
+    # ----------------------------- METRICS POINTS -----------------------------
     if metrics:
         per_class = metrics.get("per_class", {})
         for cls_name, vals in per_class.items():
-            recall = vals["recall"]
-            precision = vals["precision"]
+            recall = vals.get("recall")
+            precision = vals.get("precision")
+
+            # Skip metric points if values are None or class has no valid data
+            if recall is None or precision is None:
+                continue
+            if recall == 0 and precision == 0:
+                # Optionally skip zero points for classes with no curve
+                if cls_name not in pr_results or len(pr_results[cls_name].get("recall", [])) == 0:
+                    continue
+
             color = class_colors.get(cls_name, "gray")
             plt.scatter(
                 recall, precision,
-                marker='s', s=20, edgecolors='k', facecolors='none', color=color, zorder=6
+                marker='s', s=20, edgecolors='k', facecolors='none',
+                color=color, zorder=6
             )
-
-    
-    # Highlight target region
+    # ----------------------------- TARGET ZONE -----------------------------
     plt.fill_betweenx([0.9, 1.0], 0.8, 1.0, color='gray', alpha=0.3)
-    
-    # Labels and styling
-    plt.xlabel("Recall") 
-    plt.ylabel("Precision") 
-    plt.title("Precision-Recall Curve") 
-    plt.legend(loc="lower left", fontsize=8) 
-    plt.grid(True) 
 
-    # Save plot if path provided
+    # ----------------------------- LEGENDS -----------------------------
+    # Only add class legend if there are plotted classes
+    plotted_classes = [cls_name for cls_name in pr_results if len(pr_results[cls_name].get("recall", [])) > 0]
+    if plotted_classes:
+        handles = [plt.Line2D([], [], color=class_colors[cls], label=label_map.get(cls, cls)) for cls in plotted_classes]
+        class_legend = plt.legend(handles=handles, loc="lower left", fontsize=8, title="Classes")
+        plt.gca().add_artist(class_legend)
+
+    # Custom legend
+    custom_handles = []
+    custom_labels = []
+
+    # Grey patch
+    target_patch = plt.Rectangle((0, 0), 1, 1, color='gray', alpha=0.3)
+    custom_handles.append(target_patch)
+    custom_labels.append("Target zone")
+
+    # Threshold markers
+    if best_points:
+        handle = plt.Line2D([], [], marker='o', linestyle='None', markersize=6, markeredgecolor='k', markerfacecolor='none')
+        custom_handles.append(handle)
+        custom_labels.append("Optimal confidence threshold")
+    elif metrics:
+        handle = plt.Line2D([], [], marker='s', linestyle='None', markersize=6, markeredgecolor='k', markerfacecolor='none')
+        custom_handles.append(handle)
+        custom_labels.append("Optimal confidence threshold (from validation set)")
+
+    plt.legend(custom_handles, custom_labels, loc="lower right", fontsize=8)
+
+    # ----------------------------- LABELS -----------------------------
+    plt.xlabel("Recall")
+    plt.ylabel("Precision")
+    plt.title(title)
+    plt.grid(True)
+
+    # ----------------------------- SAVE -----------------------------
     if base_output_path:
+        import os
         os.makedirs(base_output_path, exist_ok=True)
-        plt.savefig(os.path.join(base_output_path, "pr_curve.jpg"), dpi=300, bbox_inches="tight")
-    
+        out_path = os.path.join(base_output_path, "pr_curve.jpg")
+        plt.savefig(out_path, dpi=300, bbox_inches="tight")
+
     plt.show()
     plt.close()
+
+
+
 
 
 
@@ -492,11 +548,11 @@ def plot_pr_curves(
 #unify path settings and saving/loading
 test_set= True
 #path = "/user/christoph.wald/u15287/insect_pest_detection/training/"
-path = "/user/christoph.wald/u15287/insect_pest_detection/3_3_self_training_evaluation/"
-#path = "/user/christoph.wald/u15287/insect_pest_detection/3_1_supervised_training_evaluation/"
+#path = "/user/christoph.wald/u15287/insect_pest_detection/3_3_self_training_evaluation/"
+path = "/user/christoph.wald/u15287/insect_pest_detection/3_1_supervised_training_evaluation/"
 
 
-model_number = "16"
+model_number = "4"
 
 
 if test_set:
@@ -509,7 +565,7 @@ os.makedirs(base_output_path, exist_ok=True)
 
 class_names = ["fungus gnats", "leaf miner flies", "thrips", "whiteflies"]  # replace with your classes
 
-
+'''
 #makes prediction with conf=0 and saves them
 raw_predictions_on_val(model_number = model_number,
                     base_output_path=base_output_path,
@@ -524,7 +580,7 @@ pr_results = compute_pr_curves_with_all_fixed(pred_json_path, class_names, iou_t
 # saves pr results
 with open(os.path.join(base_output_path, "pr_results.json"), "w") as f:
     json.dump(pr_results, f, indent=4)
-
+'''
 #reloads the pr results
 with open(os.path.join(base_output_path, "pr_results.json"), 'r') as f:
         pr_results = json.load(f)
@@ -536,7 +592,7 @@ with open(os.path.join(base_output_path, "operating_points.json"), "w") as f:
         json.dump(best_points, f, indent=4)
 
 if not test_set:
-    plot_pr_curves(pr_results, best_points=best_points, base_output_path=base_output_path)
+    plot_pr_curves(pr_results, best_points=best_points, base_output_path=base_output_path, title = "Supervised model evaluated on validation set")
 else:
     with open(os.path.join(base_output_path, "metrics.json"), "r") as f:
         metrics_file = json.load(f)
@@ -545,5 +601,6 @@ else:
         pr_results,
         best_points=None,
         base_output_path=base_output_path,
-        metrics=metrics_file
+        metrics=metrics_file,
+        title = "Supervised trained model evaluated on test set"
     )

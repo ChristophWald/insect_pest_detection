@@ -7,7 +7,7 @@ from modules_augmentation import *
 import random
 import os
 
-output_path = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/SSL/06_masked_augmented2"
+output_path = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_unlabeled/06_masked_augmented2_reduced"
 os.makedirs(output_path, exist_ok = True)
 
 
@@ -60,28 +60,12 @@ def circular_shift_mask_2d(mask, min_shift=500):
     return shifted_mask
 
 
-#randomly select half of the image files (labeled by image processing)
-image_path = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/SSL/03_images_masked"
+image_path = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_unlabeled/03_images_masked_reduced"
 filenames = os.listdir(image_path)
-
-'''
-sorted_filenames = [[], [], []]
-nums = []
-species = ["BRAIIM", "LIRIBO", "TRIAVA"]
-for i in range(3):
-    for f in filenames:
-        if f.startswith(species[i]):
-            sorted_filenames[i].append(f)
-
-random_filenames = []
-for i in range(3):
-    random_filenames.extend(random.sample(sorted_filenames[i], len(sorted_filenames[i])//2))
-'''
-
 random_filenames = filenames
 
 #select the first three of the empty images as masks for the lines
-empty_folder = "/user/christoph.wald/u15287/big-scratch/00_uncropped_dataset/emptyYST"
+empty_folder = "/user/christoph.wald/u15287/big-scratch/emptyYST"
 filenames = os.listdir(empty_folder)[:3]
 masks = []
 for f in filenames:

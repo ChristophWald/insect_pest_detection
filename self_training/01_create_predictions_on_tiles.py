@@ -110,10 +110,10 @@ def predict_on_images(model_number="", output_number="x"):
     model = YOLO(f"/user/christoph.wald/u15287/insect_pest_detection/training/runs/detect/train{model_number}/weights/best.pt")
 
     # Full images folder
-    image_dir = "/user/christoph.wald/u15287/big-scratch/04_SSL_training_data/training_data/images/train"
+    image_dir = "/user/christoph.wald/u15287/big-scratch/04_SSL_training_data/training_data_reduced/images/train"
 
     # Ground-truth label folder (for full images)
-    label_dir = "/user/christoph.wald/u15287/big-scratch/04_SSL_training_data/training_data/labels/train"
+    label_dir = "/user/christoph.wald/u15287/big-scratch/04_SSL_training_data/training_data_reduced/labels/train"
 
     # Output folder for predictions
     output_dir = f"/user/christoph.wald/u15287/insect_pest_detection/training/predictions"
@@ -204,7 +204,7 @@ def predict_on_images(model_number="", output_number="x"):
     print(f"Results saved to: {output_path}")
 
 
-model_number = "4"
+model_number = "2"
 
 
 
