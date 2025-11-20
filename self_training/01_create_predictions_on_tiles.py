@@ -107,13 +107,17 @@ def predict_on_images(model_number="", output_number="x"):
     print("Predicting on full images.")
 
     # Load YOLO model
-    model = YOLO(f"/user/christoph.wald/u15287/insect_pest_detection/training/runs/detect/train{model_number}/weights/best.pt")
+    model = YOLO(f"/user/christoph.wald/u15287/insect_pest_detection/3_3_self_training_evaluation/runs/detect/train{model_number}/weights/best.pt")
 
     # Full images folder
-    image_dir = "/user/christoph.wald/u15287/big-scratch/04_SSL_training_data/training_data_reduced/images/train"
+    #image_dir = "/user/christoph.wald/u15287/big-scratch/04_SSL_training_data/training_data_reduced/images/train"
+    #image_dir = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/split/images/val"
+    image_dir = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/test_set/test_set_w_new_labels/images"
 
     # Ground-truth label folder (for full images)
-    label_dir = "/user/christoph.wald/u15287/big-scratch/04_SSL_training_data/training_data_reduced/labels/train"
+    #label_dir = "/user/christoph.wald/u15287/big-scratch/04_SSL_training_data/training_data_reduced/labels/train"
+    #label_dir = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/split/labels/val"
+    label_dir = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/test_set/test_set_w_new_labels/labels"
 
     # Output folder for predictions
     output_dir = f"/user/christoph.wald/u15287/insect_pest_detection/training/predictions"
@@ -204,7 +208,7 @@ def predict_on_images(model_number="", output_number="x"):
     print(f"Results saved to: {output_path}")
 
 
-model_number = "2"
+model_number = "16"
 
 
 
@@ -215,8 +219,8 @@ predict_on_images(model_number=model_number, output_number = model_number)
 #create_labels(image_folder = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/manual_SSL/images", model_number = model_number)
 
 #plot histograms
-output_path  = f"/user/christoph.wald/u15287/insect_pest_detection/training/predictions" 
+#output_path  = f"/user/christoph.wald/u15287/insect_pest_detection/training/predictions" 
     #"/user/christoph.wald/u15287/insect_pest_detection/2_5_self_training/predictions"
 #
 #plot_histograms_dynamic_fn(f"/user/christoph.wald/u15287/insect_pest_detection/training/predictions", output_path)
-plot_histograms(f"/user/christoph.wald/u15287/insect_pest_detection/training/predictions", output_path)
+#plot_histograms(f"/user/christoph.wald/u15287/insect_pest_detection/training/predictions", output_path)

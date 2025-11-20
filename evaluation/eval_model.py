@@ -499,7 +499,7 @@ def plot_pr_curves(
     plotted_classes = [cls_name for cls_name in pr_results if len(pr_results[cls_name].get("recall", [])) > 0]
     if plotted_classes:
         handles = [plt.Line2D([], [], color=class_colors[cls], label=label_map.get(cls, cls)) for cls in plotted_classes]
-        class_legend = plt.legend(handles=handles, loc="lower left", fontsize=8, title="Classes")
+        class_legend = plt.legend(handles=handles, loc="lower left", fontsize=12, title="Classes")
         plt.gca().add_artist(class_legend)
 
     # Custom legend
@@ -513,20 +513,22 @@ def plot_pr_curves(
 
     # Threshold markers
     if best_points:
-        handle = plt.Line2D([], [], marker='o', linestyle='None', markersize=6, markeredgecolor='k', markerfacecolor='none')
+        handle = plt.Line2D([], [], marker='o', linestyle='None', markersize=12, markeredgecolor='k', markerfacecolor='none')
         custom_handles.append(handle)
         custom_labels.append("Optimal confidence threshold")
     elif metrics:
-        handle = plt.Line2D([], [], marker='s', linestyle='None', markersize=6, markeredgecolor='k', markerfacecolor='none')
+        handle = plt.Line2D([], [], marker='s', linestyle='None', markersize=12, markeredgecolor='k', markerfacecolor='none')
         custom_handles.append(handle)
         custom_labels.append("Optimal confidence threshold (from validation set)")
 
-    plt.legend(custom_handles, custom_labels, loc="lower right", fontsize=8)
+    plt.legend(custom_handles, custom_labels, loc="lower right", fontsize=12)
 
     # ----------------------------- LABELS -----------------------------
-    plt.xlabel("Recall")
-    plt.ylabel("Precision")
-    plt.title(title)
+    plt.xlabel("Recall", fontsize = 12)
+    plt.ylabel("Precision", fontsize = 12)
+    plt.title(title, fontsize = 12)
+    plt.xticks(fontsize = 12)
+    plt.yticks(fontsize = 12)
     plt.grid(True)
 
     # ----------------------------- SAVE -----------------------------
@@ -546,13 +548,13 @@ def plot_pr_curves(
 
 #todo
 #unify path settings and saving/loading
-test_set= True
+test_set= False
 #path = "/user/christoph.wald/u15287/insect_pest_detection/training/"
 #path = "/user/christoph.wald/u15287/insect_pest_detection/3_3_self_training_evaluation/"
 path = "/user/christoph.wald/u15287/insect_pest_detection/3_1_supervised_training_evaluation/"
 
 
-model_number = "4"
+model_number = "6"
 
 
 if test_set:

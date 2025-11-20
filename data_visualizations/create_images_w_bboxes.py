@@ -47,9 +47,9 @@ this is for only one specific folder
 '''
 
 
-image_root ="/user/christoph.wald/u15287/big-scratch/04_SSL_training_data/training_data/images/train"
-label_root = "/user/christoph.wald/u15287/big-scratch/04_SSL_training_data/training_data/labels/train"
-output_path = "/user/christoph.wald/u15287/big-scratch/train3check"
+image_root ="/user/christoph.wald/u15287/big-scratch/04_SSL_training_data/training_data_025/images/train"
+label_root = "/user/christoph.wald/u15287/big-scratch/04_SSL_training_data/training_data_025/labels/train"
+output_path = "/user/christoph.wald/u15287/big-scratch/train_check"
 os.makedirs(output_path, exist_ok=True)
 
 visualize_labels(label_root, image_root, output_path)
