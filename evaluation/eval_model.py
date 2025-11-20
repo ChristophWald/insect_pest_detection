@@ -459,7 +459,7 @@ def plot_pr_curves(
             bp = best_points[cls_name]
             plt.scatter(
                 bp["recall"], bp["precision"],
-                marker='o', s=20, edgecolors='k', facecolors='none', zorder=5, color=color
+                marker='o', s=40, edgecolors='k', facecolors='none', zorder=5, color=color
             )
 
         # Second-best (squares)
@@ -488,9 +488,20 @@ def plot_pr_curves(
             color = class_colors.get(cls_name, "gray")
             plt.scatter(
                 recall, precision,
-                marker='s', s=20, edgecolors='k', facecolors='none',
+                marker='s', s=40, edgecolors='k', facecolors='none',
                 color=color, zorder=6
             )
+
+
+
+    coords = [(0.5045945945945945, 0.784453781512605), (0.6048242237618681, 0.9210629152012505), (0.20974015870546134, 0.8685567010309279)]  # replace with your actual coordinates
+    species_to_show = ["fungus gnats", "leaf miner flies", "whiteflies"]
+
+    for (x, y), sp in zip(coords, species_to_show):
+        plt.scatter(x, y, color=class_colors[sp], s=50, label=sp, zorder=10)
+
+    # Optionally add a legend for these markers
+    plt.legend(loc='upper right', fontsize=12, frameon=False)
     # ----------------------------- TARGET ZONE -----------------------------
     plt.fill_betweenx([0.9, 1.0], 0.8, 1.0, color='gray', alpha=0.3)
 
@@ -499,7 +510,7 @@ def plot_pr_curves(
     plotted_classes = [cls_name for cls_name in pr_results if len(pr_results[cls_name].get("recall", [])) > 0]
     if plotted_classes:
         handles = [plt.Line2D([], [], color=class_colors[cls], label=label_map.get(cls, cls)) for cls in plotted_classes]
-        class_legend = plt.legend(handles=handles, loc="lower left", fontsize=12, title="Classes")
+        class_legend = plt.legend(handles=handles, loc="lower left", fontsize=12,title_fontsize=12, title="Classes", bbox_to_anchor=(0.1, 0.23) )
         plt.gca().add_artist(class_legend)
 
     # Custom legend
@@ -510,19 +521,22 @@ def plot_pr_curves(
     target_patch = plt.Rectangle((0, 0), 1, 1, color='gray', alpha=0.3)
     custom_handles.append(target_patch)
     custom_labels.append("Target zone")
+    prec_rec_handle = plt.Line2D([], [], color='k', marker='o', linestyle='None', markersize=6)
+    custom_handles.append(prec_rec_handle)
+    custom_labels.append("Precision/recall image processing")
 
     # Threshold markers
     if best_points:
-        handle = plt.Line2D([], [], marker='o', linestyle='None', markersize=12, markeredgecolor='k', markerfacecolor='none')
+        handle = plt.Line2D([], [], marker='o', linestyle='None', markersize=6, markeredgecolor='k', markerfacecolor='none')
         custom_handles.append(handle)
         custom_labels.append("Optimal confidence threshold")
     elif metrics:
-        handle = plt.Line2D([], [], marker='s', linestyle='None', markersize=12, markeredgecolor='k', markerfacecolor='none')
+        handle = plt.Line2D([], [], marker='s', linestyle='None', markersize=6, markeredgecolor='k', markerfacecolor='none')
         custom_handles.append(handle)
-        custom_labels.append("Optimal confidence threshold (from validation set)")
+        custom_labels.append("Optimal confidence threshold from validation set")
 
-    plt.legend(custom_handles, custom_labels, loc="lower right", fontsize=12)
-
+    plt.legend(custom_handles, custom_labels, loc="lower left", fontsize=12, bbox_to_anchor=(0.1, 0.05) )
+    
     # ----------------------------- LABELS -----------------------------
     plt.xlabel("Recall", fontsize = 12)
     plt.ylabel("Precision", fontsize = 12)
@@ -550,11 +564,11 @@ def plot_pr_curves(
 #unify path settings and saving/loading
 test_set= False
 #path = "/user/christoph.wald/u15287/insect_pest_detection/training/"
-#path = "/user/christoph.wald/u15287/insect_pest_detection/3_3_self_training_evaluation/"
-path = "/user/christoph.wald/u15287/insect_pest_detection/3_1_supervised_training_evaluation/"
+path = "/user/christoph.wald/u15287/insect_pest_detection/3_3_self_training_evaluation/"
+#path = "/user/christoph.wald/u15287/insect_pest_detection/3_1_supervised_training_evaluation/"
 
 
-model_number = "6"
+model_number = "16"
 
 
 if test_set:
