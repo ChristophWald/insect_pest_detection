@@ -493,13 +493,15 @@ def plot_pr_curves(
             )
 
 
-
+    '''
+    #results image processing
     coords = [(0.5045945945945945, 0.784453781512605), (0.6048242237618681, 0.9210629152012505), (0.20974015870546134, 0.8685567010309279)]  # replace with your actual coordinates
     species_to_show = ["fungus gnats", "leaf miner flies", "whiteflies"]
 
     for (x, y), sp in zip(coords, species_to_show):
         plt.scatter(x, y, color=class_colors[sp], s=50, label=sp, zorder=10)
-
+    '''
+        
     # Optionally add a legend for these markers
     plt.legend(loc='upper right', fontsize=12, frameon=False)
     # ----------------------------- TARGET ZONE -----------------------------
@@ -521,9 +523,9 @@ def plot_pr_curves(
     target_patch = plt.Rectangle((0, 0), 1, 1, color='gray', alpha=0.3)
     custom_handles.append(target_patch)
     custom_labels.append("Target zone")
-    prec_rec_handle = plt.Line2D([], [], color='k', marker='o', linestyle='None', markersize=6)
-    custom_handles.append(prec_rec_handle)
-    custom_labels.append("Precision/recall image processing")
+    #prec_rec_handle = plt.Line2D([], [], color='k', marker='o', linestyle='None', markersize=6)
+    #custom_handles.append(prec_rec_handle)
+    #custom_labels.append("Precision/recall image processing")
 
     # Threshold markers
     if best_points:
@@ -562,13 +564,13 @@ def plot_pr_curves(
 
 #todo
 #unify path settings and saving/loading
-test_set= False
+test_set= True
 #path = "/user/christoph.wald/u15287/insect_pest_detection/training/"
-path = "/user/christoph.wald/u15287/insect_pest_detection/3_3_self_training_evaluation/"
-#path = "/user/christoph.wald/u15287/insect_pest_detection/3_1_supervised_training_evaluation/"
+#path = "/user/christoph.wald/u15287/insect_pest_detection/3_3_self_training_evaluation/"
+path = "/user/christoph.wald/u15287/insect_pest_detection/3_1_supervised_training_evaluation/"
 
 
-model_number = "16"
+model_number = "4"
 
 
 if test_set:
@@ -608,7 +610,7 @@ with open(os.path.join(base_output_path, "operating_points.json"), "w") as f:
         json.dump(best_points, f, indent=4)
 
 if not test_set:
-    plot_pr_curves(pr_results, best_points=best_points, base_output_path=base_output_path, title = "Supervised model evaluated on validation set")
+    plot_pr_curves(pr_results, best_points=best_points, base_output_path=base_output_path, title = "Model trained supervised on tiles and evaluated on validation set")
 else:
     with open(os.path.join(base_output_path, "metrics.json"), "r") as f:
         metrics_file = json.load(f)
@@ -618,5 +620,5 @@ else:
         best_points=None,
         base_output_path=base_output_path,
         metrics=metrics_file,
-        title = "Supervised trained model evaluated on test set"
+        title = "Model trained supervised on tiles and evaluated on test set"
     )
