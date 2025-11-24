@@ -38,6 +38,26 @@ def load_yolo_labels(file_path, img_width, img_height):
             classes.append(cls)
     return [boxes, classes]
 
+def compute_intersection_area(box1, box2):
+    xA = max(box1[0], box2[0])
+    yA = max(box1[1], box2[1])
+    xB = min(box1[2], box2[2])
+    yB = min(box1[3], box2[3])
+    inter_width = max(0, xB - xA)
+    inter_height = max(0, yB - yA)
+    return inter_width * inter_height
+
+
+def pad_to_multiple(image, tile_size=640, pad_value=(114,114,114)):
+    h, w = image.shape[:2]
+    pad_w = math.ceil(w / tile_size) * tile_size - w
+    pad_h = math.ceil(h / tile_size) * tile_size - h
+    padded = cv2.copyMakeBorder(image, 0, pad_h, 0, pad_w, cv2.BORDER_CONSTANT, value=pad_value)
+    return padded, w, h  # return original width/height for label conversion
+
+##### Visualizations
+
+
 def visualize_yolo_boxes(image_path, label_path, output_folder):
     """
     Draw YOLO bounding boxes on a single image and save the result.
@@ -71,14 +91,7 @@ def visualize_yolo_boxes(image_path, label_path, output_folder):
     cv2.imwrite(output_path, image)
     print(f"Saved: {output_path}")
 
-def compute_intersection_area(box1, box2):
-    xA = max(box1[0], box2[0])
-    yA = max(box1[1], box2[1])
-    xB = min(box1[2], box2[2])
-    yB = min(box1[3], box2[3])
-    inter_width = max(0, xB - xA)
-    inter_height = max(0, yB - yA)
-    return inter_width * inter_height
+
 
 
 def save_cropped_boxes(image, boxes, filename=None, output_dir=None):
@@ -130,9 +143,3 @@ def save_cropped_boxes(image, boxes, filename=None, output_dir=None):
     return crops
 
 
-def pad_to_multiple(image, tile_size=640, pad_value=(114,114,114)):
-    h, w = image.shape[:2]
-    pad_w = math.ceil(w / tile_size) * tile_size - w
-    pad_h = math.ceil(h / tile_size) * tile_size - h
-    padded = cv2.copyMakeBorder(image, 0, pad_h, 0, pad_w, cv2.BORDER_CONSTANT, value=pad_value)
-    return padded, w, h  # return original width/height for label conversion

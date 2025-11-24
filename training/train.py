@@ -1,13 +1,8 @@
 from ultralytics import YOLO
 
 '''
-just the model.train with parameters
+just the model.train() with parameters
 '''
-
-
-#training
-#p1
-#model = YOLO('yolov8s.pt')
 
 
 #
@@ -29,17 +24,3 @@ model.train(data = "/user/christoph.wald/u15287/big-scratch/04_SSL_training_data
             
         
             )
-
-'''
-
-
-#for resuming training
-model = YOLO('/user/christoph.wald/u15287/insect_pest_detection/training/runs/detect/train/weights/last.pt')
-model.train(resume=True)  
-
-
-
-model = YOLO("/user/christoph.wald/u15287/insect_pest_detection/3_1_supervised_training_evaluation/runs/detect/train6/weights/best.pt")
-#metrics = model.val(data="/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/split/data.yaml", imgsz = 1024, conf = 0.5608052586391568)
-metrics = model.val(data = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/test_set/test_set_w_new_labels/for_yolo_test/data.yaml", imgsz = 1024, conf = 0.5608052586391568, save_json = True)
-'''
