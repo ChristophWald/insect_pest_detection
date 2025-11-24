@@ -76,11 +76,9 @@ def process_class_subfolder(class_name, base_images='images', base_labels='label
         else:
             print(f"         label: {old_label_path} [NOT FOUND]")
 
-def main():
-    class_folders = ["FungusGnats", "LeafMinerFlies", "Thrips", "WhiteFlies"]
-    for class_name in class_folders:
-        process_class_subfolder(class_name)
 
-if __name__ == "__main__":
-    main()
+class_folders = ["FungusGnats", "LeafMinerFlies", "Thrips", "WhiteFlies"]
+for class_name in class_folders:
+    process_class_subfolder(class_name)
+
 
