@@ -3,6 +3,12 @@ import math
 import matplotlib.pyplot as plt
 from PIL import Image
 
+'''
+takes all images in a folder and combines them to a single images
+for visual inspection
+
+'''
+
 def plot_image_grid(folder_path, cols=10, thumb_px=128, output_file="image_grid.png"):
     # Get all image files in the folder
     valid_exts = {".jpg", ".jpeg", ".png", ".bmp", ".gif", ".tiff"}

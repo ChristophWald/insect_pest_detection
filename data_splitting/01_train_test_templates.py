@@ -1,7 +1,6 @@
 import sys
 sys.path.append("/user/christoph.wald/u15287/insect_pest_detection/modules")
-from modules import *
-from modules_plotting import *
+from modules_splitting import *
 import pandas as pd
 import numpy as np
 import random

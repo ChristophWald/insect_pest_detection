@@ -5,6 +5,34 @@ import numpy as np
 import os
 
 
+
+
+def get_files_by_subfolder(root_dir, count_lines=False):
+    '''
+    Function to get filenames (and optional line counts for labels) from subfolders
+    number of lines in label files is the number of labels
+    '''
+    file_dict = {}
+    for subdir, _, files in os.walk(root_dir):
+        if subdir == root_dir:
+            continue  # Skip root directory itself
+        folder_name = os.path.basename(subdir)
+        file_entries = {}
+        for f in files:
+            file_path = os.path.join(subdir, f)
+            if os.path.isfile(file_path):
+                name = os.path.splitext(f)[0]
+                if count_lines:
+                    with open(file_path, 'r', encoding='utf-8') as file:
+                        lines = file.readlines()
+                    file_entries[name] = len(lines)
+                else:
+                    file_entries[name] = None
+        file_dict[folder_name] = file_entries
+    return file_dict
+
+
+
 '''
 for visualizing dataset/split
 '''
