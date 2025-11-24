@@ -2,16 +2,13 @@ import os
 import cv2
 import numpy as np
 
+import sys
+sys.path.append("/user/christoph.wald/u15287/insect_pest_detection/modules")
+from modules_segmentation import create_binary_mask
+
 '''
 crops all images in a folder to the YST-rectangle and adjusts the corresponding yolo labels
 '''
-
-def create_binary_mask(image):
-    lower_yellow = np.array([20, 100, 100])
-    upper_yellow = np.array([30, 255, 255])
-    hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
-    mask = cv2.inRange(hsv, lower_yellow, upper_yellow)
-    return mask
 
 def crop(image):
     mask = create_binary_mask(image)

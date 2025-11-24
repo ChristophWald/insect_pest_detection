@@ -1,9 +1,9 @@
 import os
 
 '''
-deletes all lines in label files given by img-files with [species]_[filenumber]_[linenumber].jpg
-these are single boxes with insects for manual inspection that are sorted into folders 
-for cleaning the thrips labels
+deletes all lines in label files given by single .img-files with [species]_[filenumber]_[linenumber].jpg
+these are single bounding boxes with insects for manual inspection that are sorted into folders 
+used for cleaning the thrips labels
 '''
 
 source_path = "/user/christoph.wald/u15287/big-scratch/01_dataset/marcella_no_thrips"
