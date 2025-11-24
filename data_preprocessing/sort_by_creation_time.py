@@ -6,6 +6,7 @@ import shutil
 
 '''
 reorders image files and labels by creation time of the jpgs (EXIF data)
+execute in the parent directory
 '''
 
 def get_exif_creation_date(filepath):

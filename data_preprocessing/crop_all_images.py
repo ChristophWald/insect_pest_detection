@@ -11,6 +11,9 @@ crops all images in a folder to the YST-rectangle and adjusts the corresponding 
 '''
 
 def crop(image):
+    '''
+    crops images to the largest contour
+    '''
     mask = create_binary_mask(image)
     contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     if contours:
@@ -22,6 +25,9 @@ def crop(image):
         return None, None
 
 def adjust_yolo_labels(labels_path, crop_x, crop_y, crop_w, crop_h, orig_w, orig_h, output_labels_path):
+    '''
+    adjusts yolo formated labels according to the crop
+    '''
     adjusted_labels = []
     with open(labels_path, 'r') as f:
         for line in f:
@@ -71,6 +77,9 @@ def adjust_yolo_labels(labels_path, crop_x, crop_y, crop_w, crop_h, orig_w, orig
             f_out.write(lbl + '\n')
 
 def process_image(image_path, annotation_path, output_image_path, output_label_path):
+    '''
+    crops and adjust the label of one image
+    '''
     image = cv2.imread(image_path)
     if image is None:
         print(f"Warning: Could not read image {image_path}")
@@ -96,6 +105,9 @@ def process_image(image_path, annotation_path, output_image_path, output_label_p
         print(f"Annotation file {annotation_path} not found, skipping label adjustment.")
 
 def process_all_images(image_root='images', label_root='labels', output_root='output'):
+    '''
+    processes all images in the images subfolders including their labels in the according labels subfolders
+    '''
     for root, dirs, files in os.walk(image_root):
         for file in files:
             if not file.lower().endswith(('.jpg', '.jpeg', '.png')):
@@ -113,7 +125,7 @@ def process_all_images(image_root='images', label_root='labels', output_root='ou
             process_image(image_path, annotation_path, output_image_path, output_label_path)
 
 process_all_images(
-    image_root = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/test_set/test_set_w_new_labels_uncropped/images",
-    label_root = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/test_set/test_set_w_new_labels_uncropped/labels",
-    output_root = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/test_set/test_set_w_new_labels"
+    image_root = #set image root folder
+    label_root = #set label root folder
+    output_root = #set output root folder
 )

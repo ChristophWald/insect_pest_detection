@@ -13,13 +13,6 @@ get all files in all subfolders incl. optional linecount for label files
 '''
 
 
-def draw_box(img, box, color, label):
-    """Draw a bounding box with label on the image."""
-    xmin, ymin, xmax, ymax = map(int, box)
-    cv2.rectangle(img, (xmin, ymin), (xmax, ymax), color, 2)
-    cv2.putText(img, label, (xmin, ymin - 10), cv2.FONT_HERSHEY_SIMPLEX,
-                0.6, color, 2)
-    
 
 def load_yolo_labels(file_path, img_width, img_height):
     """Load YOLO label file and convert to absolute pixel coordinates."""
@@ -56,6 +49,15 @@ def pad_to_multiple(image, tile_size=640, pad_value=(114,114,114)):
     return padded, w, h  # return original width/height for label conversion
 
 ##### Visualizations
+
+
+def draw_box(img, box, color, label):
+    """Draw a bounding box with label on the image."""
+    xmin, ymin, xmax, ymax = map(int, box)
+    cv2.rectangle(img, (xmin, ymin), (xmax, ymax), color, 2)
+    cv2.putText(img, label, (xmin, ymin - 10), cv2.FONT_HERSHEY_SIMPLEX,
+                0.6, color, 2)
+    
 
 
 def visualize_yolo_boxes(image_path, label_path, output_folder):

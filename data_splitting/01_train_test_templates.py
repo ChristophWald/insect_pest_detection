@@ -81,7 +81,7 @@ def remove_labeled_from_images(all_labeled, all_images):
 
 def custom_split_unlabeled(unlabeled_set):
     """
-    returns two dicts of unlabelled files split by given rules
+    returns two dicts of unlabeled files split by given rules
     """
     train_unlabeled = {}
     

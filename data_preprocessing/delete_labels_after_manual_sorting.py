@@ -6,8 +6,8 @@ these are single bounding boxes with insects for manual inspection that are sort
 used for cleaning the thrips labels
 '''
 
-source_path = "/user/christoph.wald/u15287/big-scratch/01_dataset/marcella_no_thrips"
-dest_path = "/user/christoph.wald/u15287/big-scratch/01_dataset/labels/Thrips"
+source_path = #folder with images that are cut out bounding boxes from wrong labels
+dest_path = #destination path for corrected labels
 
 filenames = os.listdir(source_path)
 

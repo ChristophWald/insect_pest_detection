@@ -4,6 +4,7 @@ from collections import defaultdict
 
 '''
 find duplicate files by sha256 checksum
+execute in parent folder
 '''
 
 def compute_sha256(filepath):

@@ -158,7 +158,7 @@ for file in files:
 
 
 
-#for augmented
+#for augmented images
 
 img_path = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/augmented_data/images"
 label_path = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/augmented_data/labels"
@@ -179,7 +179,7 @@ for file in files:
                   yolo=False)
 
 '''
-#for augmented with lines
+#for augmented images with lines
 
 img_path = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/SSL/06_masked_augmented"
 label_path = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/SSL/05_created_labels"

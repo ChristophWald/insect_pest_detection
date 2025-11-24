@@ -3,7 +3,7 @@ import shutil
 import yaml
 
 '''
-create a training folder for YOLO training by copying files and saving a data.yaml
+create a training folder for YOLO by copying files and saving a data.yaml
 '''
 
 
