@@ -8,6 +8,10 @@ from modules_segmentation import create_binary_mask
 import ast
 import numpy as np
 
+'''
+creates images with cut-out insects placed on and near background structures
+'''
+
 random.seed(43)
 pest_types = ["BRAIIM", "LIRIBO", "TRIAVA"]
 output_folder = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/augmented_data/"

@@ -31,6 +31,18 @@ def load_yolo_labels(file_path, img_width, img_height):
             classes.append(cls)
     return [boxes, classes]
 
+def xyxy_to_yolo(x1, y1, x2, y2, width, height):
+    """
+    Convert bounding box from [x1, y1, x2, y2] to YOLO [x_center, y_center, w, h]
+    normalized by image width and height.
+    """
+    x_center = (x1 + x2) / 2 / width
+    y_center = (y1 + y2) / 2 / height
+    w = (x2 - x1) / width
+    h = (y2 - y1) / height
+    return [x_center, y_center, w, h]
+
+
 def compute_intersection_area(box1, box2):
     xA = max(box1[0], box2[0])
     yA = max(box1[1], box2[1])
