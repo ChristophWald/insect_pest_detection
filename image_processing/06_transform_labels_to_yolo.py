@@ -1,6 +1,11 @@
 import os
 import cv2
 
+
+'''
+transforms the xywh - formatted labels given by 05a_create-regangles to yolo-format
+'''
+
 # Paths
 image_folder = "/user/christoph.wald/u15287/big-scratch/04_SSL_training_data/training_data/images/train"       # folder with images
 label_folder = "/user/christoph.wald/u15287/big-scratch/04_SSL_training_data/training_data/labels/absolute"       # folder with original txts

@@ -5,19 +5,14 @@ import os
 from modules_segmentation import *
 import pandas as pd
 
-
-
 '''
-creates label files in xyxy - format based on segmenting the masked images
-use inspection flag to create images of in between steps
-use evaluate_labels flag to compare labels to given yolo-labels
-use save_labels flag to turn of the saving of labels
+creates label files in xywh - format based on segmenting the masked images
 '''
 
 #flags
-inspection = False
-evaluate_labels = False
-save_labels = True
+inspection = False #if True saves for visual inspection
+evaluate_labels = False #if True evaluates on the manual labels
+save_labels = True #if True creates the label flies
 
 predicted_rectangles = []
 results = []
@@ -26,13 +21,11 @@ overlaps = 0
 value_problems = 0
 
 #set paths
+#for labeled set
 #image_folder = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/SSL/03_images_masked_test4"
 #labels_folder = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/SSL/04_labels_cropped"
 #output_labels_folder= "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/SSL/05_created_labels_from_test4"
-
 #cropped_images_folder = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/SSL/04_images_cropped"
-
-
 
 #for unlabeled set
 image_folder = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_unlabeled/03_images_masked"
@@ -48,50 +41,51 @@ image_files = sorted(os.listdir(image_folder))
 #change to run only on one insect pest class
 #image_files = [f for f in image_files if "TRIAVA" in f]
 
+
 for i, image_file in enumerate(image_files):
 
     filename= image_file.split(".")[0]
     entry = [filename]
+
     #Load image file
     print(f"Loading {image_file}, {i}/{len(image_files)}")
     image = cv2.imread(os.path.join(image_folder, image_file))
     
     
     if inspection: cv2.imwrite(os.path.join(test_folder, filename + "_04_binary_mask.jpg"), create_binary_mask(image)) 
-    
-    
-    #handcrafted features for filtering bounding boxes
+        
+    #handcrafted features for filtering contours bounding boxes
     if "TRIAVA" in image_file:
         min_area_contour = 100  
         max_area_contour = 1000
         scale = 1.5
-        max_ratio = 1.84 #1.88 #unlabeled 1.84 #
-        upper_limit_rectangles =  3477 #3275 # unlabeled 3477 #
+        max_ratio = 1.84 #labeled 
+        upper_limit_rectangles =  3477 #labeled 3275
     elif "LIRIBO" in image_file: 
         min_area_contour = 1000 
         max_area_contour = 10000 
         scale = 1.5
-        max_ratio =  1.76 #1.77 # unlabeled 1.76 # #95th percentile
-        upper_limit_rectangles =  24840 #23544 # unlabeled 24840 #95th percentile
+        max_ratio =  1.76 #labeled 1.77 
+        upper_limit_rectangles =  24840 #labeled 23544 
     elif "BRAIIM" in image_file:
         min_area_contour = 2000 
         max_area_contour = 10000
         scale = 1.5
-        max_ratio = 1.73 #1.74 #unlabeled 1.73 # #95the percentile
-        upper_limit_rectangles = 43456 #42260 #unlabeled 43456 # #None  #95th percentil
+        max_ratio = 1.73 #labeled 1.74 
+        upper_limit_rectangles = 43456 #labeled 42260
 
     #find bounding boxes, filtered by handcrafted features and ratio of w/h, scale them    
     rectangles, v = get_list_of_rectangles(image, min_area_contour, max_area_contour, scale, max_ratio, upper_limit_rectangles)
     value_problems += v
     predicted_rectangles.append(rectangles)
     
-    
+    #extra overlap check for whiteflies
     if "TRIAVA" in image_file:
         count = len(rectangles)
         rectangles = remove_smaller_overlaps(rectangles)
         overlaps += count - len(rectangles)
 
-
+    #evaluation on ground turht
     if evaluate_labels:
         #loading the rectangles given by the yolo labels
         label_file = os.path.splitext(image_file)[0] + ".txt"
@@ -126,15 +120,14 @@ for i, image_file in enumerate(image_files):
                 f.write(str(r) + "\n")
 
 
-
 with open("rectangles_full_filter", "w") as f:
     for item in predicted_rectangles:
         f.write(str(item) + "\n")#
 
-
 print(f"Deleted {overlaps} overlaps.")
 print(f"Detected {value_problems} value problems.")
 
+#statistics for evaluation
 if evaluate_labels:
     #evaluate
     rows = []

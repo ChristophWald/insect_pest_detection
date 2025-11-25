@@ -6,7 +6,7 @@ from modules_segmentation import *
 import numpy as np
 
 '''
-create a mask with overlaying several images and thicken the found grid
+create a mask by overlaying several images and thicken the found grid
 saves corners of the YST and two points of the horizontal midline as .npy files
 '''
 

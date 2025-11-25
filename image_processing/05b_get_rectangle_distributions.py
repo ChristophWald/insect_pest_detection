@@ -3,7 +3,13 @@ import ast
 import numpy as np
 import matplotlib.pyplot as plt
 
-# --- Folder containing rectangle files ---
+
+'''
+prints and plots distribution of box sizes and ratio of sides
+boxes given by 05a_create_rectangles
+'''
+
+# folder containing rectangle files
 rect_folder = "/user/christoph.wald/u15287/insect_pest_detection/2_4_image_processing/rectangles_mask04_simple_labeled"
 rect_files = sorted([f for f in os.listdir(rect_folder) if f.endswith(".txt")])
 
@@ -30,7 +36,7 @@ for i, file_name in enumerate(rect_files):
     areas = np.array(areas)
     square_devs = np.array(square_devs)
 
-    # --- Step 2: Compute percentiles ---
+    # compute percentiles 
     area_95 = np.percentile(areas, 95)
     area_max = np.max(areas)
     sqdev_95 = np.percentile(square_devs, 95)

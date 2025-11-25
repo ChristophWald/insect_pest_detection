@@ -474,3 +474,52 @@ def random_local_blur(image, area_ratio=0.2):
     output[y1:y2, x1:x2] = blended.astype(np.uint8)
 
     return output
+
+
+def crop(image):
+    mask = create_binary_mask(image)
+    contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    if contours:
+        largest_contour = max(contours, key=cv2.contourArea)
+        x, y, w, h = cv2.boundingRect(largest_contour)
+        cropped_image = image[y:y+h, x:x+w]
+        return cropped_image, (x, y, w, h)
+    else:
+        return None, None
+    
+def fit_mask_to_image(mask, img_shape):
+    """
+    Resize/crop or place mask to fit the image shape.
+    If mask is smaller: place randomly.
+    If mask is larger: crop to fit.
+    """
+    mask_h, mask_w = mask.shape
+    img_h, img_w = img_shape[:2]
+
+    # If mask is larger, crop it
+    if mask_h > img_h:
+        start_y = (mask_h - img_h) // 2
+        mask = mask[start_y:start_y+img_h, :]
+    if mask_w > img_w:
+        start_x = (mask_w - img_w) // 2
+        mask = mask[:, start_x:start_x+img_w]
+
+    # If mask is smaller, place it randomly
+    mask_h, mask_w = mask.shape
+    result_mask = np.ones((img_h, img_w), dtype=mask.dtype) * 255  # white background
+    max_y = img_h - mask_h
+    max_x = img_w - mask_w
+    start_y = random.randint(0, max_y) if max_y > 0 else 0
+    start_x = random.randint(0, max_x) if max_x > 0 else 0
+    result_mask[start_y:start_y+mask_h, start_x:start_x+mask_w] = mask
+    return result_mask
+
+def circular_shift_mask_2d(mask, min_shift=500):
+    h, w = mask.shape
+    max_shift_h = h // 2
+    max_shift_w = w // 2
+    shift_y = random.randint(min_shift, max_shift_h) * random.choice([-1, 1])
+    shift_x = random.randint(min_shift, max_shift_w) * random.choice([-1, 1])
+    shifted_mask = np.roll(mask, shift_y, axis=0)
+    shifted_mask = np.roll(shifted_mask, shift_x, axis=1)
+    return shifted_mask
