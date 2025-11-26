@@ -4,41 +4,57 @@ import matplotlib.pyplot as plt
 import os
 import math
 import ast
+import sys
+sys.path.append("/user/christoph.wald/u15287/insect_pest_detection/modules")
+from modules import compute_intersection_area
 
 '''
-general functions
+utilites:
+create_binary_mask: separates image into foreground and background by yellow color threshold
+find_contour: returns the largest contour in an image
+find_corners: if a given contour is a rectangle, returns coordinates of the corners
+is_upside_oriented: returns true, if image is upside oriented
+
+for mask creation and image registering:
+denoise_mask: by morphological opening
+grow_mask: thickens structures by eroding the foreground
+get_h_mid: get horizontal midline (used only on 03_generate_mask - could be replaced by get_distance_h_mid)
+get_distance_h_mid: get horizontal midline (with correction if border line was chosen)
+get_midpoint: gets midpoint of a line
+
+yolo labels loading:
+yolo_labels_to_rectangles: transform yolo labels to absolute xywh
+transform_rectangles_to_cropped: adapts xywh labels to cropped images
+
+for label creation:
+scale_rect: scale a xywh-rectangle by a factor
+get_list_of_rectangles: returns scaled rectangles for all foreground contours
+remove_smaller_overlaps: for overlapping rectangles, removes the smaller
+
+for rectangle evaluation:
+compute_iop: computes intersection over predicted box, used by evaluate_detections
+evaluate_detections: compares created rectangles to ground truth
+
+for visual inspection:
+
+def show: plots the cv2 image (for use in notebooks)
+def draw_corners: plots the point found by find_corners into the image
+def draw_bounding_boxes: plots the xywh-formatted rectangles into an image
+def check_h_line(bw, h_mid): plots the horizontal midline found
+def draw_boxes_on_images(image_folder, label_folder, output_folder): plots the xywh-labels into images for all files in specified folders
 '''
 
-# combined
-def create_binary_mask(image, binary_default=True):
+
+#utilities
+
+def create_binary_mask(image):
     '''
     binary masking with manual set threshold (yellow)
-    '''
-    if binary_default:
-        
-        lower_yellow = np.array([20, 100, 100])
-        upper_yellow = np.array([30, 255, 255])
-        hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
-        mask = cv2.inRange(hsv, lower_yellow, upper_yellow)
-        return mask
-    
-    print("Using enhanced binarization.")   
-    hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
-    h, s, v = cv2.split(hsv)
-    clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
-    s = clahe.apply(s)
-
-    # Adaptive S channel thresholds for yellow
-    lower_s = max(50, int(np.percentile(s, 1)))
-    lower_yellow = np.array([20, lower_s, 100])
+    '''        
+    lower_yellow = np.array([20, 100, 100])
     upper_yellow = np.array([30, 255, 255])
+    hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
     mask = cv2.inRange(hsv, lower_yellow, upper_yellow)
-
-    # Morphological cleanup #increases processing time
-    kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (9,9))
-    mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel)
-    kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (15,15))
-    mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel)
     return mask
 
 def find_contour(image):
@@ -74,10 +90,6 @@ def find_corners(image, contour):
     else:
         return []
 
-'''
-function for the rotating (02)
-'''
-
 def is_upside_orientated(image, contour, v_threshold=50):
     ''' 
     detects the orientation
@@ -108,9 +120,7 @@ def is_upside_orientated(image, contour, v_threshold=50):
 
     return result
 
-'''
-function for the creation of masks
-'''
+#for mask creation
 
 def denoise_mask(mask):
     mask_inv = cv2.bitwise_not(mask)  #inverting, because morphologyEx expects white foreground
@@ -131,10 +141,6 @@ def grow_mask(mask, growth_pixels=5):
 
     return grown_mask
 
-'''
-functions for processing images and labels (masking and cropping)
-'''
-#which one is still needed
 def get_h_mid(image):
     """
     Find the longest horizontal line in an image
@@ -247,8 +253,7 @@ def get_midpoint(mid_h):
     _, y1, _, y2 = mid_h
     return (y1 + y2) / 2
 
-
-#compare to modules
+#yolo labels loading
 def yolo_labels_to_rectangles(labels, image_shape):
     '''
     calculate absolute values from yolo labels for checking
@@ -307,9 +312,7 @@ def transform_rectangles_to_cropped(rectangles, x_crop, y_crop, crop_w, crop_h):
 
     #functions for aligning empty image with grid and image with objects to cancel out the grid
 
-'''
-functions to evaluate the found bounding boxes
-'''
+#for mask creation
 
 def scale_rect(x, y, w, h, scale):
     """
@@ -437,27 +440,7 @@ def remove_smaller_overlaps(rectangles):
     
     return rectangles
 
-
-#as found in modules.py
-def compute_intersection_area(box1, box2):
-    xA = max(box1[0], box2[0])
-    yA = max(box1[1], box2[1])
-    xB = min(box1[2], box2[2])
-    yB = min(box1[3], box2[3])
-    inter_width = max(0, xB - xA)
-    inter_height = max(0, yB - yA)
-    return inter_width * inter_height
-
-#as found in test_full_images.py #or augmentation
-def compute_iou(box1, box2):
-    inter_area = compute_intersection_area(box1, box2)
-    if inter_area == 0:
-        return 0.0
-    box1_area = (box1[2] - box1[0]) * (box1[3] - box1[1])
-    box2_area = (box2[2] - box2[0]) * (box2[3] - box2[1])
-    iou = inter_area / (box1_area + box2_area - inter_area)
-    return iou
-
+#for rectangles evaluation
 def compute_iop(box1, box2):
     """
     Intersection over Prediction (IoP).
@@ -499,168 +482,8 @@ def evaluate_detections(pred_rectangles, gt_rectangles, iou_threshold=0.5):
 
     return {"TP": TP, "FP": FP, "FN": FN}, FP_boxes
 
-#as found in modules
-def pad_image_to_stride(image, tile_size=640, stride=440):
-    ''' 
-    pad image to allow tiling
-    '''
-    height, width = image.shape[:2]
 
-    # Calculate how much padding is needed
-    pad_bottom = (math.ceil((height - tile_size) / stride) + 1) * stride + tile_size - stride - height
-    pad_right  = (math.ceil((width  - tile_size) / stride) + 1) * stride + tile_size - stride - width
-
-    # Apply padding (bottom and right sides only)
-    padded_image = cv2.copyMakeBorder(
-        image, 0, pad_bottom, 0, pad_right,
-        borderType=cv2.BORDER_CONSTANT, value=(0, 0, 0)
-    )
-
-    return padded_image
-
-#as found in modules
-def calculate_intersection_area(tile, rect):
-    ''' 
-        calculates the intersection of a tile and a rectangle(bounding box) and returns percentage
-    '''
-    # Calculate the coordinates of the intersection
-    x1, y1, w1, h1 = rect
-    tx, ty = tile
-    x2 = tx + 640
-    y2 = ty + 640
-    
-    # Find the intersection coordinates
-    inter_x1 = max(x1, tx)
-    inter_y1 = max(y1, ty)
-    inter_x2 = min(x1 + w1, x2)
-    inter_y2 = min(y1 + h1, y2)
-
-    # Calculate the intersection area
-    if inter_x2 > inter_x1 and inter_y2 > inter_y1:
-        inter_width = inter_x2 - inter_x1
-        inter_height = inter_y2 - inter_y1
-        return inter_width * inter_height
-    return 0
-
-def check_overlap(tile, rect, overlap_threshold=0.1):
-    '''
-        checks if the intersection area exceeds a threshold and returns a boolean
-    '''
-    
-    # Calculate the intersection area between the tile and the rectangle
-    intersection_area = calculate_intersection_area(tile, rect)
-    x, y, w, h = rect
-    rect_area = w * h
-
-    # Calculate the overlap percentage
-    overlap_percentage = intersection_area / rect_area
-
-    # If the overlap is greater than the threshold, return True
-    return overlap_percentage >= overlap_threshold
-
-def get_tiles_with_rectangles(image, rectangles, overlap_threshold=0.8):
-    '''
-        returns list with top left corner of tile and the rectangles in relation to the tile
-    '''
-    # Pad image first
-    tile_size = 640
-    stride = 440
-    padded_image = pad_image_to_stride(image, tile_size, stride)
-    height, width = padded_image.shape[:2]
-    
-    tile_data = []
-
-    for y in range(0, height - tile_size + 1, stride):
-        for x in range(0, width - tile_size + 1, stride):
-            tile = (x, y)
-            relative_rects = []
-
-            for rect in rectangles:
-                if check_overlap(tile, rect, overlap_threshold):
-                    # clip coordinates if they are past the tile
-                    rx, ry, rw, rh = rect
-                    clipped_x1 = max(rx, x)
-                    clipped_y1 = max(ry, y)
-                    clipped_x2 = min(rx + rw, x + tile_size)
-                    clipped_y2 = min(ry + rh, y + tile_size)
-
-                    # Convert to relative
-                    rel_x = clipped_x1 - x
-                    rel_y = clipped_y1 - y
-                    rel_w = clipped_x2 - clipped_x1
-                    rel_h = clipped_y2 - clipped_y1
-
-                    # Only keep if it still has area
-                    if rel_w > 0 and rel_h > 0:
-                        relative_rects.append([rel_x, rel_y, rel_w, rel_h])
-
-            tile_data.append([(x, y), relative_rects])
-
-    return tile_data, padded_image
-
-def extract_tiles(tile_data, padded_image, tile_size=640):
-    '''
-        returns a list of cv2 images which are the tiles selected
-    '''
-    tile_images = []
-    for (tile_x, tile_y), rects in tile_data:
-        tile_img = padded_image[tile_y:tile_y + tile_size, tile_x:tile_x + tile_size].copy()
-        tile_images.append(tile_img)
-    return tile_images
-
-def generate_yolo_labels(tile_data, tile_size=640, class_id=0):
-    '''
-        returns the yolo_labels as list
-    '''
-    yolo_labels = []
-
-    for i, ((tile_x, tile_y), rects) in enumerate(tile_data):
-        tile_label_lines = []
-
-        for rel_x, rel_y, w, h in rects:
-            x_center = (rel_x + w / 2) / tile_size
-            y_center = (rel_y + h / 2) / tile_size
-            norm_w = w / tile_size
-            norm_h = h / tile_size
-
-            label_line = f"{class_id} {x_center:.6f} {y_center:.6f} {norm_w:.6f} {norm_h:.6f}"
-            tile_label_lines.append(label_line)
-
-        yolo_labels.append(tile_label_lines)
-
-    return yolo_labels
-
-def rectangle_to_yolo(rect, image_width, image_height):
-    """
-    Convert a rectangle in xywh pixel format (top-left origin) to YOLO normalized format.
-
-    Parameters:
-        rect: [x_top_left, y_top_left, width, height] in pixels
-        image_width: width of the image in pixels
-        image_height: height of the image in pixels
-
-    Returns:
-        yolo_bbox: [x_center_norm, y_center_norm, width_norm, height_norm]
-    """
-    x, y, w, h = rect
-
-    # Convert top-left xy to center xy
-    x_center = x + w / 2.0
-    y_center = y + h / 2.0
-
-    # Normalize
-    x_center_norm = x_center / image_width
-    y_center_norm = y_center / image_height
-    width_norm = w / image_width
-    height_norm = h / image_height
-
-    return [x_center_norm, y_center_norm, width_norm, height_norm]
-
-
-'''
-functions for visual feedback
-not necessary for processing
-'''
+#for visual inspection
 
 def show(img, title = None):
     '''

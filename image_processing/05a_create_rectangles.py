@@ -85,7 +85,7 @@ for i, image_file in enumerate(image_files):
         rectangles = remove_smaller_overlaps(rectangles)
         overlaps += count - len(rectangles)
 
-    #evaluation on ground turht
+    #evaluation on ground truth
     if evaluate_labels:
         #loading the rectangles given by the yolo labels
         label_file = os.path.splitext(image_file)[0] + ".txt"
