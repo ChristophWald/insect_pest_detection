@@ -4,9 +4,11 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 import matplotlib.lines as mlines
 
+'''
+script for Figure 13
+'''
 
-
-df = pd.read_csv("/user/christoph.wald/u15287/insect_pest_detection/3_2_image_processing_evaluation/mask_tests_on_labeled_data/revised_mask_testing_collected_results.csv")
+df = pd.read_csv("/user/christoph.wald/u15287/insect_pest_detection/results/image_processing_evaluation/mask_tests_on_labeled_data/revised_mask_testing_collected_results.csv")
 
 
 # To avoid confusion with repeated mask labels, add index numbers

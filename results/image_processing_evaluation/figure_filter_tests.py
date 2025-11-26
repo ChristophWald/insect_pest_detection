@@ -1,7 +1,12 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 
-df = pd.read_csv("//user/christoph.wald/u15287/insect_pest_detection/3_2_image_processing_evaluation/revised_filtering_tests_collected_results.csv")
+'''
+script for figure 14
+'''
+
+
+df = pd.read_csv("//user/christoph.wald/u15287/insect_pest_detection/results/image_processing_evaluation/revised_filtering_tests_collected_results.csv")
 species = ['BRAIIM', 'LIRIBO', 'TRIAVA']
 new_labels = ['set1 ...', '+ contour size','+ overlaps', '+ box size', '+ box ratio', 'set2']  
 df['Unnamed: 0'] = new_labels

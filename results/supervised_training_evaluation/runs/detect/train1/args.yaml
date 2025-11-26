@@ -1,10 +1,10 @@
 task: detect
 mode: train
-model: yolov8s.pt
-data: /user/christoph.wald/u15287/big-scratch/03_train/data.yaml
-epochs: 100
+model: /user/christoph.wald/u15287/insect_pest_detection/2_2_supervised _training/runs/detect/train4/weights/last.pt
+data: /user/christoph.wald/u15287/big-scratch/04_SSL_training_data/03_train_full/data.yaml
+epochs: 200
 time: null
-patience: 10
+patience: 100
 batch: 16
 imgsz: 640
 save: true
@@ -13,7 +13,7 @@ cache: false
 device: null
 workers: 8
 project: null
-name: train
+name: train4
 exist_ok: false
 pretrained: true
 optimizer: auto
@@ -24,7 +24,7 @@ single_cls: false
 rect: false
 cos_lr: false
 close_mosaic: 10
-resume: false
+resume: /user/christoph.wald/u15287/insect_pest_detection/2_2_supervised _training/runs/detect/train4/weights/last.pt
 amp: true
 fraction: 1.0
 profile: false
@@ -76,7 +76,7 @@ momentum: 0.937
 weight_decay: 0.0005
 warmup_epochs: 3.0
 warmup_momentum: 0.8
-warmup_bias_lr: 0.1
+warmup_bias_lr: 0.0
 box: 7.5
 cls: 0.5
 dfl: 1.5
@@ -103,4 +103,4 @@ erasing: 0.4
 crop_fraction: 1.0
 cfg: null
 tracker: botsort.yaml
-save_dir: runs/detect/train
+save_dir: runs/detect/train4
