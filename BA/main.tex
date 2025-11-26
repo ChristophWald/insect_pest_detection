@@ -72,9 +72,9 @@ IPM is also the legal basis for the use of pesticides in the EU \cite{IPM_EU}, w
 The dominant approach in pest monitoring in general involves the supervised training of YOLO models. YOLO ("You Only Look Once") is a deep learning architecture that unifies the tasks of object localization and classification into a single step. It was introduced by Redmon et al. in 2016 \cite{redmon2016you} and has been improved on since then in several iterations by different contributors. For greenhouses, specifically designed neural network models have been employed successfully in 2021 \cite{rustia_automatic_2021, li_field_2021}, but the recent studies from 2023 onward use YOLO models on individual datasets \cite{costa_intelligent_2023, zhang_automatic_2023, wang_deep-learning-based_2024, shi_small_2025}. These six papers all report high performance, with mean average precision (mAP) or F1 scores ranging from 0.89 to 0.94.
 
 Main challenges in the implementation are the small size of pests—which, even with high-resolution cameras, occupy only a very tiny fraction of an image—and the high degree of morphological variation among individuals. In less controlled environments additional complications arise from high morphological similarity between different species.
-These challenges create a demand for large annotated datasets; however, the collection and labeling of biological data require considerable effort and expertise. As a result, datasets are often small and exhibit other limitations, such as class imbalance. For an overview of these specific challenges, see Teixeira et al. (2023) \cite{survey2023}. As a remedy, the authors recommend semi-supervised learning (SSL), a family of methods for training with only partially data. Despite this, no survey reports applications of SSL in the field of pest monitoring in general and only one study in the context of the greenhouse makes use of SSL methods: Rustia et al. \cite{rustia_online_2021} proposed a self-training pipeline as a supplement to a fully supervised model as early as 2021. While the results were promising, the implementation was highly intricate, involving multi-stage setups with hand-tailored solutions. This complexity may explain why the approach has not been further explored. Outside of the greenhouse, in open-field settings, some efforts were made from 2024 onward, either focusing on a single insect species with more diverse backgrounds or on a set of larger insects \cite{li_mateacher_2024, majewski_improved_2024, zhou_mutual_2024, zhou_perceptive_2025, gomez-zamanillo_semi-supervised_2025}. Another notable paper in this context is Dang et al. (2024) \cite{dang_efficient_2024}, who employ a field dataset of ten larger insect species and perform segmentation without manual annotation by leveraging a grounding language–image model. While extending this approach with classification and adapting it to the smaller insect pests typically found in greenhouses might be feasible, grounding models will not be considered in this study due to their limited efficiency compared to YOLO-based methods. 
+These challenges create a demand for large annotated datasets; however, the collection and labeling of biological data require considerable effort and expertise. As a result, datasets are often small and exhibit other limitations, such as class imbalance. For an overview of these specific challenges, see Teixeira et al. (2023) \cite{survey2023}. As a remedy, the authors recommend semi-supervised learning (SSL), a family of methods for training with only partially labeled data. Despite this, no survey reports applications of SSL in the field of pest monitoring in general and only one study in the context of the greenhouse makes use of SSL methods: Rustia et al. \cite{rustia_online_2021} proposed a self-training pipeline as a supplement to a fully supervised model as early as 2021. While the results were promising, the implementation was highly intricate, involving multi-stage setups with hand-tailored solutions. This complexity may explain why the approach has not been further explored. Outside of the greenhouse, in open-field settings, some efforts were made from 2024 onward, either focusing on a single insect species with more diverse backgrounds or on a set of larger insects \cite{li_mateacher_2024, majewski_improved_2024, zhou_mutual_2024, zhou_perceptive_2025, gomez-zamanillo_semi-supervised_2025}. Another notable paper in this context is Dang et al. (2024) \cite{dang_efficient_2024}, who employ a field dataset of ten larger insect species and perform segmentation without manual annotation by leveraging a grounding language–image model. While extending this approach with classification and adapting it to the smaller insect pests typically found in greenhouses might be feasible, grounding models will not be considered in this study due to their limited efficiency compared to YOLO-based methods. 
 
-Table~\ref{tab:literature-overview} shows an overview over the relevant literature. Because of the differing datasets and metrics, the results are not directly comparable. Also not seen in the table are the pest classes included in the datasets: Only Rustia et. al \cite{rustia_automatic_2021} covered the same pest classes featured in this project. As of now no YOLO model has been trained to identify common greenhouse pests without relying on supervised training. Although working solutions for automatic insect pest monitoring in the greenhouse have been successfully tested, practical deployment stagnates and is hindered by the need for large, manually annotated datasets for new target domains. To my knowledge, there is no adequate method to reduce the amount of labels needed. My goal is therefore an improvement in implementation efficiency by adapting the labeling and training method.
+Table~\ref{tab:literature-overview} shows an overview of the relevant literature. Because of the differing datasets and metrics, the results are not directly comparable. Also not seen in the table are the pest classes included in the datasets: Only Rustia et. al \cite{rustia_automatic_2021} covered the same pest classes featured in this project. As of now no YOLO model has been trained to identify common greenhouse pests without relying on supervised training. Although working solutions for automatic insect pest monitoring in the greenhouse have been successfully tested, practical deployment stagnates and is hindered by the need for large, manually annotated datasets for new target domains. To my knowledge, there is no adequate method to reduce the amount of labels needed. My goal is therefore an improvement in implementation efficiency by adapting the labeling and training method.
 
 \begin{table}[!t]
 \centering
@@ -140,15 +140,13 @@ The proposed automated labeling and SSL workflow consists of two stages. First, 
 \begin{figure}[!t]  % 
     \centering
     \includegraphics[width=1.0\textwidth]{images/flowchart1.png}  % Adjust width as needed
-    \caption{Overview over the experimental setup.}
+    \caption{Overview of the experimental setup.}
     \label{fig:flowchart_overview}
 \end{figure}
 
-The main goal of the experiments was to compare a supervised model with a model trained without manual labels. After cleaning and splitting the data (see Section~\ref{sec:data}), an evaluation pipeline was set up to test and compare the models (see Section~\ref{sec:evaluation}). Supervised training was performed on both tiled and full images, and the best model was selected as the baseline (see Section~\ref{sec:supervised_methods}).
+The main goal of the experiments was to test whether a model trained without manual labels could achieve results comparable to those of a model trained on manual labels. After cleaning and splitting the data (see Section~\ref{sec:data}), an evaluation pipeline was set up to test and compare the models (see Section~\ref{sec:evaluation}). Supervised training was performed on both tiled and full images, and the best model was selected as the baseline (see Section~\ref{sec:supervised_methods}).
 
-For the alternative approach, image processing was used to generate labels and augmented training data (see Section~\ref{sec:imag_proc_methods}). These generated datasets were then used to train models—again on both tiled and full images. To further improve performance, false positive predictions were incorporated as pseudo-labels for retraining the model (see Section~\ref{sec:self_training_methods}).
-
-Finally, the best SSL-based model was compared to the supervised baseline (see Section~\ref{sec:final_results}).
+For the alternative approach, image processing was used to generate labels and augmented training data (see Section~\ref{sec:imag_proc_methods}). These generated datasets were then used to train models—again on both tiled and full images. To further improve performance, false positive predictions were incorporated as pseudo-labels for retraining the model (see Section~\ref{sec:self_training_methods}). Finally, the best self-trained model was compared to the supervised baseline (see Section~\ref{sec:final_results}).
 
 Code can be accessed here: \url{https://github.com/ChristophWald/insect_pest_detection}.
 
@@ -157,7 +155,7 @@ Code can be accessed here: \url{https://github.com/ChristophWald/insect_pest_det
 
 \subsubsection{Dataset description}
 \label{sec:data_description}
-The data was provided by the Julius-Kühn-Institut (JKI) and was collected as part of the Smart-Checkpots project \cite{raaz_smart_2023} where it was labeled manually and used to train a supervised model. The images are divided into four subsets each associated with only one of four insect pest classes (see Table 2) to simplify the task of manual labeling. Every image in a subset is supposed to depict several instances of only one pest class trapped on a yellow sticky trap (YST) with black background structures. Finding the optimal colors and contrast to attract specific pest classes is a topic of ongoing research (see e.g. \cite{YST}). Yellow/black was chosen for this dataset, because it is a compromise for the considered pests and also an industry standard.
+The data was provided by the Julius-Kühn-Institut (JKI) and was collected as part of the Smart-Checkpots project \cite{raaz_smart_2023} where it was labeled manually and used to train a supervised model. The images are divided into four subsets, each associated with only one of four insect pest classes (see Table 2) to simplify the task of manual labeling. Every image in a subset is supposed to depict several instances of only one pest class trapped on a yellow sticky trap (YST) with black background structures. Finding the optimal colors and contrast to attract specific pest classes is a topic of ongoing research (see e.g. \cite{YST}). Yellow/black was chosen for this dataset because it is a compromise for the considered pests and also an industry standard.
 
 \begin{table}[!t]
 \centering
@@ -187,7 +185,7 @@ The chosen insect pests are common in greenhouses, particularly on crops such as
     \label{fig:example_insects}
 \end{figure}
 
-The populated YSTs in this dataset were created at the JKI by breeding the insects to the adult stage in a closed environment (see Figure~\ref{fig:breeding}). For the fungus gnats and the leaf miner flies the YSTs were exposed in the environment for some time until it became populated. For the whiteflies and the thrips the YSTs were tapped against the plant to catch the insects. After a batch of YSTs was populated, pictures were taken immediately with a Canon EOS M50 Mark II mounted on a tripod at a distance of approximately 13 cm (see Figure~\ref{fig:canon}) and a resolution of 6000 × 3368 pixels, resulting in files of about 5–7 MB. No artificial light was used to avoid reflections. The pictures have slightly different view angles and different lighting conditions, some still affected from reflections and some having areas with reduced sharpness. 
+The populated YSTs in this dataset were created at the JKI by breeding the insects to the adult stage in a closed environment (see Figure~\ref{fig:breeding}). For the fungus gnats and the leaf miner flies, the YSTs were exposed in the environment for some time until it became populated. For the whiteflies and the thrips the YSTs were tapped against the plant to catch the insects. After a batch of YSTs was populated, pictures were taken immediately with a Canon EOS M50 Mark II mounted on a tripod at a distance of approximately 13 cm (see Figure~\ref{fig:canon}) and a resolution of 6000 × 3368 pixels, resulting in files of about 5–7 MB. No artificial light was used to avoid reflections. The pictures have slightly different view angles and different lighting conditions, some still affected by reflections and some having areas with reduced sharpness. 
 
 \begin{figure}[!t]
     \centering
@@ -213,15 +211,15 @@ The populated YSTs in this dataset were created at the JKI by breeding the insec
 
 While the YSTs were being populated, some insects were able to leave a trap and were subsequently captured by a neighboring trap. Therefore, the subsets can contain a small number of insects belonging to other subclasses. The tapping method used for the whiteflies also collected parts of dead insects as well as pieces of foliage from the tobacco plants. Thrips were bred on bean plants, which occasionally left considerable amounts of foliage on the YSTs. Furthermore, thrips in larval stages were also trapped, which are difficult to distinguish from male individuals. In the final use case, larvae would not be trapped, as only adults are capable of flight.
 
-For each pest class a proportion of images were manually labeled by several persons. Visual inspection showed inconsistency in the correctness of labels, the completeness of labels and the size of the bounding boxes.
+For each pest class, a proportion of images were manually labeled by several persons. Visual inspection showed inconsistencies in the correctness of labels, the completeness of labels, and the size of the bounding boxes.
 
 \subsubsection{Preprocessing}
 
 To raise the quality of the dataset, images and labels were checked and improved where possible.
 
-Image files were sorted by their creation time given by the metadata and then the first 100 images for each class were visually inspected, where several images with identical YSTs and different camera settings as leftovers of early experiments with the camera setup were found. These were removed manually. I removed further duplicates (identical images)  by comparing file checksums. Images with labels that indicated no insects or unexpected insects not belonging to the class of the subset were also removed. 
+Image files were sorted by their creation time given by the metadata and then the first 100 images for each class were visually inspected, were several images with identical YSTs and different camera settings as leftovers of early experiments with the camera setup were found. These were removed manually. I removed further duplicates (identical images) by comparing file checksums. Images with labels that indicated no insects or unexpected insects not belonging to the class of the subset were also removed. 
 
-For the thrips, I inspected the complete subset before splitting the dataset. This led to the exclusion of 200 images with wrong labels or too much other objects. To improve the quality of the thrips labels further I gave the cut out image patches given by bounding boxes to an expert from the JKI, which identified 1276 labels pointing to other objects than adult thrips. These labels were removed. Table~\ref{tab:insect-stats} shows the resulting number of images and labels after the cleaning reported here. The dataset is imbalanced, both in terms of the number of labeled images per class and the mean number of instances per image.
+For the thrips, I inspected the complete subset before splitting the dataset. This led to the exclusion of 200 images with wrong labels or too many other objects. To improve the quality of the thrips labels further I gave the cut-out image patches given by bounding boxes to an expert from the JKI, which identified 1276 labels pointing to objects other than adult thrips. These labels were removed. Table~\ref{tab:insect-stats} shows the resulting number of images and labels after the cleaning reported here. The dataset is imbalanced, both in terms of the number of labeled images per class and the mean number of instances per image.
 
 \begin{table}[!t]
 \centering
@@ -237,11 +235,11 @@ Whiteflies      & 1105 & 433  & 39.19 \% & 25735  & 59.43  \\
 
 \hline
 \end{tabular}
-\caption{Annotation statistics after cleaning and preprocessing.}
+\caption{Annotation statistics after cleaning and preprocessing, but before revision of test set.}
 \label{tab:insect-stats}
 \end{table}
 
-After splitting the data, all 289 images of the test set were checked and corrected by the expert of the JKI (Table~\ref{tab:per_class_results}). Unfortunately time constraints prevented a relabeling of the training set, such that supervised training and all validations had to be carried out on a label set of lower quality. The results of the supervised training therefore provide only a lower bound for the expected quality of a model.
+After splitting the data, all 289 images of the test set were checked and corrected by the expert of the JKI (Table~\ref{tab:per_class_results}). Time constraints prevented a relabeling of the training set, such that supervised training and all validations had to be carried out on a label set of lower quality. The results of the supervised training therefore provide only a lower bound for the expected quality of a model.
 
 \begin{table}[!t]
 \centering
@@ -260,7 +258,7 @@ Whiteflies         & 2520 & 194 & 102 \\
 \label{tab:per_class_results}
 \end{table}
 
-The summed difficulties with the thrips images and labels led to an exclusion of the class for all experiments but the initial supervised training, which showed that no satisfying results are to be expected in the proposed self-training. There are three major reasons for this decision: low sample size although the difference between males and females demands adequate number of images, presence of non-target objects as shown by the large number of incorrect labels, and low label quality as shown by the large number of missing labels in the test set. 
+The summed difficulties with the thrips images and labels led to exclusion of the class for all experiments but the initial supervised training, which showed that no satisfying results are to be expected in the proposed self-training. There are three major reasons for this decision: low sample size although the difference between males and females demands adequate an number of images, presence of non-target objects as shown by the large number of incorrect labels, and low label quality as shown by the large number of missing labels in the test set. 
 
 Some labels were found to contain negative coordinates. After visual inspection of samples, these values were interpreted as their absolute counterparts, since this matched the actual object positions. The underlying cause of the negative coordinates could not be identified but seems to be connected to the export of labels from Label Studio.
 
@@ -273,13 +271,13 @@ Some labels were found to contain negative coordinates. After visual inspection 
 
         \centering
         \includegraphics[width=\linewidth]{images/split.png}
-        \caption{Number of images in the randomly created subsets. Because the absolute number of species per images is different for each class, the number of included images varies.}
+        \caption{Number of images in the randomly created subsets. Because the absolute number of species per image is different for each class, the number of included images varies.}
         \label{fig:split}
 
     \label{fig:dataset_splitting}
 \end{figure}
 
-Because the number of insects per images is different for the pest classes (see Table~\ref{tab:insect-stats}) sets were balanced where possible. From the labeled images, 200 images for the fungus gnats and the white flies were drawn randomly. For the other classes all labeled images were used. This labeled set was then split into 20\% test set and 80\% training set, and the training set was further divided into a training and validation set with the same ratio. From the remaining images an unlabeled set with comparable size was drawn to replicate the results of the image processing and self-training.
+Because the number of insects per images is different for the pest classes (see Table~\ref{tab:insect-stats}) sets were balanced where possible. From the labeled images, 200 images for the fungus gnats and the whiteflies were drawn randomly. For the other classes all labeled images were used. This labeled set was then split into 20\% test set and 80\% training set, and the training set was further divided into a training and validation set with the same ratio. From the remaining images an unlabeled set with comparable size was drawn to replicate the results of the image processing and self-training.
 
 \subsection{Evaluation}
 \label{sec:evaluation}
@@ -288,7 +286,7 @@ Because the number of insects per images is different for the pest classes (see 
 
 The evaluation pipeline consists of the following steps: collecting the predictions of one model, filtering the predictions, comparing them to the ground truth, finding the best operating points per class, and finally comparing the models to each other.
 
-The YOLO model used only allows prediction on full images and also only allows one confidence threshold for all classes. I used a wrapper script to enable prediction on tiled images and prediction with class-specific thresholds. For prediction on tiles, a sliding window with a set stride was used to collect the predictions for one image. Strides 420 and 440 were tested.
+The YOLO model used only allows prediction on full images and also only allows one confidence threshold for all classes. I used a wrapper script to enable prediction on tiled images and prediction with class-specific thresholds. For prediction on tiles ($640 \times 640$), a sliding window with a set stride was used to collect the predictions for one image. Strides 420 and 440.
 
 Predictions were filtered by a non-maximum suppression (NMS) filter and another filter to exclude boxes contained inside larger boxes. NMS relies on the intersection-over-union (IoU) metric, which is the ratio of the area of two boxes intersected and the area of their union. When two boxes have an IoU above a threshold, only the box with the higher confidence is kept. However, if a small box is completely or partially inside a larger box, the IoU will be low, because the intersection is only as large as the small box and the union is as large as the large box. As visual inspection shows, the small objects in the dataset make it necessary to include an extra filter for this case. See Figure~\ref{fig:iou_problems}a for false positives that occur without the extra filter. IoU for NMS was set to 0.4 and the threshold for the containment filter was set to 0.5.
 
@@ -315,9 +313,9 @@ Predictions were filtered by a non-maximum suppression (NMS) filter and another 
 
 The filtered predictions were then sorted by confidence and were attributed to possible ground-truth boxes using greedy matching. Attribution was defined by IoU, but again small boxes made an additional check necessary. Because some manual labels are large, much smaller but correct predictions contained inside these ground-truth boxes produced a low IoU value and had to be attributed with this extra check. See Figure~\ref{fig:iou_problems}b for false positives that occur without the extra comparison. This evaluation logic was also used for comparing the old and new labels for the test set and for evaluating the final results of the image processing. For IoU a threshold of 0.5 was set, and for the extra comparison thresholds between 0.5 and 0.9 were tested.
 
-Results of parameter tuning (IoU thresholds, stride values, and containment thresholds) are summarized in Table~\ref{tab:containment_results}. They were tested on two early models trained on tiles, with the confidence threshold set to 0.5 for all classes, the non-maximum suppression threshold for filtering before comparison to ground truth set to 0.4, and the IoU threshold for comparison to ground truth set to 0.5 in all tests.
+Results of parameter tuning (IoU thresholds, stride values, and containment thresholds) are summarized in Table~\ref{tab:containment_results}. They were tested on two  models trained on tiles, with the confidence threshold set to 0.5 for all classes, the non-maximum suppression threshold for filtering before comparison to ground truth set to 0.4, and the IoU threshold for comparison to ground truth set to 0.5 in all tests.
 
-To define the quality of a model, per-class precision–recall curves were built, and confidence thresholds that were closest to the target zone of precision greater or equal to 0.9 and recall greater or equal to 0.8 were taken as operating points for the model. “Closest” is defined as the orthogonal projection to the boundary of the target zone if the point is left or below it, and as the Euclidean distance if not. If the curve reached the target zone, the point with the best F1 value inside the zone was chosen. Different models were then compared by the number of operating points inside the target zone and the distance of the remaining operating points to the target zone.
+To define the quality of a model, per-class precision–recall curves were built, and confidence thresholds that were closest to the target zone of precision greater than or equal to 0.9 and recall greater than or equal to 0.8 were taken as operating points for the model. “Closest” is defined as the orthogonal projection to the boundary of the target zone if the point is left or below it, and as the Euclidean distance to the lower left corner if not. If the curve reached the target zone, the point with the best F1 value inside the zone was chosen. Different models were then compared by the number of operating points inside the target zone and the distance of the remaining operating points to the target zone.
 
 
 \subsection{Supervised training}
@@ -356,7 +354,7 @@ S4      & full images           & 0 \%  & 100 &94 \\
 \label{sec:imag_proc_methods}
 The aim of the image processing is to detect a proportion of objects and create labels including bounding-box coordinates, which can serve as the starting point for the training of a YOLO model. The main idea of this step is to separate background and foreground with a color threshold and then keep all foreground contours as target objects. A rectangle around the contour serves as the bounding box, and the class ID can be derived from the subset of the image, as all insects in an image were supposed to be of the same pest class. For images without background structures, the process would reduce to the short procedure reported in Section~\ref{sec:segmentation}. However, when images contain background structures—as in the dataset used in this study—more complex preprocessing is required to mask out those structures, as detailed in Section~\ref{sec:image_preprocessing}, and augmentation is needed to train the model on occurrences of the target objects in combination with the reintroduced background structures, which is described in Section~\ref{sec:augmentation}.
 
-The presented pipeline was developed with the labeled training set, with raising the absolute number of true positives and minimizing the number of false positives as the main objectives. Precision was also tracked but considered secondary, as it might have come at the cost of too few true positives. Binarization, which was used at several steps, was achieved through thresholding in the HSV color space, because the hue component provided robustness against variations in lighting. The thresholds used were: Hue 20–30, Saturation 100–255, and Value 100–255.
+The presented pipeline was developed with the labeled training set, with the aim of raising the absolute number of true positives and minimizing the number of false positives as the main objectives. Precision was also tracked but considered secondary, as it might have come at the cost of too few true positives. Binarization, which was used at several steps, was achieved through thresholding in the HSV color space, because the hue component provided robustness against variations in lighting. The ranges defined as foreground were: Hue 20–30, Saturation 100–255, and Value 100–255.
 
 \begin{figure}[!t]  % 
     \centering
@@ -368,11 +366,11 @@ The presented pipeline was developed with the labeled training set, with raising
 \subsubsection{Preprocessing for segmentation}
 \label{sec:image_preprocessing}
 
-To filter out background structures, a mask covering these regions was applied to each image. The pixels within the mask were changed to a yellow hue, allowing them to be identified as background during segmentation. Direct detection of the lines was tested, but led to no usable results, as the detected line segments were often very short and could not be separated from the objects. Because the images in the dataset were captured from slightly different angles, the mask had to be aligned individually for each image. All image processing was performed using the cv2 Python library.
+To filter out background structures, a mask covering these regions was applied to each image. The pixels within the mask were then changed to a yellow hue, allowing them to be identified as background during segmentation. Direct detection of the lines was tested, but it led to no usable results, as the detected line segments were often very short and could not be separated from the objects. Because the images in the dataset were captured from slightly different angles, the mask had to be aligned individually for each image. All image processing was performed using the cv2 Python library.
 
-Since the masking procedure assumed that the header was located at the top of the YST, images were rotated when necessary and labels were adapted. The required rotation was detected by dividing the YST area into horizontal halves and comparing the summed black pixel amounts in each half, with black pixels defined as having a value below 50. This method became unreliable when the YST was crowded with a large number of black insects, so a final visual inspection was performed to ensure correctness.
+Before the masking procedure images had to be rotated to have the header of the YST at the top. The required rotation was detected by dividing the YST area into horizontal halves and comparing the summed black pixel amounts in each half, with black pixels defined as having a value below 50. This method became unreliable when the YST was crowded with a large number of black insects, so a final visual inspection was performed to ensure correctness.
 
-Creating the mask required balancing line thickness to fully cover background structures despite minor misalignment, while avoiding excessive coverage of the objects. Binarized and denoised images of empty YSTs, captured under the same conditions as the dataset images, were used for mask generation. The masks were created by combining several empty YST images with projective transformations and then thickening the black structures with dilation (kernel size 25) (Figure~\ref{fig:masks}\subref{fig:mb}). From this mask, two variations were generated by applying further dilation (kernel size 50) (Figure~\ref{fig:masks}\subref{fig:md}) and by manually thickening the right border lines to cover the holes completely and drawing a rectangle over the header (Figure~\ref{fig:masks}\subref{fig:mf}). For subsequent alignment, the corners of the YST contour and two points of the horizontal midline calculated from the original masks were saved.
+Creating the mask required balancing line thickness to fully cover background structures despite minor misalignment, while avoiding excessive coverage of the objects. Binarized and denoised images of empty YSTs, captured under the same conditions as the dataset images, were used for mask generation. The masks were created by combining several empty YST images with projective transformations and then thickening the black structures with dilation (kernel size 25, Figure~\ref{fig:masks}\subref{fig:mb}). From this mask, two variations were generated by applying further dilation (kernel size 50, Figure~\ref{fig:masks}\subref{fig:md}) and by manually thickening the right border lines to cover the holes completely and drawing a rectangle over the header (Figure~\ref{fig:masks}\subref{fig:mf}). For subsequent alignment, the corners of the YST contour and two points of the horizontal midline calculated from the original masks were saved.
 
 \begin{figure}[!t]
     \centering
@@ -409,12 +407,12 @@ Creating the mask required balancing line thickness to fully cover background st
     \label{fig:masks}
 \end{figure}
 
-With the masks prepared, preprocessed and masked versions of the image set were created. The pipeline of this process was divided into the following steps:
+After the preparation of the mask and the rotating of the images, preprocessed and masked versions of the image set were created. The pipeline of this process was divided into the following steps:
 \begin{itemize}
     \item Find contours on the binarized image and take the largest one, which corresponds to the YST (algorithm used: \texttt{cv2.findContours}, based on \cite{suzuki1985border}).
     \item Assuming a rectangular shape, find the corners (algorithms used: \texttt{cv2.arcLength} and \texttt{cv2.approxPolyDP}, based on the Douglas–Peucker algorithm \cite{douglas1973algorithms}).
     \item Using the corners of the mask and the image, compute a projective transformation to register the mask to the image. Apply this transformation to the mask and to the saved midline points (algorithms used: \texttt{cv2.findHomography} based on RANSAC \cite{fischler1981ransac}, \texttt{cv2.warpPerspective}).
-    \item Using the midpoints of the middle horizontal lines of the mask and the image, compute an additional affine transformation to further register the mask along the horizontal midline (algorithms used: \texttt{cv2.HoughLines} based on the generalized Hough transform \cite{duda1972use}, \texttt{cv2.perspectiveTransform}, \texttt{cv2.warpAffine}).
+    \item Using the midpoints of the horizontal midlines of the mask and the image, compute an additional affine transformation to further register the mask along the horizontal midline (algorithms used: \texttt{cv2.HoughLines} based on the generalized Hough transform \cite{duda1972use}, \texttt{cv2.perspectiveTransform}, \texttt{cv2.warpAffine}).
     \item Color the pixels indicated by the registered mask in the image yellow to mark them as background.
     \item Crop the image to the YST (and recalculate the manual labels for evaluation).
 \end{itemize}
@@ -425,11 +423,11 @@ For about 6\% of the images, the corners of the YST could not be detected. These
 \subsubsection{Segmentation}
 \label{sec:segmentation}
 
-After masking, the images were binarized with the defined thresholds and the foreground objects could be segmented. The results still needed to be filtered to exclude unwanted objects. A first set of filter thresholds was used to evaluate the effects of the different masks. A second, more refined set of thresholds was derived from inspecting the data given by the best-evaluated mask (Figure~\ref{fig:masks}\subref{fig:mf}). Evaluations for different filters was done on the manual labels of the labeled training set. Unlike in the evaluation of model predictions, the comparison of the bounding boxes was reduced to a simple intersection between rectangles with a threshold of 0.5, because it gave nearly identical results for smaller predictions contained in the ground truth and was more strict for overlapping ones.
+After masking, the images were binarized with the defined thresholds and the foreground objects could be segmented. The results still needed to be filtered to exclude unwanted objects. A first set of filter thresholds was used to evaluate the effects of the different masks. A second, more refined set of thresholds was derived from inspecting the data given by the best-evaluated mask (Figure~\ref{fig:masks}\subref{fig:mf}). Evaluations for different filters were done on the manual labels of the labeled training set. Unlike in the evaluation of model predictions, the comparison of the bounding boxes was reduced to a simple intersection between rectangles with a threshold of 0.5, because it gave nearly identical results for smaller predictions contained in the ground truth and was stricter for overlapping ones.
 
 In the first filter set for comparing the masks, lower and upper thresholds for the detected contour areas were derived from visual inspection (Table~\ref{tab:filter_parameters}, Set 1). The rectangles around the contours were then scaled with a factor of 1.5, because the contours lost small features like legs, which would not have been contained in the rectangles otherwise. Then another threshold was applied to the rectangles. Assuming that more oblong rectangles were likely to be non-insect objects (e.g., leftover background elements, foliage, or parts of insects), the maximum ratio of height to width was set to 2. This excluded rectangles with one side being more than twice as long as the other side.
 
-The results from the best-performing mask (Figure~\ref{fig:masks}\subref{fig:mf}) were used to inspect the distribution of box sizes and box ratios. Additional filter thresholds were then tested on the calculated rectangles and are given in Table~\ref{tab:filter_parameters}, Set 2. The goals were to reduce the number of small insect parts and occasional non-insect objects, as well as the number of large boxes with more than one insect occluding each other. Overlapping boxes posed a problem only for the whiteflies, presumably because individual objects often led to two separate contours. Therefore this case was checked and only the larger rectangle was kept. To adapt to the variations in saturation and value between individual whiteflies, a more intricate binarization as well as additional value thresholding was tested, but did not improve results.
+The results from the best-performing mask (Figure~\ref{fig:masks}\subref{fig:mf}) were used to inspect the distribution of box sizes and box ratios. Additional filter thresholds were then tested on the calculated rectangles and are given in Table~\ref{tab:filter_parameters}, Set 2. The goals were to reduce the number of small insect parts and occasional non-insect objects, as well as the number of large boxes with more than one insect occluding each other. Overlapping boxes posed a problem only for the whiteflies, presumably because individual objects often led to two separate contours. Therefore this case was checked and only the larger rectangle was kept. To adapt to the variations in saturation and value between individual whiteflies, a more intricate binarization as well as additional value thresholding were tested, but did not improve results.
 
 \begin{table}[!t]
 \centering
@@ -464,13 +462,13 @@ Masking the background structures excluded all insects on lines or letters and c
 
 Specifically, the first augmentation set was created by combining three layers: the background of a masked image, a middle layer containing the prepared background structures from images of empty YSTs, and the foreground layer of the masked image, which contained the insects. The middle layer itself consisted of two layers of background structures that were cut out to remove unwanted parts (border lines, holes) and then rotated and shifted to create variations. This procedure was applied to the complete training set.
 
-The second augmentation set used empty YSTs as the starting point, which were varied in lighting, vertical orientation, and by shearing them. Two different masks were used to define areas on the YST where insects should be placed, ensuring objects were positioned directly on or near the structures. Cut-out insects were then placed randomly within these areas. For each pest class, 24 images were created.
+The second augmentation set used empty YSTs as the starting point, which were varied in lighting, vertical orientation, and shear. Two different masks were used to define areas on the YST where insects should be placed, ensuring objects were positioned directly on but also near the structures. Cut-out insects were then placed randomly within these areas. For each pest class, 24 images were created.
 
-The insects for the second set were extracted from the original images guided by the bounding boxes created by the method described above. The contours of the individual insects were cut out with binarization using fixed thresholds that were refined as needed. As the detected whitefly contours tended to form loops with empty centers, the pixels inside these loops were identified and also marked as foreground. For fungus gnats and leaf miner flies, individually calculated value thresholds were obtained using Otsu’s method \cite{otsu1979threshold}. Additionally, contours found inside each bounding box were filtered to retain only the largest contour, excluding artifacts. To address a second source of bias in the created labels, value variations were also introduced for the whiteflies. The magnitude of these variations was derived from inspecting the value distribution of true positives and false negatives for the whiteflies, which showed a clear bimodality.
+The insects for the second set were extracted from the original images guided by the bounding boxes created by the method described above. The contours of the individual insects were cut out with binarization using fixed thresholds that were refined as needed. As the detected whitefly contours tended to form loops with empty centers, the pixels inside these loops were identified and also marked as foreground. For fungus gnats and leaf miner flies, individually calculated value thresholds were obtained using Otsu’s method \cite{otsu1979threshold}. Additionally, contours found inside each bounding box were filtered to retain only the largest contour, excluding artifacts. To address a second source of bias in the created labels, value variations were also introduced for the whiteflies. The magnitude of these variations was derived from inspecting the value distribution of true positives and false negatives for the whiteflies, which had a different mean.
 
-\subsection{Self training}
+\subsection{Self-training}
 \label{sec:self_training_methods}
-A model was trained on augmented and unaugmented images with the labels created by image processing. In a second step, the model was used to predict on the unaugmented, original images to create pseudo-labels for the insects missed by the mask-based label creation. Taking high-confidence false positive predictions as new labels for further training runs was repeated to improve the label quality further.
+A model was trained on augmented and unaugmented images with the labels created by image processing. In a second step, the model was used to make predicitions on the unaugmented, original images to create pseudo-labels for the insects missed by the mask-based label creation. Taking high-confidence false positive predictions as new labels for further training runs was repeated to improve the label quality further.
 
 \subsubsection{Training on the labels created by image processing}
 
@@ -490,21 +488,21 @@ A model was trained on augmented and unaugmented images with the labels created 
         7 & yes & 20 & augmented 1 full images & yes & no\\ 
         \bottomrule
     \end{tabular}
-    \caption{Training runs for training on the image processed labels. Flipud turns the image 180° with probability 50\%. 'Tiles' denotes the unaugmented dataset and include only tiles with at least one label. Rescaling for full images was set 1280 pixels as in supervised training.}
+    \caption{Training runs for training on the image processed labels. Flipud turns the image 180° with probability 50\%. 'tiles' denotes the unaugmented dataset and includes only tiles with at least one label. Rescaling for full images was set 1280 pixels as in supervised training.}
     \label{tab:train_on_created_labels}
 \end{table}
 
-The model used the same augmentation settings as explicated for the supervised training, but since the images were all oriented upwards in the masking process, additional random vertical flips were tested. The learning rate (0.00125) and optimizer (AdamW) were used as set by YOLO. For validation, the manual labels were used. The main variable for the experiments was the composition of the training data, which was tested with the tiled data. Starting with the labeled original images, the addition of empty images and the augmented set 2, as well as the replacement of the original images with the augmented set 1 as basic training data, were tested. In the final tests, the best training data composition was also applied to the full images. The results were also replicated successfully with the unlabeled training set.
+The model used the same augmentation settings as explicated for the supervised training, but since the images were all oriented upwards in the masking process, additional random vertical flips were tested. The learning rate (0.00125) and optimizer (AdamW) were used as set by YOLO. For validation, the manual labels were used. The main variable for the experiments was the composition of the training data, which was tested with the tiled data. Starting with the labeled original images, I tested the addition of empty images and the augmented set 2, as well as the replacement of the original images with the augmented set 1 as basic training data. In the final tests, the best training data composition was also applied to the full images. The results were also replicated successfully with the unlabeled training set.
 
 \subsubsection{Further training on predicted labels}
 
-After the first training on the created labels, the model could distinguish classes and also separate foreground and background objects. To improve the model, its capability to create false positives that could be used as pseudo-labels for further training was tested. Using predictions of a model as labels for further training was the simplest method of the self-training paradigm, originally introduced as “pseudo-labeling’’ by Lee (2013)~\cite{lee_pseudo-label_nodate}.
+After the first training on the created labels, the model could distinguish classes and also separate foreground and background objects. To improve the model, its capability to create false positives that could be used as pseudo-labels for further training was tested. Using predictions of a model as labels for further training is the simplest method of the self-training paradigm, originally introduced as “pseudo-labeling’’ by Lee (2013)~\cite{lee_pseudo-label_nodate}.
 
 Pseudo-labels had to be filtered by a confidence threshold to exclude actual false positives from not-yet-labeled target objects. The thresholds tested were derived from visual inspection. The main trade-off was allowing enough pseudo-labels to improve the model without degrading its predictions by the inclusion of wrong objects.
 
-The first iteration transferred the rules learned on the augmented data to the original images with the background structures included. False positives consisted mainly of insects on the background structures, and the threshold had to be low because otherwise many insects on lines or letters remained unlabeled and the data contained contradicting information. Further iterations were used to enhance the quality of the predictions by using higher thresholds adapted to each class. The training length was set to 20 epochs for all runs.
+The first iteration transferred the rules learned on the augmented data to the original images with the background structures included. False positives consisted mainly of insects on the background structures, and the threshold had to be low because otherwise many insects on lines or letters remained unlabeled and the data would have contained contradicting information. Further iterations were used to enhance the quality of the predictions by using higher thresholds adapted to each class. The training length was set to 20 epochs for all runs.
 
-Several unsuccessful experiments are not reported. These included shorter training runs combined with higher confidence thresholds for the initial pseudo-labels. Adding new images to the training set, which were then completely pseudo-labeled, was also tested, as well as implementing a class-loss weighting based on the confidence of the predicted pseudo-labels.
+Several unsuccessful experiments are not reported. These included higher confidence thresholds combined with shorter training runs for the initial pseudo-labels to prevent to many wrong lables. Adding new images to the training set, which were then completely pseudo-labeled, was also tested, as well as implementing a class-loss weighting based on the confidence of the predicted pseudo-labels.
 
 \begin{table}[!t]
     \centering
@@ -524,14 +522,8 @@ Several unsuccessful experiments are not reported. These included shorter traini
     \label{tab:your_label}
 \end{table}
 
-\section{Results}
 
-\subsection{Comparing supervised training and self-training}
-\label{sec:final_results}
-The best model was the supervised model trained on full images with the manual labels (S4). In validation it reached the target zone for all but the incoherently labeled thrips. Because confidence thresholds were derived from the incompletely labeled validation set, they did not provide the thresholds with the best performance for the model on the test set, where it missed the target zone for all but the leaf miner flies. However, as can be seen in the precision–recall curve on the test set, the model increased precision overall, because the more complete labels led to lower false positive rates.
-
-\looseness=1
-The best self-trained model (7.2) was also trained on full images and reached the target zone only for the leaf miner flies.
+ \newpage
 
 \begin{figure}[!t]
     \centering
@@ -571,7 +563,7 @@ The best self-trained model (7.2) was also trained on full images and reached th
         \includegraphics[width=\linewidth]{images/pr_curves/self_trained_pr_curve_test_set.jpg}
         % \subcaption{LIRIBO}
     \end{minipage}\hfill
-        \caption{Precision-recall curves for the best model self-trained on full images (7.2) on the validation set (left) and the test set (right) with optimal confidence thresholds dervived from validation set marked in both. In the left image, results of images processing are marked as coloured circles, too. Self-training did improve the created labels, but did not provide a sufficient model.}
+        \caption{Precision-recall curves for the best model self-trained on full images (7.2) on the validation set (left) and the test set (right) with optimal confidence thresholds derived from the validation set marked in both. In the left image, results of images processing are marked as coloured circles, too. Self-training did improve the created labels, but did not provide a sufficient model.}
     \label{fig:best_self-trained}
 \end{figure}
 
@@ -579,9 +571,18 @@ The best self-trained model (7.2) was also trained on full images and reached th
     \centering
     \includegraphics[width=\linewidth]{images/confusions/confusion_selftrained_val.png}
     \includegraphics[width=\linewidth]{images/confusions/confusion_selftrained_test.png}
-    \caption{Confusion matrices for the self training on the validation set (top) and the test set (bottom). Again the thresholds derived from the validation set lead to higher precision and lower recalls in the test set.}
+    \caption{Confusion matrices for the self-training on the validation set (top) and the test set (bottom). Again the thresholds derived from the validation set lead to higher precision and lower recalls in the test set.}
     \label{fig:best_selftrained_conf}
 \end{figure}
+ 
+\section{Results}
+
+\subsection{Comparing supervised training and self-training}
+\label{sec:final_results}
+The best model was the supervised model trained on full images with the manual labels (S4). In validation it reached the target zone for all but the incoherently labeled thrips. Because confidence thresholds were derived from the incompletely labeled validation set, they did not provide the thresholds with the best performance for the model on the test set, where it missed the target zone for all but the leaf miner flies. However, as can be seen in the precision–recall curve on the test set, the model increased precision overall, because the more complete labels led to lower false positive rates.
+
+The best self-trained model (7.2) was also trained on full images and reached the target zone only for the leaf miner flies.
+
 
 \subsection{Evaluation settings}
 
@@ -605,14 +606,14 @@ All final tests were conducted with a threshold of 0.5 for filtering predictions
         \bottomrule
     \end{tabular}
 
-    \caption{Comparison of detection results under different settings of extra thresholds with given absolute numbers for true positives (TP), false positives (FP) and false negatives FN) tested on the models S1 and S2. These models were trained on tiles, each 100 epochs, S1 on the full trained label set, S2 with only 30\% of the empty background tiles. The chosen parameters in the last row improve results for both models.}
+    \caption{Comparison of detection results under different settings of extra thresholds with given absolute numbers for true positives (TP), false positives (FP) and false negatives (FN) tested on the models S1 and S2. These models were trained on tiles, each 100 epochs, S1 on the full trained label set, S2 with only 30\% of the empty background tiles. The chosen parameters in the last row improve results for both models.}
     \label{tab:containment_results}
 \end{table}
 
 \subsection{Supervised training}
 \label{sec:results_supervised}
 
-The best supervised model trained on the tiles (S1, see Figure~\ref{fig:supervised_on_tiles}) was slightly worse then the one trained on the full images (S4, see Figure~\ref{fig:best_supervised}).
+The best supervised model trained on the tiles (S1, see Figure~\ref{fig:supervised_on_tiles}) was slightly worse than the one trained on the full images (S4, see Figure~\ref{fig:best_supervised}).
 
 \begin{figure}[!t]
     \centering
@@ -633,12 +634,12 @@ The best supervised model trained on the tiles (S1, see Figure~\ref{fig:supervis
 
 \subsubsection{Preprocessing for segmentation}
 
-The best mask (Figure~\ref{fig:masks}\subref{fig:mf}) decreased the number of false positives while retaining a sufficient number of true positives for the self-training (see Figure~\ref{fig:mask_evaluation} for a comparision of the masks). It was used to produce a set of contours and rectangles with the simple filter set 1. From the distribution of box sizes and side length ratios, filter thresholds for filter set 2 are taken (see Table~\ref{tab:filter_parameters}). Table~\ref{tab:relative_rectangle_stats} lists these thresholds derived from the distributions for both the labeled and the unlabeled training set, which are similar as expected.
+The best mask (Figure~\ref{fig:masks}\subref{fig:mf}) decreased the number of false positives while retaining a sufficient number of true positives for the self-training (see Figure~\ref{fig:mask_evaluation} for a comparison of the masks). It was used to produce a set of contours and rectangles with the simple filter set 1. From the distribution of box sizes and side length ratios, filter thresholds for filter set 2 are taken (see Table~\ref{tab:filter_parameters}). Table~\ref{tab:relative_rectangle_stats} lists these thresholds derived from the distributions for both the labeled and the unlabeled training sets, which are similar as expected.
 
 \begin{figure}[!t]  % 
     \centering
     \includegraphics[width=1.0\textwidth]{images/figure_mask_evaluation.jpg}  % Adjust width as needed
-    \caption{Evaluating the masks given in Figure~\ref{fig:masks}. All tests except the first one (mask 7b, ‘single alignment’) use a projective transformation to register the images based on the YST corners, combined with a vertical transformation to register them along the horizontal midline. The second transformation has great impact on the leaf miner flies scores. In general thicker mask reduce the number of false and true positives.}
+    \caption{Evaluating the masks given in Figure~\ref{fig:masks}. All tests except the first one (mask 7b, ‘single alignment’) use a projective transformation to register the images based on the YST corners, combined with a vertical transformation to register them along the horizontal midline. The second transformation has great impact on the leaf miner flies' scores. In general thicker masks reduce the number of false positives by covering more parts of the background structure and at the same time reduce true positives by covering insects on those structures.}
     \label{fig:mask_evaluation}
 \end{figure}
 
@@ -663,7 +664,7 @@ Training Set & Metric & Fungus Gnats & Leaf Miner Flies & Whiteflies \\
 
 \subsubsection{Segmentation}
 
-Figure \ref{fig:filter_tests} shows the results of the tests using the filter thresholds derived from the statistics of the boxes found with filter set 1. For all pest classes, precision increased, but the number of true positives decreased. As expected, objects with similar color, shape, and size could not be filtered out. This concerned mainly parts of insects as well as insects occluding each other.
+Figure \ref{fig:filter_tests} shows the results of the tests using the filter thresholds derived from the statistics of the boxes found with filter set 1 (Table~\ref{tab:relative_rectangle_stats}). For all pest classes, precision increased, but the number of true positives decreased. As expected, objects with similar color, shape, and size could not be filtered out. This concerned mainly parts of insects as well as insects occluding each other.
 
 \begin{figure}[!t]
     \centering
@@ -685,11 +686,11 @@ Figure \ref{fig:filter_tests} shows the results of the tests using the filter th
         % \subcaption{TRIAVA}
     \end{minipage}
 
-    \caption{Results of different filters for each species. Results of the filters for each species. Left: parameter set 1 (no extra filtering). Right: parameter set 2 (all filters applied). Middle: individual filters added to set 1.}
+    \caption{Results of different filters for each species. Left: parameter set 1 (no extra filtering). Right: parameter set 2 (all filters applied). Middle: individual filters added to set 1.}
     \label{fig:filter_tests}
 \end{figure}
 
- Table~\ref{tab:absolute_rectangle_stats} shows the absolute numbers of rectangles returned with both filter sets for the labeled and unlabeled training set. As expected, these numbers were very similar, with the exception of the total number of whiteflies, which was doubled in the unlabeled training set. Since the number of filtered-out rectangles was also proportionally larger, this was likely just an effect of more crowded whitefly images in the unlabeled set. Figure~\ref{fig:confusion_img_processing} shows the precision and recall for the final labels created by the image processing.
+ Table~\ref{tab:absolute_rectangle_stats} shows the absolute numbers of rectangles returned with both filter sets for the labeled and unlabeled training set. As expected, these numbers were very similar, with the exception of the total number of whiteflies, which was doubled in the unlabeled training set. Since the number of filtered-out rectangles was also proportionally larger, this was likely just an effect of more crowded whitefly images in the unlabeled set. Figure~\ref{fig:confusion_img_processing} shows the per-class precision and recall on the validation set for the final labels created by the image processing.
 
 \begin{table}[!t]
     \centering
@@ -708,34 +709,38 @@ Figure \ref{fig:filter_tests} shows the results of the tests using the filter th
     \label{tab:absolute_rectangle_stats}
 \end{table}
 
-\subsection{Self training}
-
 \begin{figure}[!t]
     \centering
     \includegraphics[width=\linewidth]{images/confusions/confusion_matrix_mask06_f2.png}
-    \caption{Confidence matrices for the image processed masks. Low recall is mainly due to the insects on the background structures that were masked out, which is why recall for the model trained on these labels increased (cf. Fig~\ref{fig:best_selftrained_conf}).}
+    \caption{Confidence matrices for the image-processed labels tested on the validation set. Supposed reasons for low recall are the missed instances on the background structures and for the whiteflies also the darker instances missed. Because these biases where counteracted with augmentations, the recall for the model trained on these labels increased (cf. Fig~\ref{fig:best_selftrained_conf}).}
     \label{fig:confusion_img_processing}
 \end{figure}
 
-For both tiles and full images, the combination of augmented datasets 1 and 2, with the original images excluded, provided the best dataset for training. For tiles, the addition of empty tiles provided some improvements. As reported above, training on full images yielded the best results. Compared to the labels created by image processing, it improved recall for all classes while retaining precision (compare the confusion matrices in Figure~\ref{fig:best_selftrained_conf} and Figure~\ref{fig:confusion_img_processing}).
+\subsection{Self-training}
 
-The pseudo-labels created on the original images and included in the first training iteration, following the training on the augmented data, consisted largely of insects on background structures that were missed during image processing and helped the model to stabilize. Further iterations with new pseudo-labels brought only marginal improvements, with performance stagnating after two iterations for full images and after three iterations for tiles.
+
+
+For both tiles and full images, the combination of augmented datasets 1 and 2, with the original images excluded, provided the best dataset for training. For tiles, the addition of empty tiles provided some improvements but, as reported above, training on full images yielded the best results. Compared to the labels created by image processing, training improved recall for all classes while retaining precision (compare the confusion matrices in Figure~\ref{fig:best_selftrained_conf} and Figure~\ref{fig:confusion_img_processing}).
+
+After the first training on the augmented data, pseudo-labels on the original images consisted largely of insects on background structures that were missed during image processing. These were included in the first training iteration and helped the model to stabilize. Further iterations with new pseudo-labels brought only marginal improvements, with performance stagnating after two iterations for full images and after three iterations for tiles.
 
 Visual inspection of the pseudo-labels showed no differentiation between insects and other objects based on confidence. Accordingly, visual inspection of the predictions of the best self-trained model (7.2) showed false positives for foliage and insect fragments. The inspection also revealed a larger number of still-unlabeled but correctly predicted fungus gnats and whiteflies in some images. Correct labeling of these objects would increase the number of true positives and decrease the number of false positives, which in turn would raise both precision and recall.
 
 \section{Discussion}
 
-The results confirm that the state-of-the-art supervised training approach can provide optimal performance. They also reaffirm its main limitation: the need for a large number of highly accurate manual labels.
+The experiments demonstrate that data quality is the primary factor influencing model performance: For the leaf miner flies, which have clean images excluding any non-target objects, both supervised training on manual labels and self-training on generated labels led to models exceeding the expected precision and recall values. In contrast, the images for fungus gnats and whiteflies were of lower quality because they contained a higher number of insect fragments, which correlated to worse performance of the trained models. The reduced image quality affected both the manual labeling and the generation of labels by image-processing. For the thrips subset, the large number of objects that could not be clearly assigned to a class prevented successful training altogether.
 
-The alternative approach, using labels created through image processing, works reliably when the images fulfill the necessary requirements, as demonstrated by the sufficient results for the leaf miner flies. After only one short training run on augmented data and a retraining on the labels predicted for the original images, a model can predict with the required precision and recall. In contrast, the results for fungus gnats and whiteflies suffer from the high number of insect fragments. This cannot be separated by image processing, because fragments are similar to complete insects. Because the confidences give no clear distinction between wrong and false objects, confidence thresholding or weighing by confidence in the pseudo-labeling is not a viable solution, either. In the final evaluation on the test set (see Figure~\ref{fig:best_self-trained}), precision and recall may be slightly underestimated because of the remaining unlabeled insects present in the test set. However, the rapidly decreasing precision–recall curve may also indicate a yet unaddressed additional bias introduced by the image processing.
+For all but the leaf miner flies, the differences between the initial labels used for validation and the corrected labels used in the test set highlight the difficulty of achieving consistent separation between target and non-target objects in the manual labeling. This is further supported by the fact that even the corrected test set still contains inconsistencies and missing labels. Nevertheless, for fungus gnats and whiteflies, supervised training provided a model that reached the targeted metrics.
 
-The experiments demonstrate that data quality is the primary factor influencing model performance. Improving data quality can be achieved at two stages: during data acquisition or during labeling. Time can be invested in creating cleaner data from the outset, for example by improving the methods used to catch the insects or by cleaning the images. If sufficient effort is invested and resources are available to adapt the image-processing steps to each pest class, the tested approach could probably replace most manual labeling. However, for noisy data image processing is bound to fail, and for supervised training more time has to be invested to create sufficient, high-quality labels. In all cases, manually labeled validation and test sets remain necessary, and labeling in general should follow clear guidelines and for difficult objects involve collaborative review to ensure consistent annotations.
+Also the image processing approach could not reliably distinguish between fragments and complete insects, as they often share simple features such as size and hue. As a result, models trained on the generated labels could not differentiate between correct and incorrect detections based on confidence. Therefore, confidence thresholding or weighting by confidence in pseudo-labeling were no viable solutions. Although data augmentation could mitigate the biases introduced by covering background structures and missing the darker whiteflies, the decision boundary implied by the image-processed and augmented labels could not be altered further through training, and the resulting predictions did not meet the expected metrics. The rapidly decreasing precision–recall curve in Figure~\ref{fig:best_self-trained} may also indicate an additional, yet unaddressed, bias introduced by the image processing.
 
-Another important aspect of data quality is class balancing. An efficient solution would be to estimate the number of insects caught per image and then calculate the required number of images accordingly. If a pest class presents additional challenges—such as the differing appearances of male and female thrips—the number of images or instances must be adjusted accordingly.
+With the supervised model achieving the best results, the experiments align with the state-of-the-art approach. They also support the claim that labeling is the main challenge in insect pest detection. Although the data was subdivided into subsets for the pest classes to simplify the process, the manual labels—and consequently the model performance—would still would benefit from collaborative review to improve consistency and completeness. The experiments also showed that for fungus gnats, leaf miner flies, and whiteflies, a balanced dataset containing about 6000 instances is already sufficient for training.
 
-Rather than completely replacing supervised training, the approach tested here could be integrated to make the labeling process more efficient. Labeling software often allows the inclusion of models for pre-labeling, for which the self-trained model presented here would be well-suited, since in many cases labeling would be reduced to simply adding or removing a small number of bounding boxes. For a single project, manual labeling is more efficient than first developing a model to predict labels. But for projects that aim to expand the number of detectable pest classes continuously, a tool to generate pseudo-labels could streamline the inclusion of new classes. Unlike supervised training, where labeling requires the same amount of time for each new class, the bulk of development costs for such a tool occur only once. This could also help mitigate additional challenges outside the scope of this project, such as transferring trained models to images captured at different resolutions or adapting to other differences between training set and data from the use case, e.g. other types of sticky traps.
+For further experiments, adaptations are possible at two stages. During image creation, resources can be saved by determining the necessary number of images beforehand. Effort could then be redirected toward improving image quality by adapting the catching method or selecting appropriate images before labeling. If data quality comparable to the leaf miner flies subset could be achieved, the tested alternative approach could replace manual labeling for the training data. Higher data quality would also make manual labeling easier and more efficient, allowing remaining resources to be invested in improving label quality. In the present case, labeling 6000 instances per class (and 12,000 for the thrips to adress the differences between males and females) corresponds to roughly half of all actually created labels (Table~\ref{tab:insect-stats}). Even with collaborative reviews for the more challenging insect types, there would still be enough resources for tasks such as preselecting suitable images.
 
-In conclusion, the tested alternative approach is highly dependent on the quality of the data. Lower quality correlates with higher development costs, since each problem requires an individual adaptation. In contrast, the state-of-the-art supervised approach depends primarily on the quality of the provided labels and, with correct labels, produces sufficient results in less time and with comparatively low development costs. Nevertheless, an adapted version of the alternative approach may facilitate the labeling process and could be an option for long-term projects.
+The alternative approach based on image processing  has the potential to make the labeling process more efficient in large projects. Labeling software often supports model-based pre-labeling, for which the self-trained model presented here would be well suited, as manual labeling would often be reduced to simply adding or removing a small number of bounding boxes. For a single project, manual labeling is still more efficient than first developing a model for label prediction. However, for projects that aim to continuously expand the number of detectable pest classes, a tool for generating pseudo-labels would streamline the inclusion of new classes. Unlike supervised training, where labeling effort grows with each additional class, the development costs for such a tool occur only once. Likewise, the development costs for the image processing can be reduced in this context, because the generated labels only need to be sufficient for pre-labeling. Based on the presented results and with clean data comparable to those given for the leaf miner flies, the necessary model for pre-labeling can be created within a single workday. Also the adaptation to changes such as images with different resolutions or different backgrounds can be addressed in this setup.
+
+In conclusion, the tested alternative approach is more sensitive to data quality than the state-of-the-art supervised approach. Lower data quality leads to higher development costs, since each problem requires an individual adaptation with specific thresholds. In contrast, supervised learning can compensate for lower data quality through more accurate labeling and produces sufficient results in less time and with comparatively low development costs. Nevertheless, an adapted version of the alternative approach may still facilitate the labeling process and is an option for long-term projects.
 
 \section{References}
 \printbibliography[heading=none]

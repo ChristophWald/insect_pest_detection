@@ -1,14 +1,15 @@
-import matplotlib.pyplot as plt
 import os
 import json
 import numpy as np
 
+'''
+compare two sets of operating_points (outputs from find_best_pr_points given by eval_model.py).
+'''
+
 def compare_best_point_sets_per_class(best_points_a, best_points_b, prec_thresh=0.9, rec_thresh=0.8, verbose=True, return_details=True):
     """
-    Compare two sets of best_points (outputs from find_best_pr_points given by eval_model.py).
-
    Logic:
-      1. Prefer results with more points inside the "good zone".
+      1. Prefer results with more points inside the target zone.
       2. If equal, prefer smaller average distance to the rectangle.
       3. If still equal, prefer higher average F1.
     """
@@ -127,8 +128,4 @@ base_output_path = f"/user/christoph.wald/u15287/insect_pest_detection/training/
 with open(os.path.join(base_output_path, "operating_points.json"), "r") as f:
     second_points = json.load(f)
 
-
-  
-
-#print(compare_best_point_sets(best_points, second_points))
 compare_best_point_sets_per_class(best_points, second_points)
