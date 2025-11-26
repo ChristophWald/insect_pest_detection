@@ -41,9 +41,6 @@ def create_binary_mask(image, binary_default=True):
     mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel)
     return mask
 
-
-
-
 def find_contour(image):
     ''' 
     find the largest contour, which is the YST
@@ -76,7 +73,6 @@ def find_corners(image, contour):
         return rect
     else:
         return []
-
 
 '''
 function for the rotating (02)
@@ -123,7 +119,6 @@ def denoise_mask(mask):
     cleaned_mask = cv2.bitwise_not(cleaned_inv)  
     return cleaned_mask
 
-
 def grow_mask(mask, growth_pixels=5):
     ''' 
     thickens the lines of the grid
@@ -139,7 +134,7 @@ def grow_mask(mask, growth_pixels=5):
 '''
 functions for processing images and labels (masking and cropping)
 '''
-
+#which one is still needed
 def get_h_mid(image):
     """
     Find the longest horizontal line in an image
@@ -245,7 +240,6 @@ def get_distance_h_mid(image, mask_h):
 
     return dy
 
-
 def get_midpoint(mid_h):
     ''' 
     finds the midpoint of a line
@@ -254,6 +248,7 @@ def get_midpoint(mid_h):
     return (y1 + y2) / 2
 
 
+#compare to modules
 def yolo_labels_to_rectangles(labels, image_shape):
     '''
     calculate absolute values from yolo labels for checking
@@ -312,9 +307,6 @@ def transform_rectangles_to_cropped(rectangles, x_crop, y_crop, crop_w, crop_h):
 
     #functions for aligning empty image with grid and image with objects to cancel out the grid
 
-
-
-
 '''
 functions to evaluate the found bounding boxes
 '''
@@ -336,8 +328,6 @@ def scale_rect(x, y, w, h, scale):
     new_y = cy - new_h / 2
 
     return int(new_x), int(new_y), int(new_w), int(new_h)
-
-
 
 def get_list_of_rectangles(image, 
                            min_area_contour, 
@@ -404,7 +394,6 @@ def get_list_of_rectangles(image,
 
     return rectangles,value_problems
 
-
 def remove_smaller_overlaps(rectangles):
     """
     Removes rectangles that overlap with a larger rectangle.
@@ -449,7 +438,6 @@ def remove_smaller_overlaps(rectangles):
     return rectangles
 
 
-
 #as found in modules.py
 def compute_intersection_area(box1, box2):
     xA = max(box1[0], box2[0])
@@ -460,7 +448,7 @@ def compute_intersection_area(box1, box2):
     inter_height = max(0, yB - yA)
     return inter_width * inter_height
 
-#as found in test_full_images.py
+#as found in test_full_images.py #or augmentation
 def compute_iou(box1, box2):
     inter_area = compute_intersection_area(box1, box2)
     if inter_area == 0:
@@ -511,8 +499,7 @@ def evaluate_detections(pred_rectangles, gt_rectangles, iou_threshold=0.5):
 
     return {"TP": TP, "FP": FP, "FN": FN}, FP_boxes
 
-#------------------
-
+#as found in modules
 def pad_image_to_stride(image, tile_size=640, stride=440):
     ''' 
     pad image to allow tiling
@@ -531,6 +518,7 @@ def pad_image_to_stride(image, tile_size=640, stride=440):
 
     return padded_image
 
+#as found in modules
 def calculate_intersection_area(tile, rect):
     ''' 
         calculates the intersection of a tile and a rectangle(bounding box) and returns percentage
@@ -553,7 +541,6 @@ def calculate_intersection_area(tile, rect):
         inter_height = inter_y2 - inter_y1
         return inter_width * inter_height
     return 0
-
 
 def check_overlap(tile, rect, overlap_threshold=0.1):
     '''
@@ -698,7 +685,6 @@ def draw_corners(img, corners):
 
     return vis
 
-
 def draw_bounding_boxes(image, rectangles, color=(255, 0, 0), thickness=2):
     '''
     returns image and the bounding boxes calculated
@@ -708,7 +694,6 @@ def draw_bounding_boxes(image, rectangles, color=(255, 0, 0), thickness=2):
         cv2.rectangle(img_copy, (x, y), (x + w, y + h), color, thickness)
     print(f"{len(rectangles)} bounding boxes found.")
     return img_copy
-
 
 def check_h_line(bw, h_mid):
     '''

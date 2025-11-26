@@ -4,7 +4,18 @@ import torch
 import math
 import os
 import torchvision
+from modules import pad_to_multiple
 
+'''
+sliding_window_prediction: collects predictions for an image by sliding over it
+filter_by_prediction: filters prediction by class-specific confidence threholds
+nms: filters predictions by NMS
+filter_mostly_contained_boxes: filters precited boxes contained inside larger boxes
+compute_intersection_area_tensor: vectorized calculation of intersection
+compare_labels_vectorized: fast comparision to ground truth
+yolo_to_xyxy_tensor: loads yolo labels and returns tensor with absolute xyxy-coordinates
+
+'''
 
 
 def sliding_window_prediction(image, model, conf_threshold=0):
@@ -127,7 +138,6 @@ def filter_mostly_contained_boxes(boxes, scores, classes, threshold=0.5):
 
     return boxes[keep], scores[keep], classes[keep]
 
-
 def compute_intersection_area_tensor(box_a, box_b):
     """
     box_a: Tensor[N, 4] (x1, y1, x2, y2)
@@ -149,108 +159,6 @@ def compute_intersection_area_tensor(box_a, box_b):
     inter_w = torch.clamp(xi2 - xi1, min=0)
     inter_h = torch.clamp(yi2 - yi1, min=0)
     return inter_w * inter_h  # [N, M]
-
-def pad_image_to_multiple(image, tile_size=640, pad_value=(114,114,114)):
-    h, w = image.shape[:2]
-    pad_w = math.ceil(w / tile_size) * tile_size - w
-    pad_h = math.ceil(h / tile_size) * tile_size - h
-    padded = cv2.copyMakeBorder(image, 0, pad_h, 0, pad_w, cv2.BORDER_CONSTANT, value=pad_value)
-    return padded, w, h
-
-def save_tile_labels_to_tensor(boxes, classes, scores, tile_box, tile_size, min_inside_ratio=0.8):
-    """
-    boxes: [N, 4], classes: [N], scores: [N]
-    tile_box: (x1, y1, x2, y2)
-    Returns: Tensor[K, 6] = [class, nx, ny, nw, nh, score]
-    """
-    x_tile, y_tile, x_tile2, y_tile2 = tile_box
-    tile_tensor = torch.tensor([x_tile, y_tile, x_tile2, y_tile2], device=boxes.device, dtype=boxes.dtype)
-
-    # Filter zero-area boxes
-    box_area = (boxes[:, 2] - boxes[:, 0]) * (boxes[:, 3] - boxes[:, 1])
-    valid = box_area > 0
-    boxes, classes, scores, box_area = boxes[valid], classes[valid], scores[valid], box_area[valid]
-
-    if boxes.shape[0] == 0:
-        return torch.zeros((0, 6), device=boxes.device, dtype=boxes.dtype)
-
-    # Compute intersection
-    inter_area = compute_intersection_area_tensor(tile_tensor.unsqueeze(0), boxes).squeeze(0)
-    inside_ratio = inter_area / box_area
-    keep = inside_ratio >= min_inside_ratio
-    boxes, classes, scores = boxes[keep], classes[keep], scores[keep]
-
-    if boxes.shape[0] == 0:
-        return torch.zeros((0, 6), device=boxes.device, dtype=boxes.dtype)
-
-    # Clip boxes to tile
-    cx1 = torch.maximum(boxes[:, 0], torch.tensor(x_tile, device=boxes.device))
-    cy1 = torch.maximum(boxes[:, 1], torch.tensor(y_tile, device=boxes.device))
-    cx2 = torch.minimum(boxes[:, 2], torch.tensor(x_tile2, device=boxes.device))
-    cy2 = torch.minimum(boxes[:, 3], torch.tensor(y_tile2, device=boxes.device))
-
-    box_w = cx2 - cx1
-    box_h = cy2 - cy1
-    box_xc = cx1 + box_w / 2
-    box_yc = cy1 + box_h / 2
-
-    nx = (box_xc - x_tile) / tile_size
-    ny = (box_yc - y_tile) / tile_size
-    nw = box_w / tile_size
-    nh = box_h / tile_size
-
-    return torch.stack([classes, nx, ny, nw, nh, scores], dim=1)  # [K, 6]
-
-def get_labels_per_tile_tensor(image, boxes, classes, scores, tile_size=640, stride=440, min_inside_ratio=0.8):
-    padded_img, orig_w, orig_h = pad_image_to_multiple(image, tile_size=tile_size)
-    h, w = padded_img.shape[:2]
-
-    tiles_labels = []
-    for y in range(0, h - tile_size + 1, stride):
-        for x in range(0, w - tile_size + 1, stride):
-            tile_box = (x, y, x + tile_size, y + tile_size)
-            tile_labels = save_tile_labels_to_tensor(boxes, classes, scores, tile_box, tile_size, min_inside_ratio)
-            tiles_labels.append(tile_labels)
-
-    # Return as a list of tensors (one per tile)
-    return tiles_labels
-
-
-def load_label_tiles(label_dir, filename, tile_size=640, device='cuda'):
-    """
-    Loads YOLO label tiles for a given image.
-
-    Returns a list of tensors [M,6] per tile: [class, xc, yc, w, h, score]
-    (YOLO format, normalized to the tile).
-    """
-    def extract_tile_number(f):
-        # Extract tile number from filename like "example_image_tile_3.txt"
-        num_part = f.split("_tile_")[-1].replace('.txt','')
-        return int(num_part)
-
-    # Get label files for the given image
-    label_files = [f for f in os.listdir(label_dir) if f.startswith(os.path.splitext(filename)[0])]
-    label_files = sorted(label_files, key=extract_tile_number)
-
-    label_tiles_tensors = []
-
-    for f in label_files:
-        file_path = os.path.join(label_dir, f)
-        with open(file_path, 'r') as file:
-            lines = file.read().splitlines()
-            if len(lines) > 0:
-                tile_labels = []
-                for line in lines:
-                    parts = list(map(float, line.split()))
-                    cls, xc, yc, w, h = parts[:5]
-                    score = parts[5] if len(parts) > 5 else 1.0  # default score 1.0 if missing
-                    tile_labels.append([cls, xc, yc, w, h, score])
-                tile_tensor = torch.tensor(tile_labels, dtype=torch.float32, device=device)
-            else:
-                tile_tensor = torch.empty((0,6), dtype=torch.float32, device=device)
-            label_tiles_tensors.append(tile_tensor)
-
-    return label_tiles_tensors
 
 def compare_labels_vectorized(
     pred_boxes,
@@ -379,13 +287,3 @@ def yolo_to_xyxy_tensor(boxes, tile_size=640):
     y_max = boxes[:, 1] + boxes[:, 3] / 2
 
     return torch.stack([x_min, y_min, x_max, y_max], dim=1)
-
-def xyxy_to_yolo(x1, y1, x2, y2, tile_size=640):
-    """
-    Convert a box from [xmin, ymin, xmax, ymax] pixel coords to YOLO normalized format.
-    """
-    x_center = (x1 + x2) / 2 / tile_size
-    y_center = (y1 + y2) / 2 / tile_size
-    w = (x2 - x1) / tile_size
-    h = (y2 - y1) / tile_size
-    return [x_center, y_center, w, h]    

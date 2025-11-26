@@ -3,13 +3,18 @@ import cv2
 import numpy as np
 
 '''
-MODULES:
-draw a single box into an image
-load a yolo label and transform to absolute coordinates
-visualize all yolo boxes in one image
-compute intersection of two boxes
-save boxes as individual jpgs
-get all files in all subfolders incl. optional linecount for label files
+Basic utilities
+
+load_yolo_labels: load yolo and returns absolute xyxy format 
+xyxy_to_yolo: transforms xyxy to relative xywh (yolo-format)
+compute_intersection_area: returns intersection of two boxes given in xyxy format 
+pad_to_multiple: pads an image to a multiple of a tile size
+
+Basic visualiuations:
+
+draw_box: draws a rectangle into an image
+visualize yolo boxes: draws all bounding boxes given by a yolo-label-file into an image
+save cropped boxes: saves all bounding boxes given by a yolo-label-file as individual jpgs
 '''
 
 
@@ -42,7 +47,6 @@ def xyxy_to_yolo(x1, y1, x2, y2, width, height):
     h = (y2 - y1) / height
     return [x_center, y_center, w, h]
 
-
 def compute_intersection_area(box1, box2):
     xA = max(box1[0], box2[0])
     yA = max(box1[1], box2[1])
@@ -51,7 +55,6 @@ def compute_intersection_area(box1, box2):
     inter_width = max(0, xB - xA)
     inter_height = max(0, yB - yA)
     return inter_width * inter_height
-
 
 def pad_to_multiple(image, tile_size=640, pad_value=(114,114,114)):
     h, w = image.shape[:2]
@@ -62,15 +65,12 @@ def pad_to_multiple(image, tile_size=640, pad_value=(114,114,114)):
 
 ##### Visualizations
 
-
 def draw_box(img, box, color, label):
     """Draw a bounding box with label on the image."""
     xmin, ymin, xmax, ymax = map(int, box)
     cv2.rectangle(img, (xmin, ymin), (xmax, ymax), color, 2)
     cv2.putText(img, label, (xmin, ymin - 10), cv2.FONT_HERSHEY_SIMPLEX,
                 0.6, color, 2)
-    
-
 
 def visualize_yolo_boxes(image_path, label_path, output_folder):
     """
@@ -104,9 +104,6 @@ def visualize_yolo_boxes(image_path, label_path, output_folder):
     os.makedirs(output_folder, exist_ok=True)
     cv2.imwrite(output_path, image)
     print(f"Saved: {output_path}")
-
-
-
 
 def save_cropped_boxes(image, boxes, filename=None, output_dir=None):
     """

@@ -1,4 +1,3 @@
-from modules import draw_box
 import cv2
 import os
 from collections import defaultdict
@@ -9,9 +8,18 @@ import glob
 import re
 from pathlib import Path
 import numpy as np
-from modules import save_cropped_boxes
+from modules import draw_box
+
+'''
+basic utilities for evaluation (only for predict_on_fixed_thresholds)
+
+make_image_with_boxes: plots bounding boxes into an image with color coding for FP/FN/TP
+compute_metrics: computes precision recall given results of comparing to ground truth
+save_results_to_json: as the name says
+plot_histograms: plots histograms to get basic infos about true positives and false positives distributions
 
 
+'''
 
 def make_image_with_boxes(
     image,
@@ -42,8 +50,6 @@ def make_image_with_boxes(
 
     if output_image_path:
         cv2.imwrite(os.path.join(output_image_path,os.path.splitext(filename)[0] + "_w_boxes.jpg"), drawn)
-
-
 
 def compute_metrics(results):
     """
@@ -125,16 +131,6 @@ def save_results_to_json(output_path,results):
         json.dump(formatted, f, indent=4)
 
 
-def natural_sort_key(path):
-    # Extract folder name (e.g. train, train1, train11)
-    folder = os.path.basename(os.path.dirname(path))
-    # Split into text + numbers
-    parts = re.split(r'(\d+)', folder)
-    # Convert digits to integers, leave text as lowercase
-    key = [int(p) if p.isdigit() else p.lower() for p in parts]
-    return key
-
-def plot_prec_recall(output_path):
     # Base path
     base_path = '/user/christoph.wald/u15287/insect_pest_detection/2_5_self_training/runs/detect/'
 
@@ -204,120 +200,6 @@ def plot_prec_recall(output_path):
     plt.close()
 
     print(f"Combined results plot saved to {save_path}")
-
-
-import numpy as np
-import matplotlib.pyplot as plt
-from collections import defaultdict
-from pathlib import Path
-import json
-import re
-
-import numpy as np
-import matplotlib.pyplot as plt
-from collections import defaultdict
-from pathlib import Path
-import json
-import re
-
-
-
-def plot_histograms_dynamic_fn(input_folder, output_folder):
-    input_folder = Path(input_folder)
-    output_folder = Path(output_folder)
-    output_img = output_folder / "all_histograms_dynamic_fn.jpg"
-
-    class_map = {"BRAIIM": 0, "LIRIBO": 1, "TRIAVA": 2}
-
-    def natural_key(path):
-        return [int(t) if t.isdigit() else t.lower() for t in re.split(r"(\d+)", path.stem)]
-
-    all_confidences = []
-    all_fns = {}
-
-    # Load JSON files
-    for json_file in sorted(input_folder.glob("*.json"), key=natural_key):
-        with open(json_file, "r") as f:
-            data = json.load(f)
-
-        confidences = defaultdict(lambda: {"TP": [], "FP": []})
-        fns = defaultdict(int)
-
-        for label_type in ["TP", "FP", "FN"]:
-            if label_type not in data:
-                continue
-            for species, images in data[label_type].items():
-                for image_name, entries in images.items():
-                    if label_type in ["TP", "FP"]:
-                        for entry in entries:
-                            pred_list = entry.get("prediction", [])
-                            if len(pred_list) > 5:
-                                conf = pred_list[-1]
-                                confidences[species][label_type].append(conf)
-                    else:  # FN at conf=0
-                        fns[species] += len(entries)
-
-        all_confidences.append((json_file.stem, confidences))
-        all_fns[json_file.stem] = dict(fns)
-
-    # Plot histograms
-    n_files = len(all_confidences)
-    n_species = len(class_map)
-    fig, axes = plt.subplots(n_files, n_species, figsize=(5*n_species, 4*n_files), sharey=True)
-
-    if n_files == 1 and n_species == 1:
-        axes = [[axes]]
-    elif n_files == 1:
-        axes = [list(axes)]
-    elif n_species == 1:
-        axes = [[ax] for ax in axes]
-    else:
-        axes = axes.tolist()
-
-    for row_idx, (json_name, confs) in enumerate(all_confidences):
-        for col_idx, species in enumerate(class_map.keys()):
-            ax = axes[row_idx][col_idx]
-            tp_vals = np.array(confs[species]["TP"])
-            fp_vals = np.array(confs[species]["FP"])
-            total_gt = len(tp_vals) + all_fns[json_name].get(species, 0)
-
-            # Use bins derived from data
-            all_vals = np.concatenate([tp_vals, fp_vals]) if tp_vals.size + fp_vals.size > 0 else np.array([0,1])
-            bins = np.histogram_bin_edges(all_vals, bins=20)
-            bin_centers = 0.5 * (bins[:-1] + bins[1:])
-
-            # --- TP histogram ---
-            if tp_vals.size > 0:
-                ax.hist(tp_vals, bins=bins, alpha=0.6, label="TP", color="green", edgecolor="black")
-                ax.axvline(np.mean(tp_vals), color="green", linestyle="--", linewidth=2, label=f"TP mean={np.mean(tp_vals):.2f}")
-
-            # --- FP histogram ---
-            if fp_vals.size > 0:
-                ax.hist(fp_vals, bins=bins, alpha=0.6, label="FP", color="orange", edgecolor="black")
-                ax.axvline(np.mean(fp_vals), color="orange", linestyle="--", linewidth=2, label=f"FP mean={np.mean(fp_vals):.2f}")
-
-            # --- Compute FN per bin dynamically ---
-            fn_per_bin = []
-            for thresh in bins[:-1]:
-                tp_above_thresh = tp_vals[tp_vals >= thresh]
-                fn_in_bin = total_gt - len(tp_above_thresh)
-                fn_per_bin.append(fn_in_bin)
-
-            ax.plot(bin_centers, fn_per_bin, 'r-', linewidth=2, label="FN (dynamic)")
-
-            ax.set_title(f"{json_name} - {species}")
-            ax.set_xlabel("Confidence")
-            ax.set_ylabel("Frequency")
-            ax.grid(True)
-            handles, labels = ax.get_legend_handles_labels()
-            ax.legend(handles, labels, loc="upper left", fontsize="small")
-
-    plt.tight_layout()
-    plt.savefig(output_img, dpi=150)
-    plt.close()
-    print(f"Saved combined histogram grid with dynamic FN → {output_img}")
-
-
 
 def plot_histograms(input_folder, output_folder):
     input_folder = Path(input_folder)

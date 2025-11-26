@@ -5,7 +5,7 @@ import sys
 import cv2
 sys.path.append("/user/christoph.wald/u15287/insect_pest_detection/modules")
 from modules import load_yolo_labels
-from modules_prediction import yolo_to_xyxy_tensor, compare_labels_vectorized
+from modules_prediction import compare_labels_vectorized
 
 '''
 compares two set of labels with the same logic as evaluating predictions

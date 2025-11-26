@@ -5,7 +5,7 @@ import cv2
 '''
 for visual inspection of labels
 
-takes all labels from a directory and puts out all bounding boxes as individual jpgs
+takes all labels from a directory and saves all bounding boxes as individual jpgs
 '''
 
 species = "Thrips"

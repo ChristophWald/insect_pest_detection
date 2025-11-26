@@ -2,7 +2,7 @@ import sys
 sys.path.append("/user/christoph.wald/u15287/insect_pest_detection/modules")
 import os
 from modules import get_files_by_subfolder
-from modules_plotting import plot_label_distribution_boxplots
+from modules_splitting import *
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -10,7 +10,7 @@ import math
 
 
 '''
-for inspection of dataset
+for inspection of dataset statistics (number of images, label distributions etc.)
 '''
 
 #set paths

@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 from PIL import Image
 
 '''
-takes all images in a folder and combines them to a single images
+takes all images in a folder and combines them to a single image
 for visual inspection
 
 '''

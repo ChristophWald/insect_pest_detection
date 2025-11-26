@@ -5,6 +5,80 @@ import numpy as np
 import random
 from modules_segmentation import find_contour, find_corners, get_distance_h_mid, create_binary_mask
 
+
+'''
+
+for augmented set 1 (inserted background structures on training images)
+
+crop: crops an image to the rectangle of the yellow sticky trap
+circular_shift_mask_2d: shifts the background structure vertical and horizontal randomly
+fit_mask_to_image: puts the background structure at random location of the image
+
+for augmented set 2 (insects pasted on background structures)
+
+random_shear: shears an image 
+get_mask: returns a mask aligned to an image
+enlarge_box: scales a rectangle by a given factor
+keep_central_contour: keeps only the contour closest to the image center
+iou: calculates IoU, used by place_insects_by_region
+place_insect_at: plots an insect into an image, used by place_insects_by_region
+get_candidate_positions: find a place to put the insect, used by place_insects_by_region
+place_insects_by_region: places given number of insects randomly in areas selected by a mask
+random_light_variation: augmentation for the final image
+
+
+
+'''
+def crop(image):
+    mask = create_binary_mask(image)
+    contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    if contours:
+        largest_contour = max(contours, key=cv2.contourArea)
+        x, y, w, h = cv2.boundingRect(largest_contour)
+        cropped_image = image[y:y+h, x:x+w]
+        return cropped_image, (x, y, w, h)
+    else:
+        return None, None
+    
+def fit_mask_to_image(mask, img_shape):
+    """
+    Resize/crop or place mask to fit the image shape.
+    If mask is smaller: place randomly.
+    If mask is larger: crop to fit.
+    """
+    mask_h, mask_w = mask.shape
+    img_h, img_w = img_shape[:2]
+
+    # If mask is larger, crop it
+    if mask_h > img_h:
+        start_y = (mask_h - img_h) // 2
+        mask = mask[start_y:start_y+img_h, :]
+    if mask_w > img_w:
+        start_x = (mask_w - img_w) // 2
+        mask = mask[:, start_x:start_x+img_w]
+
+    # If mask is smaller, place it randomly
+    mask_h, mask_w = mask.shape
+    result_mask = np.ones((img_h, img_w), dtype=mask.dtype) * 255  # white background
+    max_y = img_h - mask_h
+    max_x = img_w - mask_w
+    start_y = random.randint(0, max_y) if max_y > 0 else 0
+    start_x = random.randint(0, max_x) if max_x > 0 else 0
+    result_mask[start_y:start_y+mask_h, start_x:start_x+mask_w] = mask
+    return result_mask
+
+def circular_shift_mask_2d(mask, min_shift=500):
+    h, w = mask.shape
+    max_shift_h = h // 2
+    max_shift_w = w // 2
+    shift_y = random.randint(min_shift, max_shift_h) * random.choice([-1, 1])
+    shift_x = random.randint(min_shift, max_shift_w) * random.choice([-1, 1])
+    shifted_mask = np.roll(mask, shift_y, axis=0)
+    shifted_mask = np.roll(shifted_mask, shift_x, axis=1)
+    return shifted_mask
+
+
+
 def random_shear(image, max_shear=0.05):
     """
     Apply a random shear transformation to an image around its center.
@@ -170,7 +244,6 @@ def iou(box1, box2):
     union_area = area1 + area2 - inter_area
     return inter_area / union_area if union_area > 0 else 0
 
-
 def remove_border_connected(mask_binary):
     mask = mask_binary.copy().astype(np.uint8)
     num_labels, labels = cv2.connectedComponents(mask)
@@ -241,7 +314,6 @@ def place_insects_by_region(base_image, mask_binary, insects, n_per_region=1, ov
 
         for _ in range(placed_count):  # same number as placed in first pass
             insect = insects.pop(0)
-            insect, _ = rotate_insect(insect)
             h_i, w_i, _ = insect.shape
 
             for _ in range(1000):
@@ -265,79 +337,6 @@ def place_insects_by_region(base_image, mask_binary, insects, n_per_region=1, ov
     #        cv2.rectangle(base_image, (x1, y1), (x2, y2), color=(0, 0, 255), thickness=2)  # red boxes
 
     return placed_count, placed_boxes
-
-
-def augment_whitefly(img, s_shift=41, v_shift=-6, s_jitter=7.6, v_jitter=2.5, h_jitter=1):
-    """
-    Adjust TP patch to mimic FN statistics:
-    - Increase saturation (S)
-    - Decrease brightness/value (V)
-    - Optional tiny hue jitter
-    """
-    hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV).astype(np.float32)
-    
-    # Hue jitter
-    hsv[:, :, 0] = np.clip(hsv[:, :, 0] + random.uniform(-h_jitter, h_jitter), 0, 179)
-    
-    # Saturation
-    hsv[:, :, 1] = np.clip(hsv[:, :, 1] + s_shift + random.uniform(-s_jitter, s_jitter), 0, 255)
-    
-    # Value / brightness
-    hsv[:, :, 2] = np.clip(hsv[:, :, 2] + v_shift + random.uniform(-v_jitter, v_jitter), 0, 255)
-    
-    return cv2.cvtColor(hsv.astype(np.uint8), cv2.COLOR_HSV2BGR)
-
-
-def rotate_insect(insect, angle_range=(-180, 180)):
-    """
-    Rotate an insect patch by a random angle within `angle_range` and return the rotated patch
-    along with its tight bounding box (non-white region).
-    
-    Args:
-        insect: np.array of shape (H, W, 3), the insect patch.
-        angle_range: tuple, min and max rotation angles in degrees.
-    
-    Returns:
-        rotated_cropped: rotated insect patch, tightly cropped to non-white area
-        new_box_coords: coordinates relative to the rotated patch (x1, y1, x2, y2)
-    """
-    # Pick a random angle
-    angle = np.random.uniform(*angle_range)
-    
-    h, w = insect.shape[:2]
-    center = (w // 2, h // 2)
-    
-    # Compute rotation matrix
-    M = cv2.getRotationMatrix2D(center, angle, 1.0)
-    
-    # Compute size of new rotated image to fit everything
-    cos = np.abs(M[0, 0])
-    sin = np.abs(M[0, 1])
-    new_w = int((h * sin) + (w * cos))
-    new_h = int((h * cos) + (w * sin))
-    
-    # Adjust the rotation matrix to take into account translation
-    M[0, 2] += (new_w / 2) - center[0]
-    M[1, 2] += (new_h / 2) - center[1]
-    
-    # Rotate the image
-    rotated = cv2.warpAffine(insect, M, (new_w, new_h), borderValue=(255, 255, 255))
-    
-    # Compute tight bounding box around non-white pixels
-    non_white = np.any(rotated < 250, axis=2)
-    coords = np.argwhere(non_white)
-    if coords.size == 0:
-        # fallback if everything is white
-        return rotated, (0, 0, new_w, new_h)
-    
-    y_min, x_min = coords.min(axis=0)
-    y_max, x_max = coords.max(axis=0) + 1  # slicing exclusive
-    
-    rotated_cropped = rotated[y_min:y_max, x_min:x_max]
-    new_box_coords = (x_min, y_min, x_max, y_max)
-    
-    return rotated_cropped, new_box_coords
-
 
 def place_insect_at(base_image, insect, box):
     """
@@ -433,93 +432,3 @@ def random_light_variation(image):
 
     return result
 
-def random_local_blur(image, area_ratio=0.2):
-    """
-    Apply blur to a random small region of the image (simulating out-of-focus spot).
-
-    Parameters:
-        image (numpy.ndarray): Input BGR image.
-        area_ratio (float): Approx. fraction of total area to blur (default 0.1 = 10%)
-
-    Returns:
-        numpy.ndarray: Image with a locally blurred region.
-    """
-    h, w = image.shape[:2]
-    output = image.copy()
-
-    # --- Determine patch size (√area_ratio of image) ---
-    patch_ratio = np.sqrt(area_ratio)
-    patch_h = int(h * patch_ratio)
-    patch_w = int(w * patch_ratio)
-
-    # --- Random top-left corner for the patch ---
-    x1 = random.randint(0, max(1, w - patch_w))
-    y1 = random.randint(0, max(1, h - patch_h))
-    x2 = x1 + patch_w
-    y2 = y1 + patch_h
-
-    # --- Extract patch and blur it ---
-    patch = output[y1:y2, x1:x2]
-    ksize = random.choice([51, 71, 61, 31]) # random blur kernel
-    patch_blurred = cv2.GaussianBlur(patch, (ksize, ksize), 0)
-
-    # --- Optional: blend smoothly with surroundings (soft edges) ---
-    mask = np.zeros((patch_h, patch_w), np.float32)
-    cv2.circle(mask, (patch_w // 2, patch_h // 2), min(patch_w, patch_h) // 2, 1, -1)
-    mask = cv2.GaussianBlur(mask, (31, 31), 0)
-    mask = mask[..., None]  # to broadcast across channels
-
-    # Blend blurred patch into original region
-    blended = patch_blurred * mask + patch * (1 - mask)
-    output[y1:y2, x1:x2] = blended.astype(np.uint8)
-
-    return output
-
-
-def crop(image):
-    mask = create_binary_mask(image)
-    contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-    if contours:
-        largest_contour = max(contours, key=cv2.contourArea)
-        x, y, w, h = cv2.boundingRect(largest_contour)
-        cropped_image = image[y:y+h, x:x+w]
-        return cropped_image, (x, y, w, h)
-    else:
-        return None, None
-    
-def fit_mask_to_image(mask, img_shape):
-    """
-    Resize/crop or place mask to fit the image shape.
-    If mask is smaller: place randomly.
-    If mask is larger: crop to fit.
-    """
-    mask_h, mask_w = mask.shape
-    img_h, img_w = img_shape[:2]
-
-    # If mask is larger, crop it
-    if mask_h > img_h:
-        start_y = (mask_h - img_h) // 2
-        mask = mask[start_y:start_y+img_h, :]
-    if mask_w > img_w:
-        start_x = (mask_w - img_w) // 2
-        mask = mask[:, start_x:start_x+img_w]
-
-    # If mask is smaller, place it randomly
-    mask_h, mask_w = mask.shape
-    result_mask = np.ones((img_h, img_w), dtype=mask.dtype) * 255  # white background
-    max_y = img_h - mask_h
-    max_x = img_w - mask_w
-    start_y = random.randint(0, max_y) if max_y > 0 else 0
-    start_x = random.randint(0, max_x) if max_x > 0 else 0
-    result_mask[start_y:start_y+mask_h, start_x:start_x+mask_w] = mask
-    return result_mask
-
-def circular_shift_mask_2d(mask, min_shift=500):
-    h, w = mask.shape
-    max_shift_h = h // 2
-    max_shift_w = w // 2
-    shift_y = random.randint(min_shift, max_shift_h) * random.choice([-1, 1])
-    shift_x = random.randint(min_shift, max_shift_w) * random.choice([-1, 1])
-    shifted_mask = np.roll(mask, shift_y, axis=0)
-    shifted_mask = np.roll(shifted_mask, shift_x, axis=1)
-    return shifted_mask

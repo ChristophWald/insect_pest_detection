@@ -13,7 +13,6 @@ from collections import defaultdict
 import matplotlib.pyplot as plt
 from modules_prediction import *
 from modules import load_yolo_labels
-from modules_evaluation import *
 
 
 def get_predictions(training_path, #path the parent folder of runs/detect

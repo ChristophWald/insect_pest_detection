@@ -4,6 +4,13 @@ import math
 import numpy as np
 import os
 
+'''
+get_files_by_subfolder: collect filenames (and optional label counts) grouped by subfolder
+plot_label_distribution_boxplots: create boxplot grids showing label-count distributions per subfolder
+plot_label_histograms: plot histograms of label-count distributions for each subfolder
+plot_split: visualize dataset
+plot_mean_std_grid: plot mean and std error for label distribution of different species
+'''
 
 
 
@@ -30,16 +37,6 @@ def get_files_by_subfolder(root_dir, count_lines=False):
                     file_entries[name] = None
         file_dict[folder_name] = file_entries
     return file_dict
-
-
-
-'''
-for visualizing dataset/split
-'''
-
-#add titles to the plots
-#histplot is odd because of the changing scales
-
 
 def plot_label_distribution_boxplots(files_labeled, output_dir, filename="label_boxplots_grid.png", cols=4):
     """
@@ -79,8 +76,6 @@ def plot_label_distribution_boxplots(files_labeled, output_dir, filename="label_
     output_path = os.path.join(output_dir, filename)
     plt.savefig(output_path)
     plt.close()
-
-####
 
 def plot_label_histograms(data_dict, output_dir, filename, cols=4, figsize_per_plot=(4, 4), bins='auto'):
     """

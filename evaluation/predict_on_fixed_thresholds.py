@@ -17,6 +17,8 @@ import yaml
 predicts on an image set and compare to labels with general confidence threshold and additional per class confidences 
 saves predictions and status (TP/FP/FN) in results.json
 saves precision and recall in metrics.json
+
+some overlappings with the functionality of eval_model, could be merged
 '''
 
 def evaluate(conf_threshold, #general confidence threshold for all classes
