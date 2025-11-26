@@ -2,6 +2,7 @@ import os
 import torch
 from collections import defaultdict
 import sys
+import cv2
 sys.path.append("/user/christoph.wald/u15287/insect_pest_detection/modules")
 from modules import load_yolo_labels
 from modules_prediction import yolo_to_xyxy_tensor, compare_labels_vectorized
@@ -11,15 +12,13 @@ compares two set of labels with the same logic as evaluating predictions
 '''
 
 
-def compare_label_folders_vectorized(folder_a, folder_b, img_width, img_height,
+def compare_label_folders_vectorized(folder_a, folder_b,
                                      iou_threshold=0.5, containment_threshold=0.9):
-    """
-    Compare two YOLO label folders and compute TP/FP/FN per class.
-    folder_a = ground truth, folder_b = new/predicted labels
-    """
+
     per_class_stats = defaultdict(lambda: {"TP": 0, "FP": 0, "FN": 0})
     missing_files = []
 
+    
     for root, _, files in os.walk(folder_a):
         for file in files:
             if not file.endswith('.txt'):
@@ -29,11 +28,18 @@ def compare_label_folders_vectorized(folder_a, folder_b, img_width, img_height,
             path_a = os.path.join(folder_a, rel_path)
             path_b = os.path.join(folder_b, rel_path)
 
+            #get image width and height, needed for loading yolo labels
+            base, _ = os.path.splitext(file)
+            labels_parent = os.path.dirname(root) 
+            img_path = os.path.join(labels_parent, "images", base + ".jpg")
+            img = cv2.imread(img_path)
+            img_height, img_width = img.shape[:2]
+
             if not os.path.exists(path_b):
                 missing_files.append(rel_path)
                 continue
 
-            # --- Replace read_labels with load_yolo_labels ---
+            # Load YOLO labels
             gt_boxes, gt_classes = load_yolo_labels(path_a, img_width, img_height)
             pred_boxes, pred_classes = load_yolo_labels(path_b, img_width, img_height)
 
@@ -42,17 +48,17 @@ def compare_label_folders_vectorized(folder_a, folder_b, img_width, img_height,
             gt_classes = torch.tensor(gt_classes, dtype=torch.int64)
             pred_boxes = torch.tensor(pred_boxes, dtype=torch.float32)
             pred_classes = torch.tensor(pred_classes, dtype=torch.int64)
-            pred_scores = torch.ones(len(pred_classes), dtype=torch.float32)  # assume score=1
+            pred_scores = torch.ones(len(pred_classes), dtype=torch.float32)
 
             (tp, fp, fn) = compare_labels_vectorized(
                 pred_boxes, pred_classes, pred_scores,
                 gt_boxes, gt_classes,
                 iou_threshold=iou_threshold,
                 containment_threshold=containment_threshold,
-                convert_to_xyxy=False  # already in xyxy
+                convert_to_xyxy=False
             )
 
-            # Aggregate counts per class
+            # Aggregate TP/FP/FN counts
             for c in tp[1]: per_class_stats[c]["TP"] += 1
             for c in fp[1]: per_class_stats[c]["FP"] += 1
             for c in fn[1]: per_class_stats[c]["FN"] += 1

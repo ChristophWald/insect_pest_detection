@@ -8,32 +8,43 @@ import os
 import json
 import cv2
 import torch
+import numpy as np
+from collections import defaultdict
 import matplotlib.pyplot as plt
 from modules_prediction import *
 from modules import load_yolo_labels
 from modules_evaluation import *
 
 
-
-
-def raw_predictions_on_val(model_number, base_output_path, skip_FRANOC = False, predict_on_tiles = False, test_set = False):
+def get_predictions(training_path, #path the parent folder of runs/detect
+                    model_number, #number of the run
+                    base_output_path, 
+                    skip_FRANOC = False, #skips thrips if Ture
+                    predict_on_tiles = False, #predicts on full images if False
+                    test_set = False #predicts on validation set if False
+                    ):
     start = time.time()
+
+    '''
+    gets all predictions for a model on the test/val set and saves them as a json    
+    '''
 
     all_results = []
 
+    #loading the model
     print(f"Testing model {model_number}.")
-    model_path = f"{path}runs/detect/train{model_number}/weights/best.pt"
+    model_path = f"{training_path}runs/detect/train{model_number}/weights/best.pt"
 
 
     if os.path.exists(model_path):
         print(f"File exists: {model_path}")
-        # You can load the model safely
         model = YOLO(model_path)
     else:
         print(f"File does not exist: {model_path}")
-        # Handle the missing file case
 
     model = YOLO(model_path)
+
+    #setting the path to images/labels
     if not test_set:
         base_input_path = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_labeled/split"
         base_image_path = os.path.join(base_input_path, "images/val")  
@@ -90,7 +101,14 @@ def load_predictions(pred_json_path):
     with open(pred_json_path, "r") as f:
         return json.load(f)
 
-def compare_labels_single(pred_box, pred_class, pred_score, gt_boxes, gt_classes, iou_threshold=0.5, containment_threshold=0.9, convert_to_xyxy=True):
+def compare_labels_single(pred_box, 
+                          pred_class, 
+                          pred_score, 
+                          gt_boxes, 
+                          gt_classes, 
+                          iou_threshold=0.5, 
+                          containment_threshold=0.9, 
+                          convert_to_xyxy=True):
     """
     Compare a single YOLO prediction box to all GT boxes and return TP/FP flags.
     pred_box: Tensor of shape (1,4)
@@ -138,14 +156,15 @@ def compare_labels_single(pred_box, pred_class, pred_score, gt_boxes, gt_classes
         return False, True  # FP
 
 
-def compute_pr_curves_fixed(pred_json_path, class_names, iou_threshold=0.5, containment_threshold=0.9, test_set = False):
+def compute_pr_curves(pred_json_path, 
+                    class_names, 
+                    iou_threshold=0.5, 
+                    containment_threshold=0.9, 
+                    test_set = False):
     """
-    Compute per-class PR curves without double-counting GT boxes.
+    Compute per-class PR curves
     Uses compare_labels_single for single-prediction evaluation.
     """
-    import torch, os, cv2
-    import numpy as np
-    from collections import defaultdict
 
     print("Load predictions.")
     predictions = load_predictions(pred_json_path)
@@ -158,7 +177,6 @@ def compute_pr_curves_fixed(pred_json_path, class_names, iou_threshold=0.5, cont
         base_label_path = os.path.join(base_input_path, "labels/val") 
     else:
         base_input_path = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/test_set/test_set_w_new_labels"
-
         base_image_path = os.path.join(base_input_path, "images") 
         base_label_path = os.path.join(base_input_path, "labels")
 
@@ -277,15 +295,14 @@ def compute_pr_curves_fixed(pred_json_path, class_names, iou_threshold=0.5, cont
     print(f"Total GT boxes: {total_gt_boxes}, total GT matched: {total_gt_matches}")
 
     return pr_results
-def compute_pr_curves_with_all_fixed(pred_json_path, class_names, iou_threshold=0.5, containment_threshold=0.9, test_set = False):
+
+def compute_pr_curves_with_all(pred_json_path, class_names, iou_threshold=0.5, containment_threshold=0.9, test_set = False):
     """
     Compute per-class PR curves and a macro-averaged PR curve including interpolated scores.
-    Uses compute_pr_curves_fixed to prevent double-counting of GT boxes.
     """
-    import numpy as np
 
     # Compute per-class PR curves with GT single-match enforcement
-    pr_results = compute_pr_curves_fixed(pred_json_path, class_names, iou_threshold, containment_threshold, test_set = test_set)
+    pr_results = compute_pr_curves(pred_json_path, class_names, iou_threshold, containment_threshold, test_set = test_set)
 
     # Standard recall points for interpolation
     recall_points = np.linspace(0, 1, 101)  # 0.0, 0.01, ..., 1.0
@@ -358,7 +375,6 @@ def find_best_pr_points(pr_results, prec_thresh=0.9, rec_thresh=0.8):
             where=denom > 0
         )
 
-        # --- Step 1: inside the "good" zone ---
         inside_mask = (precision >= prec_thresh) & (recall >= rec_thresh)
         if np.any(inside_mask):
             idx_inside = np.argmax(f1_scores[inside_mask])
@@ -408,22 +424,17 @@ def find_best_pr_points(pr_results, prec_thresh=0.9, rec_thresh=0.8):
 
     return best_points
 
-
-
-
-import matplotlib.pyplot as plt
-
 def plot_pr_curves(
     pr_results, 
-    best_points=None, 
-    second_points=None, 
+    best_points=None,  
     base_output_path=None, 
     metrics=None,
     title=None,
 ): 
     """
-    Plot PR curves for each class and optionally highlight best points 
-    and overlay metrics (per-class and summary).
+    Plot PR curves for each class
+    if best points are given, plots them as circles
+    if metrics are given (saved by predict_on_fixed_thresholds), plots pr points as squares
     """
 
     label_map = {
@@ -436,14 +447,13 @@ def plot_pr_curves(
 
     plt.figure(figsize=(8, 6))
 
-    # ----------------------------- COLOR MAPPING -----------------------------
     # Assign a fixed color to each class based on the label map order
     color_cycle = plt.rcParams['axes.prop_cycle'].by_key()['color']
     class_colors = {}
     for i, cls_name in enumerate(label_map.keys()):
         class_colors[cls_name] = color_cycle[i % len(color_cycle)]
 
-    # ----------------------------- PR CURVES -----------------------------
+    #plot the pr curves
     for cls_name, data in pr_results.items():
         # Skip classes with no data
         if len(data.get("recall", [])) == 0 or len(data.get("precision", [])) == 0:
@@ -462,15 +472,7 @@ def plot_pr_curves(
                 marker='o', s=40, edgecolors='k', facecolors='none', zorder=5, color=color
             )
 
-        # Second-best (squares)
-        if second_points and cls_name in second_points:
-            sp = second_points[cls_name]
-            plt.scatter(
-                sp["recall"], sp["precision"],
-                marker='s', s=20, edgecolors='k', facecolors='none', zorder=5, color=color
-            )
-
-    # ----------------------------- METRICS POINTS -----------------------------
+    #if metrics are given, plots pr points as squares
     if metrics:
         per_class = metrics.get("per_class", {})
         for cls_name, vals in per_class.items():
@@ -492,9 +494,8 @@ def plot_pr_curves(
                 color=color, zorder=6
             )
 
-
-    '''
     #results image processing
+    '''
     coords = [(0.5045945945945945, 0.784453781512605), (0.6048242237618681, 0.9210629152012505), (0.20974015870546134, 0.8685567010309279)]  # replace with your actual coordinates
     species_to_show = ["fungus gnats", "leaf miner flies", "whiteflies"]
 
@@ -502,13 +503,10 @@ def plot_pr_curves(
         plt.scatter(x, y, color=class_colors[sp], s=50, label=sp, zorder=10)
     '''
         
-    # Optionally add a legend for these markers
-    plt.legend(loc='upper right', fontsize=12, frameon=False)
-    # ----------------------------- TARGET ZONE -----------------------------
+    #plt.legend(loc='upper right', fontsize=12, frameon=False)
+    #target_zone
     plt.fill_betweenx([0.9, 1.0], 0.8, 1.0, color='gray', alpha=0.3)
 
-    # ----------------------------- LEGENDS -----------------------------
-    # Only add class legend if there are plotted classes
     plotted_classes = [cls_name for cls_name in pr_results if len(pr_results[cls_name].get("recall", [])) > 0]
     if plotted_classes:
         handles = [plt.Line2D([], [], color=class_colors[cls], label=label_map.get(cls, cls)) for cls in plotted_classes]
@@ -523,6 +521,7 @@ def plot_pr_curves(
     target_patch = plt.Rectangle((0, 0), 1, 1, color='gray', alpha=0.3)
     custom_handles.append(target_patch)
     custom_labels.append("Target zone")
+
     #prec_rec_handle = plt.Line2D([], [], color='k', marker='o', linestyle='None', markersize=6)
     #custom_handles.append(prec_rec_handle)
     #custom_labels.append("Precision/recall image processing")
@@ -539,7 +538,6 @@ def plot_pr_curves(
 
     plt.legend(custom_handles, custom_labels, loc="lower left", fontsize=12, bbox_to_anchor=(0.1, 0.05) )
     
-    # ----------------------------- LABELS -----------------------------
     plt.xlabel("Recall", fontsize = 12)
     plt.ylabel("Precision", fontsize = 12)
     plt.title(title, fontsize = 12)
@@ -547,7 +545,6 @@ def plot_pr_curves(
     plt.yticks(fontsize = 12)
     plt.grid(True)
 
-    # ----------------------------- SAVE -----------------------------
     if base_output_path:
         import os
         os.makedirs(base_output_path, exist_ok=True)
@@ -558,34 +555,23 @@ def plot_pr_curves(
     plt.close()
 
 
-
-
-
-
-#todo
-#unify path settings and saving/loading
-test_set= True
-#path = "/user/christoph.wald/u15287/insect_pest_detection/training/"
-#path = "/user/christoph.wald/u15287/insect_pest_detection/3_3_self_training_evaluation/"
-path = "/user/christoph.wald/u15287/insect_pest_detection/3_1_supervised_training_evaluation/"
+#setup
+test_set= True #if False, tests on validation set
+path = "/user/christoph.wald/u15287/insect_pest_detection/results/self_training_evaluation/"
 
 
 model_number = "4"
-
-
 if test_set:
     base_output_path = f"{path}metrics/train{model_number}_test_set"
 else:
     base_output_path = f"{path}metrics/train{model_number}"
 os.makedirs(base_output_path, exist_ok=True)
 
+class_names = ["fungus gnats", "leaf miner flies", "thrips", "whiteflies"]
 
-
-class_names = ["fungus gnats", "leaf miner flies", "thrips", "whiteflies"]  # replace with your classes
-
-'''
 #makes prediction with conf=0 and saves them
-raw_predictions_on_val(model_number = model_number,
+get_predictions(training_path = path,
+                model_number = model_number,
                     base_output_path=base_output_path,
                     skip_FRANOC = True,
                     predict_on_tiles = False,
@@ -593,25 +579,32 @@ raw_predictions_on_val(model_number = model_number,
 
 #reload the raw predictions and creates precision recall curves
 pred_json_path = os.path.join(base_output_path, "predictions_for_pr.json")
-pr_results = compute_pr_curves_with_all_fixed(pred_json_path, class_names, iou_threshold=0.5, containment_threshold=0.5, test_set = test_set)
+pr_results = compute_pr_curves_with_all(pred_json_path, class_names, iou_threshold=0.5, containment_threshold=0.5, test_set = test_set)
 
 # saves pr results
 with open(os.path.join(base_output_path, "pr_results.json"), "w") as f:
     json.dump(pr_results, f, indent=4)
-'''
 #reloads the pr results
 with open(os.path.join(base_output_path, "pr_results.json"), 'r') as f:
         pr_results = json.load(f)
 
-#plots the curves
+#calculates and saves operating points
 best_points = find_best_pr_points(pr_results)
 
+#loads saved operating points
 with open(os.path.join(base_output_path, "operating_points.json"), "w") as f:
         json.dump(best_points, f, indent=4)
 
+#plots curves
+#for validation set
 if not test_set:
-    plot_pr_curves(pr_results, best_points=best_points, base_output_path=base_output_path, title = "Model trained supervised on tiles and evaluated on validation set")
+    plot_pr_curves(pr_results, 
+                   best_points=best_points, 
+                   base_output_path=base_output_path, 
+                   title = "Model trained supervised on tiles and evaluated on validation set")
+#for test set
 else:
+    #loads metrics given by predict_on_fixed_thresholds
     with open(os.path.join(base_output_path, "metrics.json"), "r") as f:
         metrics_file = json.load(f)
 
