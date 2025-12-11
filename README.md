@@ -11,13 +11,13 @@ Misc. scripts for preprocessing.
 Splits data into labeled and unlabeled training sets, as well as test and validation sets.
 
 ## image_processing
-Scripts to create images with background structures masked out, to generate labels for foreground objects, and to create to different types of augmented training data.
+Scripts to create images with background structures masked out, to generate labels for foreground objects, and to create two different types of augmented training data.
 
 ## prepare_training_data
-For creating training data as expected by YOLO for full images or tiles.
+Scripts for creating training data as expected by YOLO for full images or tiles.
 
 ## training
-Scripts to generate pseudo-labels and wrapper to train a YOLOv8 model.
+Scripts to generate pseudo-labels and a wrapper to train a YOLOv8 model.
 
 ## evaluation
 Per class evaluation and comparison of trained models.
