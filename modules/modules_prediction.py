@@ -166,29 +166,34 @@ def compare_labels_vectorized(
     pred_scores,
     gt_boxes,
     gt_classes,
-    tile_size=640,
     iou_threshold=0.5,
-    containment_threshold=0.9, convert_to_xyxy = True
+    containment_threshold=0.9, 
+    convert_to_xyxy = True
 ):
     """
     Compare YOLO predictions to ground-truth boxes and return TP, FP, FN.
 
-    pred_boxes, gt_boxes: Tensor of shape (N,4) in YOLO format [xc, yc, w, h] normalized (0-1)
+    pred_boxes, gt_boxes: Tensor of shape (N,4), either xyxy-Format or normalized xc,yc, w, h - YOLO-Format (-> convert_to_xyxy to True)
     pred_classes, gt_classes: Tensor of shape (N,) integer class IDs
     pred_scores: Tensor of shape (N,) confidence scores
-    tile_size: tile size to scale normalized boxes to pixels
+    iou_threshold: intersection over union threshold
+    containment_threshold: threshold for setting boxes that are contained within as matched (matters for very small boxes)
     Returns:
         (tp_boxes, tp_classes, tp_scores), (fp_boxes, fp_classes, fp_scores), (fn_boxes, fn_classes)
         All lists with XYXY coordinates in pixels
     """
     device = pred_boxes.device
+    
+    if pred_boxes.numel() == 0 and gt_boxes.numel() == 0:
+        return ([], [], []), ([], [], [])
 
-    #sorting by confidence
+    #sorting predictions by by confidence
     sort_idx = torch.argsort(pred_scores, descending=True)
     pred_boxes = pred_boxes[sort_idx]
     pred_classes = pred_classes[sort_idx]
     pred_scores = pred_scores[sort_idx]
 
+    #converting to xyxy if necessary
     if convert_to_xyxy:
         pred_boxes_xyxy = yolo_to_xyxy_tensor(pred_boxes)
         gt_boxes_xyxy   = yolo_to_xyxy_tensor(gt_boxes)
@@ -196,16 +201,13 @@ def compare_labels_vectorized(
         pred_boxes_xyxy = pred_boxes
         gt_boxes_xyxy = gt_boxes
 
-    if pred_boxes_xyxy.numel() == 0 and gt_boxes_xyxy.numel() == 0:
-        return ([], [], []), ([], [], []), ([], [])
-
     # Compute areas
     pred_areas = (pred_boxes_xyxy[:, 2] - pred_boxes_xyxy[:, 0]).clamp(min=0) * \
                  (pred_boxes_xyxy[:, 3] - pred_boxes_xyxy[:, 1]).clamp(min=0)
     gt_areas = (gt_boxes_xyxy[:, 2] - gt_boxes_xyxy[:, 0]).clamp(min=0) * \
                (gt_boxes_xyxy[:, 3] - gt_boxes_xyxy[:, 1]).clamp(min=0)
 
-    # Compute intersections
+    # Compute intersections of areas
     xx1 = torch.max(pred_boxes_xyxy[:, None, 0], gt_boxes_xyxy[None, :, 0])
     yy1 = torch.max(pred_boxes_xyxy[:, None, 1], gt_boxes_xyxy[None, :, 1])
     xx2 = torch.min(pred_boxes_xyxy[:, None, 2], gt_boxes_xyxy[None, :, 2])
@@ -218,27 +220,19 @@ def compare_labels_vectorized(
     union = pred_areas[:, None] + gt_areas[None, :] - inter
     iou = inter / (union + 1e-6)
 
-    '''old
-    min_area = torch.min(pred_areas[:, None], gt_areas[None, :])
-    containment = inter / (min_area + 1e-6)
-    '''
-
-    
+    #Compute containment
     containment_pred_in_gt = inter / (pred_areas[:, None] + 1e-6)
     containment_gt_in_pred = inter / (gt_areas[None, :] + 1e-6)
     containment_match = (containment_pred_in_gt >= containment_threshold) | \
                         (containment_gt_in_pred >= containment_threshold)
-    
 
     # Class matching
     class_match = pred_classes[:, None] == gt_classes[None, :]
     match_matrix = class_match & ((iou >= iou_threshold) | containment_match)
-    #old
-    #match_matrix = class_match & ((iou >= iou_threshold) | (containment >= containment_threshold))
 
+    #initialize return variables
     matched_pred = torch.zeros(pred_boxes.size(0), dtype=torch.bool, device=device)
     matched_gt   = torch.zeros(gt_boxes.size(0), dtype=torch.bool, device=device)
-
     tp_boxes, tp_classes, tp_scores = [], [], []
     fp_boxes, fp_classes, fp_scores = [], [], []
 
