@@ -95,7 +95,7 @@ if get_cutout_boxes:
                 continue
             region_hsv = hsv_image[y1:y2, x1:x2]
 
-            #for whiteflies, contour are found by color thresholding + finding regions contained inside loops
+            #for whiteflies, contours are found by color thresholding + finding regions contained inside loops
             if filename.startswith("TRIAVA"):
                 binary_mask = create_binary_mask(region_hsv)
 
@@ -275,8 +275,9 @@ for i, emptyYST in enumerate(sheared_YSTs):
         
         img = empty_YST_cropped.copy()
         _, placed_boxes = place_insects_by_region(img, mask_binary, selected_insects[idx_insects], n_per_region) #places on the structures
-        _, placed_boxes = place_insects_by_region(img, mask_binary_fat, selected_insects[idx_insects], n_per_region) #places also near the structures
-
+        _, placed_boxes_extra = place_insects_by_region(img, mask_binary_fat, selected_insects[idx_insects], n_per_region) #places also near the structures
+        placed_boxes.extend(placed_boxes_extra)
+        
         if idx_augmentation == 1:
             img = cv2.rotate(img, cv2.ROTATE_180)
         if idx_augmentation == 2:
