@@ -1,7 +1,6 @@
 import sys
 sys.path.append("/user/christoph.wald/u15287/insect_pest_detection/modules")
 import cv2
-#import matplotlib.pyplot as plt
 from modules_segmentation import *
 from modules_augmentation import *
 import random
@@ -18,13 +17,13 @@ output_path = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_un
 os.makedirs(output_path, exist_ok = True)
 
 image_path = "/user/christoph.wald/u15287/big-scratch/02_splitted_data/train_unlabeled/03_images_masked_reduced"
-filenames = os.listdir(image_path)
+filenames_images = os.listdir(image_path)
 
 #select the first three of the empty images as masks for the lines
 empty_folder = "/user/christoph.wald/u15287/big-scratch/emptyYST"
-filenames = os.listdir(empty_folder)[:3]
+filenames_masks = os.listdir(empty_folder)[:3]
 masks = []
-for f in filenames:
+for f in filenames_masks:
     img = cv2.imread(os.path.join(empty_folder, f))
     empty_YST, _ = crop(img)
     mask = create_binary_mask(empty_YST) 
@@ -42,19 +41,19 @@ for f in filenames:
 
 
 #create the images
-for f in filenames:
+for f in filenames_images:
     img = cv2.imread(os.path.join(image_path, f))
     
-    #create first lines
+    #create first set of lines
     mask = masks[random.randint(0,len(masks)-1)]
     mask = circular_shift_mask_2d(mask)
     mask = fit_mask_to_image(mask, img.shape)
     mask0 = mask
-    #creates second lines
     
+    #creates second set of lines
     mask = masks[random.randint(0,len(masks)-1)]
     mask = circular_shift_mask_2d(mask)
-    mask = cv2.rotate(mask, cv2.ROTATE_180) #rotated
+    mask = cv2.rotate(mask, cv2.ROTATE_180) 
     mask = fit_mask_to_image(mask, img.shape)
     mask1 = mask
 
@@ -78,8 +77,6 @@ for f in filenames:
     merged[line_mask_3c1 == 255] = 0  # black lines
 
     #restore foreground
-    foreground_layer = np.zeros_like(img)
-    foreground_layer[yellow_mask_3c == 0] = img[yellow_mask_3c == 0]
     merged[yellow_mask_3c == 0] = img[yellow_mask_3c == 0]
 
     cv2.imwrite(os.path.join(output_path, f), merged)
